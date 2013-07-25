@@ -16,6 +16,7 @@ public class PlayerStorageServiceAsync implements PlayerServiceAsync {
     private static final String METHODS_LIST_KEY = "METHODS_LIST_KEY";
     private Storage localStorage;
     private PlayerServiceAsync rpc;
+    
         
     public PlayerStorageServiceAsync(PlayerServiceAsync arpc) {
         this.rpc = arpc;
