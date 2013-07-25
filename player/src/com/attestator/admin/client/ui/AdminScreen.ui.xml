@@ -1,0 +1,103 @@
+<!DOCTYPE ui:UiBinder SYSTEM "http://dl.google.com/gwt/DTD/xhtml.ent">
+<ui:UiBinder xmlns:ui='urn:ui:com.google.gwt.uibinder'
+	xmlns:g="urn:import:com.google.gwt.user.client.ui" 
+	xmlns:gxt="urn:import:com.sencha.gxt.widget.core.client"
+	xmlns:row="urn:import:com.sencha.gxt.widget.core.client.container"
+	xmlns:menu="urn:import:com.sencha.gxt.widget.core.client.menu"
+	xmlns:button="urn:import:com.sencha.gxt.widget.core.client.button"
+	xmlns:form="urn:import:com.sencha.gxt.widget.core.client.form"
+	xmlns:toolbar="urn:import:com.sencha.gxt.widget.core.client.toolbar"
+	xmlns:grid="urn:import:com.sencha.gxt.widget.core.client.grid"
+	xmlns:att="urn:import:com.attestator.admin.client.ui.widgets"
+	xmlns:tabs="urn:import:com.attestator.admin.client.ui.widgets.tabs">
+
+
+	<ui:with type="com.sencha.gxt.core.client.util.Margins" field="margins4">
+		<ui:attributes top="4" right="4" bottom="4" left="4" />
+	</ui:with>
+
+	<ui:with
+		type="com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData"
+		field="topVLData">
+		<ui:attributes width="1" height="40" margins="{margins4}" />
+	</ui:with>
+
+
+	<ui:with
+		type="com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData"
+		field="maxWidthMaxHeightVLData">
+		<ui:attributes width="1" height="1"  />
+	</ui:with>
+
+	<ui:with
+		type="com.sencha.gxt.widget.core.client.container.BoxLayoutContainer.BoxLayoutData"
+		field="boxLayoutDataMargins4">
+		<ui:attributes margins="{margins4}" />
+	</ui:with>
+
+	<ui:with
+		type="com.sencha.gxt.widget.core.client.container.BoxLayoutContainer.BoxLayoutData"
+		field="boxLayoutDataFlex1">
+		<ui:attributes flex="1" margins="{margins4}" />
+	</ui:with>
+
+	<ui:with type="com.sencha.gxt.widget.core.client.TabItemConfig" 
+		field="questionBankTabConfig">
+		    
+		<ui:attributes text="Банк вопросов" />
+		  
+	</ui:with>
+
+	<ui:with type="com.sencha.gxt.widget.core.client.TabItemConfig"
+		field="testsTabConfig">
+		    
+		<ui:attributes text="Тесты" enabled="false" />
+		  
+	</ui:with>
+
+	<ui:with type="com.sencha.gxt.widget.core.client.TabItemConfig"
+		field="reportsTabConfig">		    
+		<ui:attributes text="Отчеты"/>		  
+	</ui:with>
+
+	<ui:with type="com.sencha.gxt.widget.core.client.TabItemConfig"
+		field="studentsTabConfig">
+		<ui:attributes text="Студенты" enabled="false" />
+	</ui:with>
+
+	<row:VerticalLayoutContainer>
+		<row:child layoutData="{topVLData}">
+			<row:HBoxLayoutContainer hBoxLayoutAlign="TOP">
+				<row:child layoutData="{boxLayoutDataMargins4}">
+					<g:Hyperlink text="Лого" targetHistoryToken="main" />
+				</row:child>
+				<row:child layoutData="{boxLayoutDataFlex1}">
+					<g:Label />
+				</row:child>
+				<row:child layoutData="{boxLayoutDataMargins4}">
+					<g:Hyperlink text="Мои настройки" targetHistoryToken="settings" />
+				</row:child>
+				<row:child layoutData="{boxLayoutDataMargins4}">
+					<g:Hyperlink ui:field="logout" text="Выход" targetHistoryToken="" />
+				</row:child>
+			</row:HBoxLayoutContainer>
+		</row:child>
+		<row:child layoutData="{maxWidthMaxHeightVLData}">
+			<gxt:PlainTabPanel>
+				<gxt:child config="{questionBankTabConfig}">
+					<tabs:QuestionsBankTab/>
+				</gxt:child>
+<!-- 				<gxt:child config="{testsTabConfig}"> -->
+<!-- 					<g:Label text="aaaa" /> -->
+<!-- 				</gxt:child> -->
+				<gxt:child config="{reportsTabConfig}">
+					<tabs:ReportsTab/>
+				</gxt:child>
+<!-- 				<gxt:child config="{studentsTabConfig}"> -->
+<!-- 					<g:Label text="aaaa" /> -->
+<!-- 				</gxt:child> -->
+			</gxt:PlainTabPanel>
+		</row:child>
+	</row:VerticalLayoutContainer>
+
+</ui:UiBinder>

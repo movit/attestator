@@ -1,0 +1,97 @@
+<!DOCTYPE ui:UiBinder SYSTEM "http://dl.google.com/gwt/DTD/xhtml.ent">
+<ui:UiBinder xmlns:ui='urn:ui:com.google.gwt.uibinder'
+	xmlns:g="urn:import:com.google.gwt.user.client.ui" xmlns:gxt="urn:import:com.sencha.gxt.widget.core.client"
+	xmlns:row="urn:import:com.sencha.gxt.widget.core.client.container"
+	xmlns:menu="urn:import:com.sencha.gxt.widget.core.client.menu"
+	xmlns:button="urn:import:com.sencha.gxt.widget.core.client.button"
+	xmlns:form="urn:import:com.sencha.gxt.widget.core.client.form"
+	xmlns:toolbar="urn:import:com.sencha.gxt.widget.core.client.toolbar"
+	xmlns:grid="urn:import:com.sencha.gxt.widget.core.client.grid"
+	xmlns:att="urn:import:com.attestator.admin.client.ui.widgets">
+
+	<ui:with
+		type="com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData"
+		field="maxWidthMinHeightVLData">
+		<ui:attributes width="1" height="-1" />
+	</ui:with>
+
+	<ui:with
+		type="com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData"
+		field="maxWidthMaxHeightVLData">
+		<ui:attributes width="1" height="1" />
+	</ui:with>
+
+	<ui:with
+		type="com.sencha.gxt.widget.core.client.grid.CheckBoxSelectionModel"
+		field="questionsBankSm"></ui:with>
+	<ui:with type="com.sencha.gxt.widget.core.client.grid.ColumnModel"
+		field="questionsBankCm"></ui:with>
+	<ui:with type="com.sencha.gxt.data.shared.ListStore" field="questionsBankStore"></ui:with>
+	<ui:with type="com.sencha.gxt.widget.core.client.grid.GridView"
+		field="questionsBankView">
+		<ui:attributes stripeRows="true" forceFit="true"
+			autoFill="true"></ui:attributes>
+	</ui:with>
+
+	<ui:with
+		type="com.attestator.admin.client.ui.widgets.ButtonFileUpload.FileUploadFieldMessages"
+		field="uploadQusetionsMessages" />
+
+	<row:VerticalLayoutContainer ui:field="top">
+		<row:child layoutData="{maxWidthMinHeightVLData}">
+			<toolbar:ToolBar>
+				<button:TextButton text="Новый вопрос" ui:field="newQuestion">
+				</button:TextButton>
+				<toolbar:SeparatorToolItem />
+				<button:TextButton ui:field="editQuestionButton"
+					text="Редактировать" enabled="false" />
+				<toolbar:SeparatorToolItem />
+				<button:TextButton ui:field="setGroupButton" text="Изменить группу">
+					<button:menu>
+						<menu:Menu ui:field="setGroupMenu">
+							<menu:MenuItem text="Общие" />
+							<menu:MenuItem text="Математика" />
+							<menu:MenuItem text="Менеджмент" />
+							<menu:SeparatorMenuItem ui:field="setGroupMenuSeparator" />
+							<menu:MenuItem ui:field="setGroupEditGroupsMenuItem"
+								text="Редактировать группы ..." />
+						</menu:Menu>
+					</button:menu>
+				</button:TextButton>
+				<toolbar:SeparatorToolItem />
+				<button:TextButton ui:field="deleteQuestionsButton"
+					text="Удалить" enabled="false" />
+				<toolbar:SeparatorToolItem />
+				<form:FormPanel ui:field="uploadQuestionsForm"
+					action="admin/uploadquestions" encoding="MULTIPART" method="POST">
+					<att:ButtonFileUpload ui:field="uploadQuestionsField" name="uploadField"
+						width="75" messages="{uploadQusetionsMessages}" />
+				</form:FormPanel>				
+				<toolbar:SeparatorToolItem visible="false"/>
+				<button:TextButton text="Сохранить в файл" visible="false">
+					<button:menu>
+						<menu:Menu ui:field="saveMenu">
+							<menu:MenuItem ui:field="saveSelectedMenuItem"
+								text="Только выбранные вопросы" enabled="false" />
+							<menu:MenuItem ui:field="saveAllMenuItem" text="Все вопросы из банка" />
+							<menu:SeparatorMenuItem ui:field="saveGroupsMenuSeparator" />
+						</menu:Menu>
+					</button:menu>
+				</button:TextButton>
+				<toolbar:FillToolItem />
+				<att:SearchField ui:field="questionSearchField"
+					validationDelay="700" emptyText="Поиск"></att:SearchField>
+			</toolbar:ToolBar>
+		</row:child>
+		<row:child layoutData="{maxWidthMaxHeightVLData}">
+			<grid:Grid ui:field="questionsBankGrid" selectionModel="{questionsBankSm}"
+				view="{questionsBankView}" loadMask="true" columnReordering="true"
+				borders="false">
+			</grid:Grid>
+		</row:child>
+		<row:child layoutData="{maxWidthMinHeightVLData}">
+			<toolbar:PagingToolBar ui:field="questionsBankPager"
+				pageSize="50" reuseConfig="false"></toolbar:PagingToolBar>
+		</row:child>
+	</row:VerticalLayoutContainer>
+</ui:UiBinder>	

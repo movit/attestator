@@ -1,0 +1,13 @@
+@CHARSET "UTF-8";
+
+.publicationTitle {
+	font-weight: bold;
+}
+
+.publicationData {
+	font-size: 0.8em;
+}
+
+.publicationReportLink {
+	margin-left: 1em;
+}

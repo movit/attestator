@@ -1,0 +1,48 @@
+<!DOCTYPE ui:UiBinder SYSTEM "http://dl.google.com/gwt/DTD/xhtml.ent">
+<ui:UiBinder xmlns:ui='urn:ui:com.google.gwt.uibinder'
+	xmlns:g="urn:import:com.google.gwt.user.client.ui" 
+	xmlns:gxt="urn:import:com.sencha.gxt.widget.core.client"
+	xmlns:row="urn:import:com.sencha.gxt.widget.core.client.container"
+	xmlns:menu="urn:import:com.sencha.gxt.widget.core.client.menu"
+	xmlns:button="urn:import:com.sencha.gxt.widget.core.client.button"
+	xmlns:form="urn:import:com.sencha.gxt.widget.core.client.form"
+	xmlns:toolbar="urn:import:com.sencha.gxt.widget.core.client.toolbar"
+	xmlns:grid="urn:import:com.sencha.gxt.widget.core.client.grid"
+	xmlns:att="urn:import:com.attestator.admin.client.ui.widgets"
+	xmlns:tabs="urn:import:com.attestator.admin.client.ui.widgets.tabs">
+
+	<ui:with
+		type="com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData"
+		field="verticalLayoutData">
+		<ui:attributes width="1" height="-1" />
+	</ui:with>
+
+	<row:CenterLayoutContainer>
+		<row:child>
+			<gxt:FramedPanel headingText="Вход" width="350"
+				bodyStyle="background: none; padding: 5px">
+				<row:VerticalLayoutContainer>
+					<row:child layoutData="{verticalLayoutData}">
+						<form:FieldLabel text="Email">
+							<form:widget>
+								<form:TextField ui:field="email" />
+							</form:widget>
+						</form:FieldLabel>
+					</row:child>
+					<row:child layoutData="{verticalLayoutData}">
+						<form:FieldLabel text="Пароль">
+							<form:widget>
+								<form:PasswordField ui:field="password" />
+							</form:widget>
+						</form:FieldLabel>
+					</row:child>
+				</row:VerticalLayoutContainer>
+				<gxt:button>
+					<button:TextButton ui:field="loginButton" text="Войти">
+					</button:TextButton>
+				</gxt:button>
+			</gxt:FramedPanel>
+		</row:child>
+	</row:CenterLayoutContainer>
+
+</ui:UiBinder>

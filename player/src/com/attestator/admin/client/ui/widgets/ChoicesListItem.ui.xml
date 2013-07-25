@@ -1,0 +1,40 @@
+<!DOCTYPE ui:UiBinder SYSTEM "http://dl.google.com/gwt/DTD/xhtml.ent">
+<ui:UiBinder xmlns:ui='urn:ui:com.google.gwt.uibinder'
+	xmlns:g="urn:import:com.google.gwt.user.client.ui" xmlns:gxt="urn:import:com.sencha.gxt.widget.core.client"
+	xmlns:row="urn:import:com.sencha.gxt.widget.core.client.container"
+	xmlns:menu="urn:import:com.sencha.gxt.widget.core.client.menu"
+	xmlns:button="urn:import:com.sencha.gxt.widget.core.client.button"
+	xmlns:form="urn:import:com.sencha.gxt.widget.core.client.form"
+	xmlns:toolbar="urn:import:com.sencha.gxt.widget.core.client.toolbar"
+	xmlns:grid="urn:import:com.sencha.gxt.widget.core.client.grid"
+	xmlns:att="urn:import:com.attestator.admin.client.ui.widgets">
+
+	<ui:with type="com.attestator.common.client.ui.resolurces.Resources.Icons"
+		field="icons" />
+
+	<ui:with type="com.sencha.gxt.core.client.util.Margins" field="marginsRight5">
+		<ui:attributes top="0" right="5" bottom="0" left="0" />
+	</ui:with>
+
+	<ui:with
+		type="com.sencha.gxt.widget.core.client.container.BoxLayoutContainer.BoxLayoutData"
+		field="flexToolbarItem">
+		<ui:attributes flex="1" />
+	</ui:with>
+
+	<toolbar:ToolBar ui:field="container" borders="true" height="-1" >
+		<form:TextField layoutData="{flexToolbarItem}"
+			ui:field="text" allowBlank="true" />
+		<toolbar:SeparatorToolItem />
+		<form:Radio ui:field="right" boxLabel="Правильно" />
+		<toolbar:SeparatorToolItem />
+		<button:TextButton ui:field="upButton" iconAlign="TOP"
+			icon="{icons.up16x16}" />
+		<button:TextButton ui:field="downButton" iconAlign="TOP"
+			icon="{icons.down16x16}" />
+		<toolbar:SeparatorToolItem />
+		<button:TextButton ui:field="deleteButton"
+			iconAlign="TOP" icon="{icons.delete16x16}" />
+	</toolbar:ToolBar>
+
+</ui:UiBinder>

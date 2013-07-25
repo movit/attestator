@@ -1,0 +1,346 @@
+package com.attestator.player.server;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.log4j.Logger;
+
+import com.attestator.common.server.CommonLogic;
+import com.attestator.common.shared.helper.CheckHelper;
+import com.attestator.common.shared.helper.TestHelper;
+import com.attestator.common.shared.vo.AnswerVO;
+import com.attestator.common.shared.vo.BaseVO;
+import com.attestator.common.shared.vo.MTEGroupVO;
+import com.attestator.common.shared.vo.MTEQuestionVO;
+import com.attestator.common.shared.vo.MetaTestEntryVO;
+import com.attestator.common.shared.vo.MetaTestVO;
+import com.attestator.common.shared.vo.PublicationVO;
+import com.attestator.common.shared.vo.QuestionVO;
+import com.attestator.common.shared.vo.ReportVO;
+import com.attestator.common.shared.vo.SingleChoiceQuestionVO;
+import com.google.code.morphia.query.Query;
+
+public class PlayerLogic extends CommonLogic{
+    private static final Logger logger = Logger.getLogger(PlayerLogic.class);
+    
+    public List<String> getQuestionIdsByGroupId(String groupId) {
+        CheckHelper.throwIfNullOrEmpty(groupId, "groupId");        
+        
+        List<String>      result = new ArrayList<String>();
+        Query<QuestionVO> q      = Singletons.ds().createQuery(QuestionVO.class);
+        
+        if (groupId != null) {
+            q.field("groupId").equal(groupId);
+        }
+        else {
+            q.field("groupId").doesNotExist();
+        }
+        
+        List<QuestionVO> questions = q.asList();
+        for (QuestionVO question: questions) {
+            result.add(question.getId());
+        }
+        
+        return result;
+    }
+    
+    public PublicationVO getActivePublication(String id) {
+        CheckHelper.throwIfNullOrEmpty(id, "id");
+
+        Query<PublicationVO> pq = Singletons.ds().createQuery(PublicationVO.class);
+        
+        Date now = new Date();
+        pq.and(
+                pq.or(
+                        pq.criteria("start").doesNotExist(), 
+                        pq.criteria("start").lessThan(now)
+                    ),
+                pq.or(
+                        pq.criteria("end").doesNotExist(), 
+                        pq.criteria("end").greaterThanOrEq(now)
+                    ),
+                pq.criteria("_id").equal(id)
+        );
+        PublicationVO activePublication = pq.get();
+        
+        return activePublication;        
+    }
+    
+    public <T extends BaseVO> T getById(Class<T> clazz, String id) {
+        CheckHelper.throwIfNull(clazz, "clazz");
+        CheckHelper.throwIfNullOrEmpty(id, "id");
+        
+        Query<T> q = Singletons.ds().createQuery(clazz);
+        q.field("_id").equal(id);
+        T result = q.get();
+        return result;
+    }
+    
+    public long getNumberOfAttempts(String publicatioId, String clientId) {
+        CheckHelper.throwIfNullOrEmpty(publicatioId, "publicatioId");
+        CheckHelper.throwIfNullOrEmpty(clientId, "clientId");        
+        
+        Query<ReportVO> q = Singletons.ds().createQuery(ReportVO.class);
+        q.field("publication._id").equal(publicatioId);
+        q.field("clientId").equal(clientId);
+        
+        long result = q.countAll();
+        return result;
+    }
+
+    public String getLastFullReportId(String publicatioId, String clientId) {
+        CheckHelper.throwIfNullOrEmpty(publicatioId, "publicatioId");
+        CheckHelper.throwIfNullOrEmpty(clientId, "clientId");        
+        
+        Query<ReportVO> q = Singletons.ds().createQuery(ReportVO.class);
+        q.field("publication._id").equal(publicatioId);
+        q.field("clientId").equal(clientId);
+        q.order("-start");
+        q.retrievedFields(true, "_id");
+        
+        ReportVO report = q.get();
+
+        if (report != null) {
+            return report.getId();
+        }
+        else {
+            return null;
+        }
+    }
+    
+    public List<PublicationVO> getActivePublications() {
+        Query<PublicationVO> pq = Singletons.ds().createQuery(PublicationVO.class);
+        
+        Date now = new Date();
+        
+        pq.and(
+                pq.or(
+                        pq.criteria("start").doesNotExist(), 
+                        pq.criteria("start").lessThan(now)
+                ), 
+                pq.or(
+                        pq.criteria("end").doesNotExist(), 
+                        pq.criteria("end").greaterThanOrEq(now)
+                )
+        );
+        
+        List<PublicationVO> activePublications = pq.asList();
+        
+        return activePublications;
+    }
+
+    public PublicationVO generateTest(String publicationId) {
+        CheckHelper.throwIfNullOrEmpty(publicationId, "publicationId");
+        
+        if (publicationId == null) {
+            throw new IllegalArgumentException("publicationId required");
+        }
+        
+        PublicationVO publication = getActivePublication(publicationId);
+        if (publication == null) {
+            throw new IllegalStateException("Publication with " + publicationId + " not found or inactive");
+        }
+        
+        if (publication.getMetatestId() == null) {
+            throw new IllegalStateException("Publication " + publicationId + " have no metatestId");
+        }
+        
+        MetaTestVO metatest = getById(MetaTestVO.class, publication.getMetatestId());
+        if (metatest == null) {
+            throw new IllegalStateException("Metatest with " + publication.getMetatestId() + " not found");
+        }        
+        
+        // Prepare question by group mapping
+        Map<String, List<String>> questionsIdsByGroup = new HashMap<String, List<String>>();
+        for (MetaTestEntryVO mte: metatest.getEntries()) {
+            if (mte instanceof MTEGroupVO) {
+                String mteGroupId = ((MTEGroupVO) mte).getGroupId();
+                if (questionsIdsByGroup.get(mteGroupId) == null) {
+                    List<String> mteGroupQuestions = getQuestionIdsByGroupId(mteGroupId);
+                    Collections.shuffle(mteGroupQuestions);
+                    questionsIdsByGroup.put(mteGroupId, mteGroupQuestions);
+                }
+            }
+        }
+        
+        // Fill questions in the test
+        for (MetaTestEntryVO mte: metatest.getEntries()) {
+            if (mte instanceof MTEQuestionVO) {
+                String mteQuestionId = ((MTEQuestionVO) mte).getQuestionId();
+                if (mteQuestionId == null) {
+                    continue;
+                }
+                //TODO do we allow question duplication if user add one question to test several times
+//                if (testQuestionIds.contains(mteQuestionId)) {
+//                    continue;
+//                }
+                
+                QuestionVO question = getById(QuestionVO.class, mteQuestionId); 
+                if (question == null) {
+                    continue;
+                }                
+                
+                // Remove question from available group source
+                if (question.getGroupId() != null) {
+                    List<String> availableGroupQuestions = questionsIdsByGroup.get(question.getGroupId());
+                    if (availableGroupQuestions != null) {
+                        availableGroupQuestions.remove(question.getId());
+                    }
+                }
+                
+                publication.getQuestions().add(question);
+            } 
+            else if (mte instanceof MTEGroupVO) {
+                MTEGroupVO      mteGroup   = ((MTEGroupVO) mte);
+                List<String>    availableGroupQuestions = questionsIdsByGroup.get(mteGroup.getGroupId());
+                
+                int numOfQuestionsToAdd = 0;
+                if (mteGroup.getNumberOfQuestions() != null) {
+                    numOfQuestionsToAdd = Math.min(mteGroup.getNumberOfQuestions(), availableGroupQuestions.size()); 
+                }
+                else {
+                    numOfQuestionsToAdd = availableGroupQuestions.size();
+                }
+                        
+                for (int i = numOfQuestionsToAdd - 1; i >= 0; i--) {
+                    String     questionId  = availableGroupQuestions.remove(i);                    
+                    QuestionVO question    = getById(QuestionVO.class, questionId);
+                    
+                    publication.getQuestions().add(question);
+                }   
+            }
+            else {
+                logger.warn("Unsupported metatest entry " + mte.getClass().getName() + " skip for now.");
+            }
+        }
+        
+        // Shuffle questions, choices etc
+        prepare(publication);
+        
+        return publication;
+    }
+    
+    private void prepare(PublicationVO test) {
+        for (QuestionVO question: test.getQuestions()) {
+            prepare(question);
+        }
+        
+        if (test.isRandomQuestionsOrder()) {
+            Collections.shuffle(test.getQuestions());
+        }
+    }
+    
+    private void prepare(QuestionVO question) {
+        if (question instanceof SingleChoiceQuestionVO) {
+            if (((SingleChoiceQuestionVO) question).isThisRandomChoiceOrder()) {
+                Collections.shuffle(((SingleChoiceQuestionVO) question).getChoices());
+            }
+        }
+    }
+    
+    public ReportVO getReport(String reportId, String clientId) {
+        CheckHelper.throwIfNullOrEmpty(reportId, "reportId");
+        CheckHelper.throwIfNullOrEmpty(clientId, "clientId");        
+        
+        Query<ReportVO> q = Singletons.ds().createQuery(ReportVO.class);        
+        q.field("_id").equal(reportId);
+        q.field("clientId").equal(clientId);        
+        
+        ReportVO result = q.get();
+        return result;
+    }
+    
+    private void updateReportStats(ReportVO report) {        
+        report.setNumAnswers(report.getAnswers().size());
+        report.setNumUnanswered(report.getPublication().getQuestions().size() - report.getAnswers().size());
+        report.setNumErrors(TestHelper.getNumErrors(report));        
+        report.setScore(TestHelper.getScore(report));        
+    }
+    
+    public void startReport(ReportVO report, String clientId, String host) {
+        CheckHelper.throwIfNull(report, "report");        
+        CheckHelper.throwIfNull(report.getPublication(), "report.publication");        
+        CheckHelper.throwIfNull(report.getPublication().getMetatest(), "report.publication.metatest");        
+        CheckHelper.throwIfNullOrEmpty(clientId, "clientId");
+        
+        report.setMetatestName(report.getPublication().getMetatest().getName());
+        report.setClientId(clientId);
+        report.setHost(host);
+        report.setStart(new Date());
+        
+        updateReportStats(report);
+        
+        Singletons.ds().save(report);
+    }
+
+    public void addAnswer(String reportId, String clientId, AnswerVO answer) {
+        CheckHelper.throwIfNullOrEmpty(reportId, "reportId");
+        CheckHelper.throwIfNull(answer, "answer");
+        CheckHelper.throwIfNullOrEmpty(clientId, "clientId");
+        
+        Query<ReportVO> q = Singletons.ds().createQuery(ReportVO.class);        
+        q.field("_id").equal(reportId);
+        q.field("clientId").equal(clientId);
+        q.field("finished").notEqual(true);
+        
+        ReportVO report = q.get();
+        
+        if (report == null) {
+            return;
+        }
+        
+        // No such question in test
+        if (report.getPublication().getQuestion(answer.getQuestionId()) == null) {
+            return;
+        }
+
+        // This question already answered
+        if (report.getAnswerByQuestionId(answer.getQuestionId()) != null) {
+            return;
+        }        
+        
+        report.getAnswers().add(answer);
+        report.setEnd(new Date());        
+        updateReportStats(report);
+        
+        Singletons.ds().save(report);
+        
+//        UpdateOperations<ReportVO> uo = Singletons.ds().createUpdateOperations(ReportVO.class);        
+//        uo.add("answers", answer);
+//        uo.set("end", new Date());
+//        
+//        Singletons.ds().update(q, uo);
+    }
+    
+    public void finishReport(String reportId, String clientId) {
+        CheckHelper.throwIfNullOrEmpty(reportId, "reportId");
+        CheckHelper.throwIfNullOrEmpty(clientId, "clientId");
+        
+        Query<ReportVO> q = Singletons.ds().createQuery(ReportVO.class);        
+        q.field("_id").equal(reportId);
+        q.field("clientId").equal(clientId);
+        q.field("finished").notEqual(true);
+
+        ReportVO report = q.get();
+        
+        if (report == null) {
+            return;
+        }
+        
+        report.setEnd(new Date());
+        report.setFinished(true);
+        updateReportStats(report);
+        
+        Singletons.ds().save(report);
+        
+//        UpdateOperations<ReportVO> uo = Singletons.ds().createUpdateOperations(ReportVO.class);        
+//        uo.set("end", new Date());
+//        uo.set("finished", true);
+//        
+//        Singletons.ds().update(q, uo);
+    }
+}

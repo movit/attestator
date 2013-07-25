@@ -1,0 +1,44 @@
+package com.attestator.common.shared.vo;
+
+import java.util.Date;
+
+import com.google.code.morphia.annotations.Entity;
+
+@Entity("user")
+public class UserVO extends TenantableVO {	
+    private static final long serialVersionUID = -2277743477030122995L;
+    
+    private String defaultGroupId;
+    private String email;
+	private String password;
+	private Date   created = new Date();
+	
+    public UserVO() {
+        setTenantId(getId());
+        defaultGroupId = getId();
+    }    
+	public String getEmail() {
+		return email;
+	}
+	public void setEmail(String email) {
+		this.email = email;
+	}
+	public String getPassword() {
+		return password;
+	}
+	public void setPassword(String password) {
+		this.password = password;
+	}
+    public Date getCreated() {
+        return created;
+    }
+    public void setCreated(Date created) {
+        this.created = created;
+    }
+    public String getDefaultGroupId() {
+        return defaultGroupId;
+    }
+    public void setDefaultGroupId(String defaultGroupId) {
+        this.defaultGroupId = defaultGroupId;
+    }
+}

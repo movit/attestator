@@ -1,0 +1,19 @@
+@CHARSET "UTF-8";
+
+.navButtonCurrent {
+	color: white;
+	background-color: #155FB2;
+	border-radius: 3px;
+}
+
+.timerLabel {
+	font-size: 		10px;
+	white-space:	nowrap;
+	color: 			gray;
+}
+
+.questionNoLabel {
+	font-weight:	bold;
+	font-size: 		11px;
+	white-space:	nowrap;
+}
