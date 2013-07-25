@@ -6,7 +6,7 @@ import com.google.gwt.user.client.ui.Widget;
 import com.sencha.gxt.core.client.util.TextMetrics;
 import com.sencha.gxt.widget.core.client.container.Container;
 
-public class WidgetHelpr {
+public class WidgetHelpr {    
     public static int widgetIndex(Container parent, Widget child) {
         for (int i = 0; i < parent.getWidgetCount(); i++) {
             if (parent.getWidget(i) == child) {
