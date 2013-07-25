@@ -1,3 +1,4 @@
+
 package com.attestator.player.client;
 
 import com.attestator.common.client.ui.resolurces.Resources;
