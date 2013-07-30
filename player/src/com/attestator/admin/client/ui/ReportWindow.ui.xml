@@ -37,6 +37,7 @@
 			<row:child layoutData="{reportTypeVLData}">
 				<row:HorizontalLayoutContainer>
 					<form:Radio ui:field="onlyErrorsRadio" boxLabel="Только ошибки" />
+					<form:Radio ui:field="errorsAndNotUnsweredRadio" boxLabel="Ошибки и пропущенные" />
 					<form:Radio ui:field="fullRadio" boxLabel="Полный отчет"/>
 				</row:HorizontalLayoutContainer>
 			</row:child>

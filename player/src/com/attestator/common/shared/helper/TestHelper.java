@@ -40,6 +40,8 @@ public class TestHelper {
     }
 
     public static String getReport(ReportVO report, ReportType type) {
+        updateReportStats(report);
+        
         HtmlBuilder hb = new HtmlBuilder();
         hb.startTag("div", "report");
         hb.startTag("div", "reportTitle").appendText("Отчет о прохождении теста").endTag("div");
@@ -55,30 +57,20 @@ public class TestHelper {
             hb.startTag("div", "reportStudentName").appendText(name).endTag("div");
         }
 
-        int numErrors = 0;
-        double score = 0;        
-        for (int i = 0; i < report.getPublication().getQuestions().size(); i++) {
-            QuestionVO question = report.getPublication().getQuestions().get(i);
-            AnswerVO answer = report.getAnswerByQuestionId(question.getId());
-            score += question.getAnswerScore(answer);
-            if (!question.isRightAnswer(answer)) {
-                numErrors++;
-            }
-        }
-        
         String totalScoreStr = "";
-        if ((score - ((int)score)) == 0) {
-            totalScoreStr = "" + (int)score;
+        if ((report.getScore() - report.getScore().intValue()) == 0) {
+            totalScoreStr = "" + report.getScore().intValue();
         }
         else {
-            totalScoreStr = "" + score;
+            totalScoreStr = "" + report.getScore() ;
         }
         
         
         // Score report line
         hb.appendText("Всего&nbsp;заданий:&nbsp;<b>" + report.getPublication().getQuestions().size() + "</b>, ");
-        hb.appendText("выполнено:&nbsp;<b>" + report.getAnswers().size() + "</b>, ");
-        hb.appendText("ошибок:&nbsp;<b>" + numErrors + "</b>, ");
+        hb.appendText("выполнено:&nbsp;<b>" + report.getNumAnswers() + "</b>, ");
+        hb.appendText("ошибок:&nbsp;<b>" + report.getNumErrors() + "</b>, ");
+        hb.appendText("неотвечено:&nbsp;<b>" + report.getNumUnanswered() + "</b>, ");
         hb.appendText("набрано&nbsp;баллов:&nbsp;<b>" + totalScoreStr + "</b>");
         hb.appendText("<br/>");
         
@@ -248,5 +240,12 @@ public class TestHelper {
         else {
             return (int)score + " баллов";
         }
+    }
+    
+    public static void updateReportStats(ReportVO report) {        
+        report.setNumAnswers(report.getAnswers().size());
+        report.setNumUnanswered(report.getPublication().getQuestions().size() - report.getAnswers().size());
+        report.setNumErrors(getNumErrors(report));        
+        report.setScore(getScore(report));        
     }
 }

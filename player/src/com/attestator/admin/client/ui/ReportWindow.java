@@ -32,6 +32,9 @@ public class ReportWindow implements IsWidget {
 
     @UiField
     Radio onlyErrorsRadio;
+
+    @UiField
+    Radio errorsAndNotUnsweredRadio;
     
     @UiField
     HTML reportHtml;
@@ -51,15 +54,19 @@ public class ReportWindow implements IsWidget {
         
         ToggleGroup toggle = new ToggleGroup();
         toggle.add(fullRadio);
+        toggle.add(errorsAndNotUnsweredRadio);
         toggle.add(onlyErrorsRadio);
         toggle.addValueChangeHandler(new ValueChangeHandler<HasValue<Boolean>>() {            
             @Override
             public void onValueChange(ValueChangeEvent<HasValue<Boolean>> event) {
-                if (fullRadio.getValue()) {
-                    reportHtml.setHTML(TestHelper.getReport(report, ReportType.full));
+                if (errorsAndNotUnsweredRadio.getValue()) {
+                    reportHtml.setHTML(TestHelper.getReport(report, ReportType.errorsAndNotUnswered));
+                }
+                else if (onlyErrorsRadio.getValue()) {
+                    reportHtml.setHTML(TestHelper.getReport(report, ReportType.onlyErrors));
                 }
                 else {
-                    reportHtml.setHTML(TestHelper.getReport(report, ReportType.onlyErrors));
+                    reportHtml.setHTML(TestHelper.getReport(report, ReportType.full));
                 }
                 scrollContainer.getScrollSupport().scrollToTop();
             }

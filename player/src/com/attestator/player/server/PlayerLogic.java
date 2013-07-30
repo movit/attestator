@@ -254,13 +254,6 @@ public class PlayerLogic extends CommonLogic{
         return result;
     }
     
-    private void updateReportStats(ReportVO report) {        
-        report.setNumAnswers(report.getAnswers().size());
-        report.setNumUnanswered(report.getPublication().getQuestions().size() - report.getAnswers().size());
-        report.setNumErrors(TestHelper.getNumErrors(report));        
-        report.setScore(TestHelper.getScore(report));        
-    }
-    
     public void startReport(ReportVO report, String clientId, String host) {
         CheckHelper.throwIfNull(report, "report");        
         CheckHelper.throwIfNull(report.getPublication(), "report.publication");        
@@ -272,7 +265,7 @@ public class PlayerLogic extends CommonLogic{
         report.setHost(host);
         report.setStart(new Date());
         
-        updateReportStats(report);
+        TestHelper.updateReportStats(report);
         
         Singletons.ds().save(report);
     }
@@ -305,7 +298,7 @@ public class PlayerLogic extends CommonLogic{
         
         report.getAnswers().add(answer);
         report.setEnd(new Date());        
-        updateReportStats(report);
+        TestHelper.updateReportStats(report);
         
         Singletons.ds().save(report);
         
@@ -333,7 +326,7 @@ public class PlayerLogic extends CommonLogic{
         
         report.setEnd(new Date());
         report.setFinished(true);
-        updateReportStats(report);
+        TestHelper.updateReportStats(report);
         
         Singletons.ds().save(report);
         
