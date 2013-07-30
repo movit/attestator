@@ -120,7 +120,7 @@ public class AdminLogic extends CommonLogic {
             addOrders(q, loadConfig.getSortInfo());
         }
         else {
-            q.order("-start, _id");
+            q.order("-start,  _id");
         }
         
         
