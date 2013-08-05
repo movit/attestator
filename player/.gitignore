@@ -1,9 +1,6 @@
 /.gwt
-/.settings
 /gwt-unitCache
 /.checkstyle
-/.classpath
-/.project
 /war.admin.production
 /war.player.production
 /test
