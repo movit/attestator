@@ -17,6 +17,7 @@ import com.attestator.common.shared.SharedConstants;
 import com.attestator.common.shared.helper.Base62Helper;
 
 public class ClientIdManager implements Filter {
+	
     
     private static ThreadLocal<String> clientId = new ThreadLocal<String>(); 
     
