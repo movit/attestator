@@ -103,8 +103,7 @@ public class ReportsTab extends Composite {
         List<ColumnConfig<ReportVO, ?>> l = new ArrayList<ColumnConfig<ReportVO, ?>>();
         l.add(sm.getColumn());
         l.add(new ColumnConfig<ReportVO, String>(reportProperties.metatestName(), 60, "Тест"));
-        l.add(new ColumnConfig<ReportVO, String>(reportProperties.firstName(), 30, "Имя"));
-        l.add(new ColumnConfig<ReportVO, String>(reportProperties.lastName(), 30, "Фамилия"));
+        l.add(new ColumnConfig<ReportVO, String>(reportProperties.fullName(), 80, "Имя"));
         l.add(new ColumnConfig<ReportVO, String>(reportProperties.host(), 30, "Хост"));
         l.add(new ColumnConfig<ReportVO, String>(reportProperties.clientId(), 20, "ID клиента"));
         ColumnConfig<ReportVO, Date> ccStart = new ColumnConfig<ReportVO, Date>(reportProperties.start(), 30, "Первый ответ");

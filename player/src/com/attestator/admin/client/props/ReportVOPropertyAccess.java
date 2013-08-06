@@ -11,6 +11,7 @@ public interface ReportVOPropertyAccess extends PropertyAccess<ReportVO> {
     ValueProvider<ReportVO, String> firstName();
     ValueProvider<ReportVO, String> lastName();
     ValueProvider<ReportVO, String> middleName();
+    ValueProvider<ReportVO, String> fullName();
     ValueProvider<ReportVO, String> email();
 
     ValueProvider<ReportVO, String> metatestName();

@@ -3,6 +3,7 @@ package com.attestator.player.client.ui.portlet;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.attestator.common.client.ui.widgets.NameField;
 import com.attestator.common.shared.helper.StringHelper;
 import com.attestator.common.shared.vo.AdditionalQuestionAnswerVO;
 import com.attestator.common.shared.vo.AdditionalQuestionVO;
@@ -51,13 +52,13 @@ public class PublicationPortlet implements IsWidget {
         }
         
         if (publication.isAskLastName()) {
-            addQuestionField("lastName", "Фамилия", publication.isAskLastNameRequired(), null);
+        	addNameField("lastName", "Фамилия", publication.isAskLastNameRequired(), null);
         }
         if (publication.isAskFirstName()) {
-            addQuestionField("firstName", "Имя", publication.isAskFirstNameRequired(), null);
+        	addNameField("firstName", "Имя", publication.isAskFirstNameRequired(), null);
         }
         if (publication.isAskMiddleName()) {
-            addQuestionField("middleName", "Отчество", publication.isAskMiddleNameRequired(), null);
+        	addNameField("middleName", "Отчество", publication.isAskMiddleNameRequired(), null);
         }
         if (publication.isAskEmail()) {
             addQuestionField("email", "email", publication.isAskEmailRequired(), new RegExValidator("^[_a-z0-9-]+(\\.[_a-z0-9-]+)*@[a-z0-9-]+(\\.[a-z0-9-]+)*(\\.[a-z]{2,4})$", "Неправильный email"));
@@ -74,8 +75,7 @@ public class PublicationPortlet implements IsWidget {
         frm.forceLayout();
     }
 
-    private TextField addQuestionField(Object question, String text, boolean required, Validator<String> validator) {
-        TextField tf = new TextField();
+    private TextField addQuestionField(TextField tf, Object question, String text, boolean required, Validator<String> validator) {
         tf.setData("question", question);        
         if (required) {
             tf.setAllowBlank(false);
@@ -86,6 +86,16 @@ public class PublicationPortlet implements IsWidget {
         fields.add(tf);
         vl.add(new FieldLabel(tf, text), new VerticalLayoutData());
         return tf;
+    }
+    
+    private TextField addQuestionField(Object question, String text, boolean required, Validator<String> validator) {
+        TextField tf = new TextField();
+        return addQuestionField(tf, question, text, required, validator);
+    }
+
+    private TextField addNameField(Object question, String text, boolean required, Validator<String> validator) {
+        NameField tf = new NameField();
+        return addQuestionField(tf, question, text, required, validator);
     }
     
     public void focusInvalid() {        

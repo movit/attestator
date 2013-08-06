@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.List;
 
 import com.attestator.common.shared.helper.NullHelper;
+import com.attestator.common.shared.helper.StringHelper;
 import com.google.code.morphia.annotations.Entity;
 
 @Entity("report")
@@ -78,6 +79,9 @@ public class ReportVO extends TenantableVO {
     }
     public void setMiddleName(String middleName) {
         this.middleName = middleName;
+    }
+    public String getFullName() {
+		return StringHelper.concatAllNotEmpty(" ", lastName, firstName, middleName);
     }
     public String getEmail() {
         return email;
@@ -153,5 +157,5 @@ public class ReportVO extends TenantableVO {
     }
     public void setNumUnanswered(Integer numUnanswered) {
         this.numUnanswered = numUnanswered;
-    }    
+    }
 }

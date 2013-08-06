@@ -23,6 +23,7 @@ import com.google.code.morphia.query.Query;
 import com.google.code.morphia.query.UpdateOperations;
 import com.sencha.gxt.data.shared.SortDir;
 import com.sencha.gxt.data.shared.SortInfo;
+import com.sencha.gxt.data.shared.SortInfoBean;
 import com.sencha.gxt.data.shared.loader.FilterConfig;
 import com.sencha.gxt.data.shared.loader.FilterPagingLoadConfig;
 import com.sencha.gxt.data.shared.loader.PagingLoadResult;
@@ -52,6 +53,21 @@ public class AdminLogic extends CommonLogic {
         }
         
         return result;
+    }
+    
+    private List<? extends SortInfo> prepareReportSortInfo(List<? extends SortInfo> orders) {
+    	List<SortInfo> result = new ArrayList<SortInfo>();
+    	for (SortInfo si: orders) {
+    		if ("fullName".equals(si.getSortField())) {
+    			result.add(new SortInfoBean("lastName", si.getSortDir()));
+    			result.add(new SortInfoBean("firstName", si.getSortDir()));
+    			result.add(new SortInfoBean("middleName", si.getSortDir()));
+    		}
+    		else {
+    			result.add(si);
+    		}
+    	}
+    	return result;
     }
     
     private <T> void addOrders(Query<T> q, List<? extends SortInfo> orders) {
@@ -117,7 +133,8 @@ public class AdminLogic extends CommonLogic {
 
         // Add order
         if (!NullHelper.nullSafeIsEmpty(loadConfig.getSortInfo())) {
-            addOrders(q, loadConfig.getSortInfo());
+        	List<? extends SortInfo> sortInfo = prepareReportSortInfo(loadConfig.getSortInfo());
+            addOrders(q, sortInfo);
         }
         else {
             q.order("-start, _id");
