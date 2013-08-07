@@ -17,9 +17,9 @@
 		<ui:attributes width="1" height="-1" />
 	</ui:with>
 
-	<row:CenterLayoutContainer>
+	<row:CenterLayoutContainer >
 		<row:child>
-			<gxt:FramedPanel headingText="Вход" width="350"
+			<gxt:FramedPanel headingText="Вход" width="350" 
 				bodyStyle="background: none; padding: 5px">
 				<row:VerticalLayoutContainer>
 					<row:child layoutData="{verticalLayoutData}">
