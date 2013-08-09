@@ -36,13 +36,16 @@ public class PublicationVO extends TenantableVO {
     private Boolean         askEmail;
     private Boolean         askEmailRequired;
     
-    private Integer         maxAttempts = 0; 
+    private Integer         maxAttempts = 0;
+
+    private Double			minScore = 0d;
+    private Boolean 		interruptOnFalure;
     
-    private Long                   maxTakeTestTime;
-    private Long                   maxQuestionAnswerTime;
-    private Boolean                allowSkipQuestions = false;  
-    private Boolean                allowInterruptTest = false;  
-    private Boolean                randomQuestionsOrder = false;
+    private Long            maxTakeTestTime;
+    private Long            maxQuestionAnswerTime;
+    private Boolean         allowSkipQuestions = false;  
+    private Boolean         allowInterruptTest = false;  
+    private Boolean         randomQuestionsOrder = false;
     
     private List<AdditionalQuestionVO> additionalQuestions = new ArrayList<AdditionalQuestionVO>();    
     private List<QuestionVO> questions = new ArrayList<QuestionVO>();
@@ -267,9 +270,27 @@ public class PublicationVO extends TenantableVO {
     }
     public void setAllowInterruptTest(Boolean allowInterruptTest) {
         this.allowInterruptTest = allowInterruptTest;
-    }
+    }    
+    public double getThisMinScore() {
+        return NullHelper.nullSafeDoubleOrZerro(minScore);
+    }    
+    public Double getMinScore() {
+		return minScore;
+	}
+	public void setMinScore(Double minScore) {
+		this.minScore = minScore;
+	}
+	public Boolean getInterruptOnFalure() {
+		return interruptOnFalure;
+	}
+	public void setInterruptOnFalure(Boolean interruptOnFalure) {
+		this.interruptOnFalure = interruptOnFalure;
+	}
+	public boolean isThisInterruptOnFalure(){
+		return NullHelper.nullSafeTrue(interruptOnFalure);
+	}
 
-    @Override
+	@Override
     public String toString() {
         return "PublicationVO [metatestId=" + metatestId + ", metatest="
                 + metatest + ", start=" + start + ", end=" + end

@@ -11,7 +11,7 @@ import org.apache.log4j.Logger;
 
 import com.attestator.common.server.CommonLogic;
 import com.attestator.common.shared.helper.CheckHelper;
-import com.attestator.common.shared.helper.TestHelper;
+import com.attestator.common.shared.helper.ReportHelper;
 import com.attestator.common.shared.vo.AnswerVO;
 import com.attestator.common.shared.vo.BaseVO;
 import com.attestator.common.shared.vo.MTEGroupVO;
@@ -70,6 +70,7 @@ public class PlayerLogic extends CommonLogic{
         return activePublication;        
     }
     
+    @Override
     public <T extends BaseVO> T getById(Class<T> clazz, String id) {
         CheckHelper.throwIfNull(clazz, "clazz");
         CheckHelper.throwIfNullOrEmpty(id, "id");
@@ -265,7 +266,7 @@ public class PlayerLogic extends CommonLogic{
         report.setHost(host);
         report.setStart(new Date());
         
-        TestHelper.updateReportStats(report);
+        ReportHelper.updateReportStats(report);
         
         Singletons.ds().save(report);
     }
@@ -298,7 +299,7 @@ public class PlayerLogic extends CommonLogic{
         
         report.getAnswers().add(answer);
         report.setEnd(new Date());        
-        TestHelper.updateReportStats(report);
+        ReportHelper.updateReportStats(report);
         
         Singletons.ds().save(report);
         
@@ -309,7 +310,7 @@ public class PlayerLogic extends CommonLogic{
 //        Singletons.ds().update(q, uo);
     }
     
-    public void finishReport(String reportId, String clientId) {
+    public void finishReport(String reportId, String clientId, boolean interrupted) {
         CheckHelper.throwIfNullOrEmpty(reportId, "reportId");
         CheckHelper.throwIfNullOrEmpty(clientId, "clientId");
         
@@ -326,7 +327,8 @@ public class PlayerLogic extends CommonLogic{
         
         report.setEnd(new Date());
         report.setFinished(true);
-        TestHelper.updateReportStats(report);
+        report.setInterrupted(interrupted);
+        ReportHelper.updateReportStats(report);
         
         Singletons.ds().save(report);
         

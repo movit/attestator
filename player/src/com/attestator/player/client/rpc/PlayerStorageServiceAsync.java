@@ -74,8 +74,9 @@ public class PlayerStorageServiceAsync implements PlayerServiceAsync {
                 else if ("finishReport".equals(descriptor.getMethod())) {
                     String   tenantId = descriptor.getArguments().get(0); 
                     String   reportId = descriptor.getArguments().get(1); 
-
-                    rpc.finishReport(tenantId, reportId, new AsyncCallback<Void>() {
+                    boolean  interrupted = Boolean.parseBoolean(descriptor.getArguments().get(2));
+                    
+                    rpc.finishReport(tenantId, reportId, interrupted, new AsyncCallback<Void>() {
                         @Override
                         public void onFailure(Throwable caught) {
                             buzzy = false;                            
@@ -155,15 +156,16 @@ public class PlayerStorageServiceAsync implements PlayerServiceAsync {
     }
 
     @Override
-    public void finishReport(String tenantId, String reportId,
+    public void finishReport(String tenantId, String reportId, boolean interrupted,
             AsyncCallback<Void> callback) throws IllegalStateException {
         if (localStorage == null) {
-            rpc.finishReport(tenantId, reportId, callback);
+            rpc.finishReport(tenantId, reportId, interrupted, callback);
         }
         
         RpcCallDescriptor descriptor = new RpcCallDescriptor("finishReport", 
                 tenantId, 
-                reportId);
+                reportId, 
+                Boolean.toString(interrupted));
         
         RpcDefferdCalls calls = loadDefferdCalls();
         calls.getCalls().add(descriptor);

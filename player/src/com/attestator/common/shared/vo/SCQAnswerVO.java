@@ -16,7 +16,6 @@ public class SCQAnswerVO extends AnswerVO {
     public String toString() {
         return "SCQAnswerVO [choiceId=" + choiceId + ", getQuestionId()="
                 + getQuestionId() + ", getTime()=" + getTime() + "]";
-    }    
-    
-    
+    }
+
 }

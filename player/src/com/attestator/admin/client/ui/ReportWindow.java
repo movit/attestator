@@ -1,7 +1,7 @@
 package com.attestator.admin.client.ui;
 
-import com.attestator.common.shared.helper.TestHelper;
-import com.attestator.common.shared.helper.TestHelper.ReportType;
+import com.attestator.common.shared.helper.ReportHelper;
+import com.attestator.common.shared.helper.ReportHelper.ReportType;
 import com.attestator.common.shared.vo.ReportVO;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
@@ -60,19 +60,19 @@ public class ReportWindow implements IsWidget {
             @Override
             public void onValueChange(ValueChangeEvent<HasValue<Boolean>> event) {
                 if (errorsAndNotUnsweredRadio.getValue()) {
-                    reportHtml.setHTML(TestHelper.getReport(report, ReportType.errorsAndNotUnswered));
+                    reportHtml.setHTML(ReportHelper.getReport(report, ReportType.errorsAndNotUnswered));
                 }
                 else if (onlyErrorsRadio.getValue()) {
-                    reportHtml.setHTML(TestHelper.getReport(report, ReportType.onlyErrors));
+                    reportHtml.setHTML(ReportHelper.getReport(report, ReportType.onlyErrors));
                 }
                 else {
-                    reportHtml.setHTML(TestHelper.getReport(report, ReportType.full));
+                    reportHtml.setHTML(ReportHelper.getReport(report, ReportType.full));
                 }
                 scrollContainer.getScrollSupport().scrollToTop();
             }
         });
         toggle.setValue(onlyErrorsRadio);
-        reportHtml.setHTML(TestHelper.getReport(report, ReportType.onlyErrors));
+        reportHtml.setHTML(ReportHelper.getReport(report, ReportType.onlyErrors));
     }
     
     @UiHandler("cancelButton")

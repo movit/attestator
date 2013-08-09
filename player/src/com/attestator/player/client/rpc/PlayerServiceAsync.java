@@ -17,5 +17,5 @@ public interface PlayerServiceAsync {
     void getReport(String tenantId, String reportId, AsyncCallback<ReportVO> callback) throws IllegalStateException;
     void startReport(String tenantId, ReportVO report, AsyncCallback<Void> callback) throws IllegalStateException;
     void addAnswer(String tenantId, String reportId, AnswerVO answer, AsyncCallback<Void> callback) throws IllegalStateException;
-    void finishReport(String tenantId, String reportId, AsyncCallback<Void> callback) throws IllegalStateException;    
+    void finishReport(String tenantId, String reportId, boolean interrupted, AsyncCallback<Void> callback) throws IllegalStateException;    
 }

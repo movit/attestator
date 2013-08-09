@@ -33,6 +33,7 @@ public class PlayerServiceImpl extends RemoteServiceServlet implements
         }
     }
     
+    @Override
     public List<ActivePublicationDTO> getActivePulications(String tenantId) throws IllegalStateException {
         try {
             login(tenantId);
@@ -65,6 +66,7 @@ public class PlayerServiceImpl extends RemoteServiceServlet implements
         }
     }
     
+    @Override
     public PublicationVO generateTest(String tenantId, String publicationId) {
         try {
             login(tenantId);
@@ -92,6 +94,7 @@ public class PlayerServiceImpl extends RemoteServiceServlet implements
         }
     }
     
+    @Override
     public ReportVO getReport(String tenantId, String reportId) throws IllegalStateException {
         try {
             login(tenantId);
@@ -147,10 +150,10 @@ public class PlayerServiceImpl extends RemoteServiceServlet implements
     }
 
     @Override
-    public void finishReport(String tenantId, String reportId) throws IllegalStateException {
+    public void finishReport(String tenantId, String reportId, boolean interrupted) throws IllegalStateException {
         try {
             login(tenantId);            
-            Singletons.pl().finishReport(reportId, ClientIdManager.getThreadLocalClientId());
+            Singletons.pl().finishReport(reportId, ClientIdManager.getThreadLocalClientId(), interrupted);
         }
         catch (LoginException e) {
             logger.info(e.getMessage());

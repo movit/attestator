@@ -1,8 +1,8 @@
 package com.attestator.player.client.ui;
 
 import com.attestator.common.shared.helper.NullHelper;
-import com.attestator.common.shared.helper.TestHelper;
-import com.attestator.common.shared.helper.TestHelper.ReportType;
+import com.attestator.common.shared.helper.ReportHelper;
+import com.attestator.common.shared.helper.ReportHelper.ReportType;
 import com.attestator.common.shared.vo.ReportVO;
 import com.attestator.player.client.MainScreen;
 import com.attestator.player.client.Player;
@@ -43,7 +43,7 @@ public class ReportScreen extends MainScreen {
     
     private void initFromReport(ReportVO report) {
         clear();
-        String reportText = TestHelper.getReport(report, ReportType.onlyErrors);
+        String reportText = ReportHelper.getReport(report, ReportType.onlyErrors);
         HTML reportHtml = new HTML(reportText);
         vl.add(new Hyperlink("доступные тесты", newToken("publications")), new VerticalLayoutData(-1, -1, new Margins(10)));
         vl.add(reportHtml, new VerticalLayoutData(-1, -1, new Margins(10)));

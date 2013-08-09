@@ -11,25 +11,25 @@ import com.google.code.morphia.annotations.Entity;
 
 @Entity("question")
 public abstract class QuestionVO extends TenantableVO {
-	private static final long serialVersionUID = -2683964459602620222L;
-	@Pattern(regexp=".*[^\\s].*", message="Текст вопроса не может быть пустым")
-	private String      text;
-	private Date        modified;
-	@NotNull
-	private String      groupId;
+    private static final long serialVersionUID = -2683964459602620222L;
+    @Pattern(regexp = ".*[^\\s].*", message = "Текст вопроса не может быть пустым")
+    private String            text;
+    private Date              modified;
+    @NotNull
+    private String            groupId;
     @SetOnSave(refField = "groupId", targetClass = GroupVO.class, targetValueField = "name")
-	private String      groupName;    
-	private Long        maxQuestionAnswerTime;
-    private Double      score    = (double) 1;
-    private Double      penalty  = (double) 0;
-	
-	public String getText() {
-		return text;
-	}
+    private String            groupName;
+    private Long              maxQuestionAnswerTime;
+    private Double            score            = (double) 1;
+    private Double            penalty          = (double) 0;
 
-	public void setText(String text) {
-		this.text = text;
-	}
+    public String getText() {
+        return text;
+    }
+
+    public void setText(String text) {
+        this.text = text;
+    }
 
     public Date getModified() {
         return modified;
@@ -47,13 +47,12 @@ public abstract class QuestionVO extends TenantableVO {
         if (group != null) {
             groupId = group.getId();
             groupName = group.getName();
-        }
-        else {
+        } else {
             groupId = null;
             groupName = null;
         }
     }
-    
+
     public void setGroupId(String groupId) {
         this.groupId = groupId;
     }
@@ -65,7 +64,7 @@ public abstract class QuestionVO extends TenantableVO {
     public void setMaxQuestionAnswerTime(Long maxQuestionAnswerTime) {
         this.maxQuestionAnswerTime = maxQuestionAnswerTime;
     }
-    
+
     public Double getScore() {
         return score;
     }
@@ -73,7 +72,7 @@ public abstract class QuestionVO extends TenantableVO {
     public void setScore(Double score) {
         this.score = score;
     }
-    
+
     public Double getPenalty() {
         return penalty;
     }
@@ -81,12 +80,13 @@ public abstract class QuestionVO extends TenantableVO {
     public void setPenalty(Double penalty) {
         this.penalty = penalty;
     }
-    
+
     public double getAnswerScore(AnswerVO answer) {
-        Double questionScore = isRightAnswer(answer) ? getScore() : getPenalty();
+        Double questionScore = isRightAnswer(answer) ? getScore()
+                : getPenalty();
         return NullHelper.nullSafeDoubleOrZerro(questionScore);
     }
-    
+
     public String getGroupName() {
         return groupName;
     }
@@ -95,11 +95,11 @@ public abstract class QuestionVO extends TenantableVO {
         this.groupName = groupName;
     }
 
-    public abstract boolean  isRightAnswer(AnswerVO answer);
-    
+    public abstract boolean isRightAnswer(AnswerVO answer);
+
     public abstract AnswerVO getRightAnswer();
-    
-    public abstract String   toString(AnswerVO answer);
-    
-    public abstract String   getTaskDescription();
+
+    public abstract String toString(AnswerVO answer);
+
+    public abstract String getTaskDescription();
 }

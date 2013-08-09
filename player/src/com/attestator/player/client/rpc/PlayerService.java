@@ -19,5 +19,5 @@ public interface PlayerService extends RemoteService {
     ReportVO getReport(String tenantId, String reportId) throws IllegalStateException;
     void startReport(String tenantId, ReportVO report) throws IllegalStateException;
     void addAnswer(String tenantId, String reportId, AnswerVO answer) throws IllegalStateException;
-    void finishReport(String tenantId, String reportId) throws IllegalStateException;
+    void finishReport(String tenantId, String reportId, boolean interrupted) throws IllegalStateException;
 }

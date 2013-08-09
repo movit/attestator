@@ -121,6 +121,8 @@ public class DatabaseUpdater {
         PublicationVO publication = new PublicationVO();
         publication.setMaxTakeTestTime(600000l);
         publication.setMaxQuestionAnswerTime(60000l);
+        publication.setMinScore(2d);
+        publication.setInterruptOnFalure(true);
         publication.setAllowSkipQuestions(false);
         publication.setIntroduction("Пожалуйста заполните поля ниже. Без этого вы не сможете начать тест.");
         publication.setAskFirstName(true);
