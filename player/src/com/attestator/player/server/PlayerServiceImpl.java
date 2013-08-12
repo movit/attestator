@@ -8,13 +8,14 @@ import javax.security.auth.login.LoginException;
 import org.apache.log4j.Logger;
 
 import com.attestator.admin.server.LoginManager;
-import com.attestator.common.shared.helper.NullHelper;
 import com.attestator.common.shared.vo.AnswerVO;
 import com.attestator.common.shared.vo.PublicationVO;
+import com.attestator.common.shared.vo.QuestionVO;
 import com.attestator.common.shared.vo.ReportVO;
 import com.attestator.common.shared.vo.UserVO;
 import com.attestator.player.client.rpc.PlayerService;
 import com.attestator.player.shared.dto.ActivePublicationDTO;
+import com.attestator.player.shared.dto.TestDTO;
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 
 /**
@@ -64,35 +65,7 @@ public class PlayerServiceImpl extends RemoteServiceServlet implements
             logger.error("Error: ", e);
             throw new IllegalStateException(DEFAULT_ERROR_MESSAGE);
         }
-    }
-    
-    @Override
-    public PublicationVO generateTest(String tenantId, String publicationId) {
-        try {
-            login(tenantId);
-            
-            PublicationVO publication = Singletons.pl().getActivePublication(publicationId);
-            if (publication == null) {
-                return null;
-            }
-            
-            long numberOfAttempts = Singletons.pl().getNumberOfAttempts(publicationId, ClientIdManager.getThreadLocalClientId());            
-            if (NullHelper.nullSafeIntegerOrZerro(publication.getMaxAttempts()) > 0 
-            &&  numberOfAttempts >= publication.getMaxAttempts()) {
-                return null;
-            }
-            
-            return Singletons.pl().generateTest(publicationId);
-        }
-        catch (LoginException e) {
-            logger.info(e.getMessage());
-            throw new IllegalStateException(e.getMessage());
-        }
-        catch (Throwable e) {
-            logger.error("Error: ", e);
-            throw new IllegalStateException(DEFAULT_ERROR_MESSAGE);
-        }
-    }
+    }    
     
     @Override
     public ReportVO getReport(String tenantId, String reportId) throws IllegalStateException {
@@ -154,6 +127,35 @@ public class PlayerServiceImpl extends RemoteServiceServlet implements
         try {
             login(tenantId);            
             Singletons.pl().finishReport(reportId, ClientIdManager.getThreadLocalClientId(), interrupted);
+        }
+        catch (LoginException e) {
+            logger.info(e.getMessage());
+            throw new IllegalStateException(e.getMessage());
+        }
+        catch (Throwable e) {
+            logger.error("Error: ", e);
+            throw new IllegalStateException(DEFAULT_ERROR_MESSAGE);
+        }
+    }
+
+    @Override
+    public TestDTO getActiveTest(String tenantId, String publicationId)
+            throws IllegalStateException {
+        try {
+            login(tenantId);
+            
+            PublicationVO publication = Singletons.pl().getActivePublication(publicationId);            
+            if (publication == null) {
+                throw new IllegalStateException("Active publication with id " + publicationId + " not found.");
+            }
+            
+            List<QuestionVO> questions = Singletons.pl().getQuestions(publication);
+            
+            TestDTO result = new TestDTO();
+            result.setPublication(publication);
+            result.setQuestions(questions);
+            
+            return result;            
         }
         catch (LoginException e) {
             logger.info(e.getMessage());

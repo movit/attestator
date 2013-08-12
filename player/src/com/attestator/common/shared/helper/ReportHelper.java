@@ -22,8 +22,8 @@ public class ReportHelper {
         
     public static double getScore(ReportVO report) {
         double score = 0;        
-        for (int i = 0; i < report.getPublication().getQuestions().size(); i++) {
-            QuestionVO question = report.getPublication().getQuestions().get(i);
+        for (int i = 0; i < report.getQuestions().size(); i++) {
+            QuestionVO question = report.getQuestions().get(i);
             AnswerVO answer = report.getAnswerByQuestionId(question.getId());
             score += question.getAnswerScore(answer);
         }
@@ -32,8 +32,8 @@ public class ReportHelper {
     
     public static int getNumErrors(ReportVO report) {
         int numErrors = 0;
-        for (int i = 0; i < report.getPublication().getQuestions().size(); i++) {
-            QuestionVO question = report.getPublication().getQuestions().get(i);
+        for (int i = 0; i < report.getQuestions().size(); i++) {
+            QuestionVO question = report.getQuestions().get(i);
             AnswerVO answer = report.getAnswerByQuestionId(question.getId());
             if (answer != null && !question.isRightAnswer(answer)) {
                 numErrors++;
@@ -61,7 +61,7 @@ public class ReportHelper {
         }
         
         if (report.getPublication().getThisMinScore() > 0) {
-            String passedStr = report.getScore() > report.getPublication().getThisMinScore() ? "да" : "нет";
+            String passedStr = report.getScore() >= report.getPublication().getThisMinScore() ? "да" : "нет";
             hb.appendText("Аттестован:&nbsp;<b>" + passedStr + "</b>, ");
         }
         
@@ -89,7 +89,7 @@ public class ReportHelper {
          
         
         // Score report line
-        hb.appendText("Всего&nbsp;заданий:&nbsp;<b>" + report.getPublication().getQuestions().size() + "</b>, ");
+        hb.appendText("Всего&nbsp;заданий:&nbsp;<b>" + report.getQuestions().size() + "</b>, ");
         hb.appendText("Выполнено:&nbsp;<b>" + report.getNumAnswers() + "</b>, ");
         hb.appendText("Ошибок:&nbsp;<b>" + report.getNumErrors() + "</b>, ");
         hb.appendText("Неотвечено:&nbsp;<b>" + report.getNumUnanswered() + "</b>, ");
@@ -149,8 +149,8 @@ public class ReportHelper {
         }
 
         
-        for (int i = 0; i < report.getPublication().getQuestions().size(); i++) {
-            QuestionVO question = report.getPublication().getQuestions().get(i);
+        for (int i = 0; i < report.getQuestions().size(); i++) {
+            QuestionVO question = report.getQuestions().get(i);
             AnswerVO answer = report.getAnswerByQuestionId(question.getId());
             
             if (answer == null && type != ReportType.full && type != ReportType.errorsAndNotUnswered) {
@@ -266,13 +266,13 @@ public class ReportHelper {
     
     public static void updateReportStats(ReportVO report) {        
         report.setNumAnswers(report.getAnswers().size());
-        report.setNumUnanswered(report.getPublication().getQuestions().size() - report.getAnswers().size());
+        report.setNumUnanswered(report.getQuestions().size() - report.getAnswers().size());
         report.setNumErrors(getNumErrors(report));        
         report.setScore(getScore(report));        
     }
     
     public static double getPossibleScore(ReportVO report, int firstAllowedQuestionNo) {
-        List<QuestionVO> questions = new ArrayList<QuestionVO>(report.getPublication().getQuestions());
+        List<QuestionVO> questions = new ArrayList<QuestionVO>(report.getQuestions());
         if (firstAllowedQuestionNo < 0) {
             firstAllowedQuestionNo = questions.size();
         }

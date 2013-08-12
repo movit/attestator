@@ -70,6 +70,27 @@ public class PlayerLogic extends CommonLogic{
         return activePublication;        
     }
     
+    public List<PublicationVO> getActivePublications() {
+        Query<PublicationVO> pq = Singletons.ds().createQuery(PublicationVO.class);
+        
+        Date now = new Date();
+        
+        pq.and(
+                pq.or(
+                        pq.criteria("start").doesNotExist(), 
+                        pq.criteria("start").lessThan(now)
+                ), 
+                pq.or(
+                        pq.criteria("end").doesNotExist(), 
+                        pq.criteria("end").greaterThanOrEq(now)
+                )
+        );
+        
+        List<PublicationVO> activePublications = pq.asList();
+        
+        return activePublications;
+    }
+
     @Override
     public <T extends BaseVO> T getById(Class<T> clazz, String id) {
         CheckHelper.throwIfNull(clazz, "clazz");
@@ -113,47 +134,19 @@ public class PlayerLogic extends CommonLogic{
         }
     }
     
-    public List<PublicationVO> getActivePublications() {
-        Query<PublicationVO> pq = Singletons.ds().createQuery(PublicationVO.class);
-        
-        Date now = new Date();
-        
-        pq.and(
-                pq.or(
-                        pq.criteria("start").doesNotExist(), 
-                        pq.criteria("start").lessThan(now)
-                ), 
-                pq.or(
-                        pq.criteria("end").doesNotExist(), 
-                        pq.criteria("end").greaterThanOrEq(now)
-                )
-        );
-        
-        List<PublicationVO> activePublications = pq.asList();
-        
-        return activePublications;
-    }
-
-    public PublicationVO generateTest(String publicationId) {
-        CheckHelper.throwIfNullOrEmpty(publicationId, "publicationId");
-        
-        if (publicationId == null) {
-            throw new IllegalArgumentException("publicationId required");
-        }
-        
-        PublicationVO publication = getActivePublication(publicationId);
-        if (publication == null) {
-            throw new IllegalStateException("Publication with " + publicationId + " not found or inactive");
-        }
+    public List<QuestionVO> getQuestions(PublicationVO publication) {
+        CheckHelper.throwIfNull(publication, "publication");
         
         if (publication.getMetatestId() == null) {
-            throw new IllegalStateException("Publication " + publicationId + " have no metatestId");
+            throw new IllegalStateException("Publication " + publication.getId() + " have no metatestId");
         }
         
         MetaTestVO metatest = getById(MetaTestVO.class, publication.getMetatestId());
         if (metatest == null) {
             throw new IllegalStateException("Metatest with " + publication.getMetatestId() + " not found");
         }        
+        
+        List<QuestionVO> result = new ArrayList<QuestionVO>();
         
         // Prepare question by group mapping
         Map<String, List<String>> questionsIdsByGroup = new HashMap<String, List<String>>();
@@ -193,7 +186,7 @@ public class PlayerLogic extends CommonLogic{
                     }
                 }
                 
-                publication.getQuestions().add(question);
+                result.add(question);
             } 
             else if (mte instanceof MTEGroupVO) {
                 MTEGroupVO      mteGroup   = ((MTEGroupVO) mte);
@@ -211,7 +204,7 @@ public class PlayerLogic extends CommonLogic{
                     String     questionId  = availableGroupQuestions.remove(i);                    
                     QuestionVO question    = getById(QuestionVO.class, questionId);
                     
-                    publication.getQuestions().add(question);
+                    result.add(question);
                 }   
             }
             else {
@@ -220,18 +213,18 @@ public class PlayerLogic extends CommonLogic{
         }
         
         // Shuffle questions, choices etc
-        prepare(publication);
+        prepare(result, publication);
         
-        return publication;
+        return result;
     }
     
-    private void prepare(PublicationVO test) {
-        for (QuestionVO question: test.getQuestions()) {
+    private void prepare(List<QuestionVO> questions, PublicationVO publication) {
+        for (QuestionVO question: questions) {
             prepare(question);
         }
         
-        if (test.isRandomQuestionsOrder()) {
-            Collections.shuffle(test.getQuestions());
+        if (publication.isRandomQuestionsOrder()) {
+            Collections.shuffle(questions);
         }
     }
     
@@ -288,7 +281,7 @@ public class PlayerLogic extends CommonLogic{
         }
         
         // No such question in test
-        if (report.getPublication().getQuestion(answer.getQuestionId()) == null) {
+        if (report.getQuestion(answer.getQuestionId()) == null) {
             return;
         }
 

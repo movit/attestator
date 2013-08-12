@@ -37,6 +37,7 @@ public class ReportVO extends TenantableVO {
     private Integer numUnanswered;
     private String metatestName;
 
+    private List<QuestionVO> questions = new ArrayList<QuestionVO>();
     private List<AnswerVO> answers = new ArrayList<AnswerVO>();
 
     public Date getStart() {
@@ -208,5 +209,22 @@ public class ReportVO extends TenantableVO {
 
     public void setInterrupted(Boolean interrupted) {
         this.interrupted = interrupted;
+    }
+
+    public List<QuestionVO> getQuestions() {
+        return questions;
+    }
+    
+    public void setQuestions(List<QuestionVO> questions) {
+        this.questions = questions;
+    }
+
+    public QuestionVO getQuestion(String questionId) {
+        for (QuestionVO question: questions) {
+            if (NullHelper.nullSafeEquals(question.getId(), questionId)) {
+                return question;
+            }
+        }
+        return null;
     }
 }

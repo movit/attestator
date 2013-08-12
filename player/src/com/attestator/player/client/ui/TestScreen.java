@@ -23,6 +23,7 @@ import com.attestator.player.client.rpc.PlayerAsyncEmptyCallback;
 import com.attestator.player.client.ui.portlet.PublicationPortlet;
 import com.attestator.player.client.ui.portlet.question.QuestionPortlet;
 import com.attestator.player.client.ui.portlet.question.SCQuestionPortlet;
+import com.attestator.player.shared.dto.TestDTO;
 import com.google.gwt.dom.client.Style.TextAlign;
 import com.google.gwt.dom.client.Style.Unit;
 import com.google.gwt.event.logical.shared.AttachEvent;
@@ -165,7 +166,7 @@ public class TestScreen extends MainScreen {
         answerQuestionButton.addSelectHandler(new SelectHandler() {
             @Override
             public void onSelect(SelectEvent event) {
-                QuestionVO question = publication.getQuestions()
+                QuestionVO question = report.getQuestions()
                         .get(questionNo);
 
                 if (report.isQuestionAnswered(question.getId())) {
@@ -241,9 +242,9 @@ public class TestScreen extends MainScreen {
     }
 
     private int nextUnansweredQuestion(int fromQuestion) {
-        for (int i = 1; i < publication.getQuestions().size(); i++) {
-            int no = (fromQuestion + i) % publication.getQuestions().size();
-            QuestionVO question = publication.getQuestions().get(no);
+        for (int i = 1; i < report.getQuestions().size(); i++) {
+            int no = (fromQuestion + i) % report.getQuestions().size();
+            QuestionVO question = report.getQuestions().get(no);
             if (!report.isQuestionAnswered(question.getId())) {
                 return no;
             }
@@ -277,21 +278,23 @@ public class TestScreen extends MainScreen {
         switchTo(State.clean);
 
         mainLayout.mask("Загрузка...");
-        Player.rpc.generateTest(getTenantId(), publicationId,
-                new PlayerAsyncCallback<PublicationVO>() {
+        Player.rpc.getActiveTest(getTenantId(), publicationId,
+                new PlayerAsyncCallback<TestDTO>() {
                     @Override
-                    public void onSuccess(PublicationVO result) {
+                    public void onSuccess(TestDTO result) {
                         mainLayout.unmask();
                         if (result == null
-                                || NullHelper.isEmptyOrNull(result
-                                        .getQuestions())) {
+                        || NullHelper.isEmptyOrNull(result.getQuestions())) {
                             History.newItem(newToken("publications"));
                             return;
                         } else {
                             initFromTest(result);
                         }
-                        WindowHelper.setBrowserWindowTitle(result.getMetatest()
-                                .getName());
+                        WindowHelper.setBrowserWindowTitle(
+                                result.
+                                    getPublication().
+                                        getMetatest().
+                                            getName());
                     }
 
                     @Override
@@ -303,14 +306,15 @@ public class TestScreen extends MainScreen {
                 });
     }
 
-    private void initFromTest(PublicationVO publication) {
+    private void initFromTest(TestDTO test) {
         switchTo(State.clean);
 
-        this.publication = publication;
+        this.publication = test.getPublication();
         this.report = new ReportVO();
-        report.setPublication(publication);
+        report.setPublication(test.getPublication());
+        report.setQuestions(test.getQuestions());
 
-        mainPanel.setHeadingText(publication.getMetatest().getName());
+        mainPanel.setHeadingText(test.getPublication().getMetatest().getName());
 
         if (isPublicationStateNeeded()) {
             switchTo(State.publication);
@@ -415,7 +419,7 @@ public class TestScreen extends MainScreen {
 
             cancelQuestionTimer();
 
-            QuestionVO question = publication.getQuestions().get(newQuestionNo);
+            QuestionVO question = report.getQuestions().get(newQuestionNo);
             AnswerVO answer = report.getAnswerByQuestionId(question.getId());
 
             questionNoLabel.setText("Вопрос " + (newQuestionNo + 1));
@@ -591,8 +595,8 @@ public class TestScreen extends MainScreen {
         if (publication.isAllowSkipQuestions()) {
             return 0;
         }
-        if (publication.getQuestions().get(no).getMaxQuestionAnswerTime() != null) {
-            return publication.getQuestions().get(no)
+        if (report.getQuestions().get(no).getMaxQuestionAnswerTime() != null) {
+            return report.getQuestions().get(no)
                     .getMaxQuestionAnswerTime();
         } else if (publication.getMaxQuestionAnswerTime() != null) {
             return publication.getMaxQuestionAnswerTime();
@@ -646,8 +650,8 @@ public class TestScreen extends MainScreen {
     private void addNavigationButtons() {
         FlowLayoutContainer layout = new FlowLayoutContainer();
         MarginData layoutData = new MarginData(new Margins(5, 0, 0, 5));
-        for (int i = 0; i < publication.getQuestions().size(); i++) {
-            QuestionVO question = publication.getQuestions().get(i);
+        for (int i = 0; i < report.getQuestions().size(); i++) {
+            QuestionVO question = report.getQuestions().get(i);
             TextButton btn = new TextButton();
             btn.setHeight(22);
             btn.setMinWidth(48);

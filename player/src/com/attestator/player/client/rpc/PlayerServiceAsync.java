@@ -3,9 +3,9 @@ package com.attestator.player.client.rpc;
 import java.util.List;
 
 import com.attestator.common.shared.vo.AnswerVO;
-import com.attestator.common.shared.vo.PublicationVO;
 import com.attestator.common.shared.vo.ReportVO;
 import com.attestator.player.shared.dto.ActivePublicationDTO;
+import com.attestator.player.shared.dto.TestDTO;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 
 /**
@@ -13,7 +13,7 @@ import com.google.gwt.user.client.rpc.AsyncCallback;
  */
 public interface PlayerServiceAsync {
     void getActivePulications(String tenantId, AsyncCallback<List<ActivePublicationDTO>> callback)  throws IllegalStateException;
-    void generateTest(String tenantId, String publicationId, AsyncCallback<PublicationVO> callback) throws IllegalStateException;
+    void getActiveTest(String tenantId, String publicationId, AsyncCallback<TestDTO> callback) throws IllegalStateException;
     void getReport(String tenantId, String reportId, AsyncCallback<ReportVO> callback) throws IllegalStateException;
     void startReport(String tenantId, ReportVO report, AsyncCallback<Void> callback) throws IllegalStateException;
     void addAnswer(String tenantId, String reportId, AnswerVO answer, AsyncCallback<Void> callback) throws IllegalStateException;

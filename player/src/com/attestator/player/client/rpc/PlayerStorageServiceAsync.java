@@ -4,10 +4,10 @@ import java.util.List;
 
 import com.attestator.common.client.helper.SerializationHelper;
 import com.attestator.common.shared.vo.AnswerVO;
-import com.attestator.common.shared.vo.PublicationVO;
 import com.attestator.common.shared.vo.ReportVO;
 import com.attestator.common.shared.vo.SCQAnswerVO;
 import com.attestator.player.shared.dto.ActivePublicationDTO;
+import com.attestator.player.shared.dto.TestDTO;
 import com.google.gwt.storage.client.Storage;
 import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.rpc.AsyncCallback;
@@ -118,11 +118,6 @@ public class PlayerStorageServiceAsync implements PlayerServiceAsync {
         rpc.getActivePulications(tenantId, callback);
     }
 
-    @Override
-    public void generateTest(String tenantId, String publicationId,
-            AsyncCallback<PublicationVO> callback) throws IllegalStateException {
-        rpc.generateTest(tenantId, publicationId, callback);
-    }
 
     @Override
     public void getReport(String tenantId, String reportId,
@@ -172,5 +167,11 @@ public class PlayerStorageServiceAsync implements PlayerServiceAsync {
         saveDefferedCalls(calls);
         
         callback.onSuccess(null);
+    }
+
+    @Override
+    public void getActiveTest(String tenantId, String publicationId,
+            AsyncCallback<TestDTO> callback) throws IllegalStateException {
+        rpc.getActiveTest(tenantId, publicationId, callback);
     }
 }

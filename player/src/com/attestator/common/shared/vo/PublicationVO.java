@@ -48,7 +48,6 @@ public class PublicationVO extends TenantableVO {
     private Boolean         randomQuestionsOrder = false;
     
     private List<AdditionalQuestionVO> additionalQuestions = new ArrayList<AdditionalQuestionVO>();    
-    private List<QuestionVO> questions = new ArrayList<QuestionVO>();
     
     public String getMetatestId() {
         return metatestId;
@@ -215,23 +214,6 @@ public class PublicationVO extends TenantableVO {
         return null;
     }
     
-    public     List<QuestionVO> getQuestions() {
-        return questions;
-    }
-
-    public void setQuestions(List<QuestionVO> questions) {
-        this.questions = questions;
-    }
-    
-    public QuestionVO getQuestion(String questionId) {
-        for (QuestionVO question: questions) {
-            if (NullHelper.nullSafeEquals(question.getId(), questionId)) {
-                return question;
-            }
-        }
-        return null;
-    }
-
     public Long getMaxTakeTestTime() {
         return maxTakeTestTime;
     }
@@ -308,7 +290,7 @@ public class PublicationVO extends TenantableVO {
                 + ", allowInterruptTest=" + allowInterruptTest
                 + ", randomQuestionsOrder=" + randomQuestionsOrder
                 + ", additionalQuestions=" + additionalQuestions
-                + ", questions=" + questions + ", getTenantId()="
+                + ", getTenantId()="
                 + getTenantId() + ", getId()=" + getId() + "]";
     }
 }
