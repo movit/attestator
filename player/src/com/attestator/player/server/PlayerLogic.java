@@ -111,7 +111,7 @@ public class PlayerLogic extends CommonLogic{
         CheckHelper.throwIfNullOrEmpty(clientId, "clientId");
         
         if (time == null) {
-            return Arrays.asList(new ChangeMarkerVO(LoginManager.getThreadLocalTenatId()));
+            return Arrays.asList(new ChangeMarkerVO(clientId, LoginManager.getThreadLocalTenatId()));
         }
         
         Query<ChangeMarkerVO> q = Singletons.ds().createQuery(ChangeMarkerVO.class);
@@ -120,8 +120,8 @@ public class PlayerLogic extends CommonLogic{
         }
         
         q.or(
-            q.criteria("key.clientId").doesNotExist(),
-            q.criteria("key.clientId").equal(clientId)
+            q.criteria("clientId").doesNotExist(),
+            q.criteria("clientId").equal(clientId)
         );        
         q.order("time");
         

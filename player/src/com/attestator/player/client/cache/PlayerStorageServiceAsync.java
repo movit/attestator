@@ -5,7 +5,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import com.attestator.common.shared.SharedConstants;
 import com.attestator.common.shared.vo.AnswerVO;
 import com.attestator.common.shared.vo.ChangeMarkerVO;
 import com.attestator.common.shared.vo.ReportVO;
@@ -16,54 +15,19 @@ import com.attestator.player.shared.dto.TestDTO;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
-import com.google.gwt.user.client.Cookies;
 import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 
 public class PlayerStorageServiceAsync implements PlayerServiceAsync {
-    public static final int CACHE_POLLING_INTERVAL = 1000 * 10;
-    public static final int OFFLINE_SLEEP_TIMEOUT  = 1000 * 60 * 2;
+    public static final int CACHE_POLLING_INTERVAL  = 1000 * 30;
+    public static final int REPORT_POLLING_INTERVAL = 1000;
+    public static final int OFFLINE_SLEEP_TIMEOUT   = 1000 * 60 * 2;
     
     private PlayerStorageCache psc;
     private PlayerServiceAsync rpc;
     
     private long    online = -1l;
-    private boolean buzzy = false;
 
-    public abstract class CachingCallback<T> implements AsyncCallback<T> {
-        private Set<CachingCallback<?>> callbacks;
-        private TenantCacheVersionCO    version;
-        
-        public CachingCallback(
-                Set<CachingCallback<?>> callbacks, TenantCacheVersionCO  version) {
-            super();
-            this.version   = version;
-            this.callbacks = callbacks;
-            this.callbacks.add(this);
-        }
-        
-        private void onFinish() {
-            callbacks.remove(this);
-            if (callbacks.isEmpty()) {
-                psc.pushTenantVersion(getClientId(), version);
-                buzzy = false;                
-            }
-        }
-
-        @Override
-        public final void onFailure(Throwable caught) {
-            online = System.currentTimeMillis() + OFFLINE_SLEEP_TIMEOUT;
-            onFinish();
-        }
-
-        @Override
-        public final void onSuccess(T result) {
-            onResult(result);
-            onFinish();
-        }
-        
-        public abstract void onResult(T result);
-    }
     
     public class CacheReaderCallback<T> implements AsyncCallback<T> {
         private Class<T>         clazz;
@@ -93,16 +57,7 @@ public class PlayerStorageServiceAsync implements PlayerServiceAsync {
     public PlayerStorageServiceAsync(PlayerServiceAsync arpc) {
         this.psc = PlayerStorageCache.getPlayerStorageIfSupported();
         this.rpc = arpc;
-        (new UpdateServerCacheTimer()).scheduleRepeating(CACHE_POLLING_INTERVAL);
-    }
-    
-    private boolean isOnline() {
-        return online <= 0;
-    }
-    
-    private <T> void callCallbackOnCachedValue(Class<T> clazz, String key, AsyncCallback<T> callback) {
-        T cachedResult = psc.getItem(clazz, key);
-        callback.onSuccess(cachedResult);
+        (new UpdateCacheTimer()).scheduleRepeating(CACHE_POLLING_INTERVAL);
     }
     
     @SuppressWarnings("unchecked")
@@ -110,8 +65,8 @@ public class PlayerStorageServiceAsync implements PlayerServiceAsync {
     public void getActivePulications(String tenantId,
             AsyncCallback<List<ActivePublicationDTO>> callback)
             throws IllegalStateException {
-        psc.setCurrentTenant(getClientId(), tenantId);
-        String key = psc.key("clientId", getClientId(), "tenantId", tenantId, "type", "getActivePulications");
+        psc.setCurrentTenant(tenantId);
+        String key = psc.cacheKey("tenantId", tenantId, "type", "getActivePulications");
         if (isOnline()) {
             rpc.getActivePulications(tenantId, new CacheReaderCallback<List<ActivePublicationDTO>>((Class<List<ActivePublicationDTO>>)(Class<?>)(List.class), key, callback));
         }
@@ -123,8 +78,8 @@ public class PlayerStorageServiceAsync implements PlayerServiceAsync {
     @Override
     public void getActiveTest(String tenantId, String publicationId,
             AsyncCallback<TestDTO> callback) throws IllegalStateException {
-        psc.setCurrentTenant(getClientId(), tenantId);
-        String key = psc.key("clientId", getClientId(), "tenantId", tenantId, "type", "getActiveTest", "publicationId", publicationId);
+        psc.setCurrentTenant(tenantId);
+        String key = psc.cacheKey("tenantId", tenantId, "type", "getActiveTest", "publicationId", publicationId);
         if (isOnline()) {
             rpc.getActiveTest(tenantId, publicationId, new CacheReaderCallback<TestDTO>(TestDTO.class, key, callback));
         }
@@ -136,8 +91,8 @@ public class PlayerStorageServiceAsync implements PlayerServiceAsync {
     @Override
     public void getReport(String tenantId, String reportId,
             AsyncCallback<ReportVO> callback) throws IllegalStateException {
-        psc.setCurrentTenant(getClientId(), tenantId);
-        String key = psc.key("clientId", getClientId(), "tenantId", tenantId, "type", "getReport", "reportId", reportId);
+        psc.setCurrentTenant(tenantId);
+        String key = psc.cacheKey("tenantId", tenantId, "type", "getReport", "reportId", reportId);
         if (isOnline()) {
             rpc.getReport(tenantId, reportId, new CacheReaderCallback<ReportVO>(ReportVO.class, key, callback));
         }
@@ -148,18 +103,29 @@ public class PlayerStorageServiceAsync implements PlayerServiceAsync {
 
     @Override
     public void startReport(String tenantId, ReportVO report,
-            AsyncCallback<Void> callback) throws IllegalStateException {        
-        rpc.startReport(tenantId, report, callback);
+            AsyncCallback<Void> callback) throws IllegalStateException {
+        psc.setCurrentTenant(tenantId);        
+        String key = psc.reportKey("tenantId", tenantId, "type", "startReport", "reportId", report.getId());
+        psc.setItem(key, report);
+        callback.onSuccess(null);
     }
 
     @Override
     public void addAnswer(String tenantId, String reportId, AnswerVO answer,
             AsyncCallback<Void> callback) throws IllegalStateException {
+        psc.setCurrentTenant(tenantId);        
+        String key = psc.reportKey("tenantId", tenantId, "type", "addAnswer", "reportId", reportId);
+        psc.setItem(key, answer);
+        callback.onSuccess(null);
     }
 
     @Override
     public void finishReport(String tenantId, String reportId, boolean interrupted,
             AsyncCallback<Void> callback) throws IllegalStateException {
+        psc.setCurrentTenant(tenantId);        
+        String key = psc.reportKey("tenantId", tenantId, "type", "finishReport", "reportId", reportId);
+        psc.setItem(key, new Boolean(interrupted));
+        callback.onSuccess(null);
     }
     
     @Override
@@ -169,12 +135,49 @@ public class PlayerStorageServiceAsync implements PlayerServiceAsync {
         throw new UnsupportedOperationException("getChangesSince not supported in PlayerStorageServiceAsync");
     }
     
-    private String getClientId() {
-        return Cookies.getCookie(SharedConstants.CLIENT_ID_COOKIE_NAME);
+    private boolean isOnline() {
+        return online <= 0;
     }
+
+    private <T> void callCallbackOnCachedValue(Class<T> clazz, String key, AsyncCallback<T> callback) {
+        T cachedResult = psc.getItem(clazz, key);
+        callback.onSuccess(cachedResult);
+    }
+
+    public class SendReportsTimer extends Timer {
+        public abstract class SendingCallback<T> implements AsyncCallback<T> {
+            private Set<SendingCallback<?>> callbacks;
+            
+            public SendingCallback(
+                    Set<SendingCallback<?>> callbacks) {
+                super();
+                this.callbacks = callbacks;
+                this.callbacks.add(this);
+            }
+            
+            private void onFinish() {
+                callbacks.remove(this);
+                if (callbacks.isEmpty()) {
+                    buzzy = false;
+                }
+            }
+
+            @Override
+            public final void onFailure(Throwable caught) {
+                online = System.currentTimeMillis() + OFFLINE_SLEEP_TIMEOUT;
+                onFinish();
+            }
+
+            @Override
+            public final void onSuccess(T result) {
+                onResult(result);
+                onFinish();
+            }
+            
+            public abstract void onResult(T result);
+        }
         
-    public class UpdateServerCacheTimer extends Timer {
-        private Set<CachingCallback<?>> callbacks = new HashSet<PlayerStorageServiceAsync.CachingCallback<?>>();
+        private boolean buzzy = false;
         
         @Override
         public void run() {
@@ -183,8 +186,67 @@ public class PlayerStorageServiceAsync implements PlayerServiceAsync {
             }
             buzzy = true;
             
-            // First of all clear all what not belong to current client id and cached tenants
-            psc.leaveOnlyThisClientTenantItems(getClientId());
+            // If online > 0 we in offline mode and do next check only at online time
+            if (online > 0) {
+                if (System.currentTimeMillis() < online) {
+                    buzzy = false;
+                    return;
+                }
+                else {
+                    online = -1l;
+                }
+            }
+        }        
+    }
+    
+    public class UpdateCacheTimer extends Timer {
+        public abstract class CachingCallback<T> implements AsyncCallback<T> {
+            private Set<CachingCallback<?>> callbacks;
+            private TenantCacheVersionCO    version;
+            
+            public CachingCallback(
+                    Set<CachingCallback<?>> callbacks, TenantCacheVersionCO  version) {
+                super();
+                this.version   = version;
+                this.callbacks = callbacks;
+                this.callbacks.add(this);
+            }
+            
+            private void onFinish() {
+                callbacks.remove(this);
+                if (callbacks.isEmpty()) {
+                    psc.pushTenantVersion(version);
+                    buzzy = false;                
+                }
+            }
+
+            @Override
+            public final void onFailure(Throwable caught) {
+                online = System.currentTimeMillis() + OFFLINE_SLEEP_TIMEOUT;
+                onFinish();
+            }
+
+            @Override
+            public final void onSuccess(T result) {
+                onResult(result);
+                onFinish();
+            }
+            
+            public abstract void onResult(T result);
+        }
+        
+        private Set<CachingCallback<?>> callbacks = new HashSet<CachingCallback<?>>();
+        private boolean buzzy = false;
+        
+        @Override
+        public void run() {
+            if (buzzy) {
+                return;
+            }
+            buzzy = true;
+            
+            // First of all clear all what not belong to current cached tenants
+            psc.removeOrphanCacheTenantItems();
             
             // If online > 0 we in offline mode and do next check only at online time
             if (online > 0) {
@@ -198,7 +260,7 @@ public class PlayerStorageServiceAsync implements PlayerServiceAsync {
             }
             
             // Find current tenant version
-            final TenantCacheVersionCO currentTenantVersion = psc.getCurrentTenantVersion(getClientId());
+            final TenantCacheVersionCO currentTenantVersion = psc.getCurrentTenantVersion();
             if (currentTenantVersion == null) {
                 buzzy = false;
                 return;
@@ -221,15 +283,15 @@ public class PlayerStorageServiceAsync implements PlayerServiceAsync {
         
         private void cacheChanges(final ChangeMarkerVO marker, final TenantCacheVersionCO version) {            
             if (marker.isGlobal()) {
-                psc.removeThisClientItems("clientId", getClientId(), "tenantId", marker.getTenantId());
-                cacheChanges(new ChangeMarkerVO(marker.getTenantId(), "clientId", getClientId(), "type", "getActivePulications"), version);
+                psc.removeCacheItems("tenantId", marker.getTenantId());
+                cacheChanges(new ChangeMarkerVO(marker.getTenantId(), marker.getClientId(), "type", "getActivePulications"), version);
             }
             else if ("getActivePulications".equals(marker.getKeyEntry("type"))) {                
                 rpc.getActivePulications(marker.getTenantId(), new CachingCallback<List<ActivePublicationDTO>>(callbacks, version) {
                     @Override
                     public void onResult(final List<ActivePublicationDTO> result) {                        
                         @SuppressWarnings("unchecked")
-                        List<ActivePublicationDTO> cached = psc.getItem(List.class, psc.key(marker));
+                        List<ActivePublicationDTO> cached = psc.getItem(List.class, psc.cacheKey(marker));
                         
                         // Remove publications and reports what no longer to be cached
                         if (cached != null) {
@@ -245,13 +307,13 @@ public class PlayerStorageServiceAsync implements PlayerServiceAsync {
                                     
                                     if (newAp == null) {
                                         // Remove tests and report for publication what should not be cached
-                                        psc.removeThisClientItems("tenantId", marker.getTenantId(), "type", "getActiveTest", "publicationId", oldAp.getPublication().getId());
-                                        psc.removeThisClientItems("tenantId", marker.getTenantId(), "type", "getReport", "reportId", oldAp.getLastFullReportId());
+                                        psc.removeCacheItems("tenantId", marker.getTenantId(), "type", "getActiveTest", "publicationId", oldAp.getPublication().getId());
+                                        psc.removeCacheItems("tenantId", marker.getTenantId(), "type", "getReport", "reportId", oldAp.getLastFullReportId());
                                     }
                                     else if (oldAp.getLastFullReportId() != null) {                                        
                                         if (!oldAp.getLastFullReportId().equals(newAp.getLastFullReportId())) {
                                             // Remove report
-                                            psc.removeThisClientItems("tenantId", marker.getTenantId(), "type", "getReport", "reportId", oldAp.getLastFullReportId());
+                                            psc.removeCacheItems("tenantId", marker.getTenantId(), "type", "getReport", "reportId", oldAp.getLastFullReportId());
                                         }
                                     }
                                     return null;
@@ -263,23 +325,23 @@ public class PlayerStorageServiceAsync implements PlayerServiceAsync {
                         Set<String> cacheKeys = psc.getKeys();
                         for (ActivePublicationDTO newAp : result) {
                             ChangeMarkerVO testMarker = new ChangeMarkerVO(marker.getTenantId(), 
-                                    "clientId", getClientId(), "type", "getActiveTest", "publicationId", newAp.getPublication().getId());
+                                    marker.getClientId(), "type", "getActiveTest", "publicationId", newAp.getPublication().getId());
                             
-                            if (!cacheKeys.contains(psc.key(testMarker))) {
+                            if (!cacheKeys.contains(psc.cacheKey(testMarker))) {
                                 cacheChanges(testMarker, version);
                             }
                             
                             if (newAp.getLastFullReportId() != null) {
                                 ChangeMarkerVO reportMarker = new ChangeMarkerVO(marker.getTenantId(), 
-                                        "clientId", getClientId(), "type", "getReport", "reportId", newAp.getLastFullReportId());
+                                        marker.getClientId(), "type", "getReport", "reportId", newAp.getLastFullReportId());
                                 
-                                if (!cacheKeys.contains(psc.key(reportMarker))) {
+                                if (!cacheKeys.contains(psc.cacheKey(reportMarker))) {
                                     cacheChanges(reportMarker, version);
                                 }
                             }
                         }
                         // Cache getActivePublications result
-                        psc.setItem(psc.key(marker), result);
+                        psc.setItem(psc.cacheKey(marker), result);
                     }
                 });
             }
@@ -287,7 +349,7 @@ public class PlayerStorageServiceAsync implements PlayerServiceAsync {
                 rpc.getActiveTest(marker.getTenantId(), marker.getKeyEntry("publicationId"), new CachingCallback<TestDTO>(callbacks, version) {
                     @Override
                     public void onResult(TestDTO result) {
-                        psc.setItem(psc.key(marker), result);
+                        psc.setItem(psc.cacheKey(marker), result);
                     }
                 });
             }
@@ -295,7 +357,7 @@ public class PlayerStorageServiceAsync implements PlayerServiceAsync {
                 rpc.getReport(marker.getTenantId(), marker.getKeyEntry("reportId"), new CachingCallback<ReportVO>(callbacks, version) {
                     @Override
                     public void onResult(ReportVO result) {
-                        psc.setItem(psc.key(marker), result);
+                        psc.setItem(psc.cacheKey(marker), result);
                     }
                 });
             }

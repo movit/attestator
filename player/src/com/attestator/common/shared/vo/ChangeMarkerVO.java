@@ -9,12 +9,15 @@ import com.google.code.morphia.annotations.Entity;
 @Entity("changemarker")
 public class ChangeMarkerVO extends TenantableVO {
     private static final long serialVersionUID = -6155856555799173610L;
+    private String clientId;
     private Date time = new Date();
+    
     private Map<String, String> key = new TreeMap<String, String>();
     
     public ChangeMarkerVO() {
     }    
-    public ChangeMarkerVO(String tenantId, String ... entries) {
+    public ChangeMarkerVO(String clientId, String tenantId, String ... entries) {
+        this.clientId = clientId;
         setTenantId(tenantId);        
         for (int i = 0; i < entries.length - 1; i += 2) {
             key.put(entries[i], entries[i+1]);
@@ -25,6 +28,12 @@ public class ChangeMarkerVO extends TenantableVO {
     }
     public void setTime(Date time) {
         this.time = time;
+    }
+    public String getClientId() {
+        return clientId;
+    }
+    public void setClientId(String clientId) {
+        this.clientId = clientId;
     }
     public Map<String, String> getKey() {
         return key;

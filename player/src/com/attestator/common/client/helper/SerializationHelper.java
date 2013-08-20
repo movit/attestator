@@ -11,7 +11,7 @@ import com.kfuntak.gwt.json.serialization.client.Serializer;
 public class SerializationHelper {
 
     public static <T> byte[] serializeCompressed(T obj) {
-        String uncompressed = serialize(obj);
+        String uncompressed = serializeJSON(obj);
         LZMAByteArrayCompressor compressor = new LZMAByteArrayCompressor(UTF8.encode(uncompressed));
         while (compressor.execute());
         byte[] result = compressor.getCompressedData();        
@@ -24,7 +24,7 @@ public class SerializationHelper {
             while (decompressor.execute());
             byte[] uncompressedBytes = decompressor.getUncompressedData();
             String uncompressedString = UTF8.decode(uncompressedBytes);
-            T result = deserialize(clazz, uncompressedString);
+            T result = deserializeJSON(clazz, uncompressedString);
             return result;
         }
         catch (Throwable e) {
@@ -44,16 +44,24 @@ public class SerializationHelper {
         return result;
     }
     
-    public static <T> String serialize(T obj) {        
+    public static <T> String serializeJSON(T obj) {        
         Serializer serializer = GWT.create(Serializer.class);
         String result = serializer.serialize(obj);
         return result;
     }
 
     @SuppressWarnings("unchecked")
-    public static <T> T deserialize(Class<T> clazz, String str) {
+    public static <T> T deserializeJSON(Class<T> clazz, String str) {
         Serializer serializer = GWT.create(Serializer.class);
         T result = (T)serializer.deSerialize(str, clazz.getName());
         return result;
+    }
+    
+    public static <T> String serialize(T obj) {        
+        return serializeJSON(obj);
+    }
+
+    public static <T> T deserialize(Class<T> clazz, String str) {        
+        return deserializeJSON(clazz, str);
     }
 }
