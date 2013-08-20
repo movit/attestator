@@ -2,7 +2,11 @@ package com.attestator.common.shared.helper;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.Map.Entry;
 
 @SuppressWarnings("rawtypes")
 public final class StringHelper {
@@ -597,6 +601,55 @@ public final class StringHelper {
         }
         return str;
     }
+    
+    public static String toPairsString(String separator, String ... entries) {
+        TreeMap<String, String> map = new TreeMap<String, String>();        
+        
+        for (int i = 0; i < entries.length - 1; i += 2) {
+            map.put(entries[i], entries[i+1]);
+        }
+        
+        return toPairsString(separator, map);
+    }
+
+    public static <K, V> String toPairsString(String separator, Map<K, V> map) {
+        Iterator<Entry<K,V>> i = map.entrySet().iterator();
+        if (! i.hasNext())
+            return "";
+        
+        if (separator == null) {
+            separator = "";
+        }
+
+        StringBuilder sb = new StringBuilder();
+        for (;;) {
+            Entry<K,V> e = i.next();
+            K key = e.getKey();
+            V value = e.getValue();
+            sb.append(key == map ? "(this Map)" : key);
+            sb.append('=');
+            sb.append(value == map ? "(this Map)" : value);
+            if (!i.hasNext()) {
+                return sb.toString();
+            }
+            sb.append(separator);
+        }
+    }
+    
+    public static Map<String, String> splitBySeparatorsToMap(String str, String entrySeparator, String pairSeparator) {
+        TreeMap<String, String> result = new TreeMap<String, String>();
+        String[] entries = str.split(entrySeparator);
+        for (String entry : entries) {
+            String[] pair = entry.split(pairSeparator);
+            if (pair.length > 1) {
+                result.put(pair[0], pair[1]);
+            }
+            else {
+                result.put(pair[0], null);
+            }
+        }
+        return result;
+    }    
     
     private StringHelper() {
     }    

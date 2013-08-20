@@ -2,7 +2,7 @@ package com.attestator.player.shared.dto;
 
 import com.attestator.common.shared.vo.PublicationVO;
 
-public class ActivePublicationDTO extends BaseDTO{
+public class ActivePublicationDTO extends BaseDTO {
     private static final long serialVersionUID = 4868465484264452397L;
     private PublicationVO publication;
     private long          numberOfAttempts;

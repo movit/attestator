@@ -9,6 +9,7 @@
     <inherits name="com.attestator.common.Common" />
     <inherits name="com.kfuntak.gwt.json.serialization.GWTProJsonSerializer" />
     <inherits name="org.dellroad.lzma.LZMA"/>
+    <inherits name="com.google.common.collect.Collect"/>
     
 	<extend-property name="locale" values="ru"/>
 	<set-property name="locale" value="ru"/>

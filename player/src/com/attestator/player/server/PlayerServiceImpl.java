@@ -1,6 +1,7 @@
 package com.attestator.player.server;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import javax.security.auth.login.LoginException;
@@ -9,6 +10,7 @@ import org.apache.log4j.Logger;
 
 import com.attestator.admin.server.LoginManager;
 import com.attestator.common.shared.vo.AnswerVO;
+import com.attestator.common.shared.vo.ChangeMarkerVO;
 import com.attestator.common.shared.vo.PublicationVO;
 import com.attestator.common.shared.vo.QuestionVO;
 import com.attestator.common.shared.vo.ReportVO;
@@ -155,6 +157,24 @@ public class PlayerServiceImpl extends RemoteServiceServlet implements
             result.setPublication(publication);
             result.setQuestions(questions);
             
+            return result;            
+        }
+        catch (LoginException e) {
+            logger.info(e.getMessage());
+            throw new IllegalStateException(e.getMessage());
+        }
+        catch (Throwable e) {
+            logger.error("Error: ", e);
+            throw new IllegalStateException(DEFAULT_ERROR_MESSAGE);
+        }
+    }
+
+    @Override
+    public List<ChangeMarkerVO> getChangesSince(String tenantId, Date time) {
+        try {
+            login(tenantId);
+            String clientId = ClientIdManager.getThreadLocalClientId();
+            List<ChangeMarkerVO> result = Singletons.pl().getChangesSince(time, clientId);
             return result;            
         }
         catch (LoginException e) {

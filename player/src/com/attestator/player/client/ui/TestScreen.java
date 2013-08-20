@@ -175,7 +175,7 @@ public class TestScreen extends MainScreen {
 
                 AnswerVO answer = scqPortlet.getValue();
                 report.getAnswers().add(answer);
-                Player.storageRpc.addAnswer(getTenantId(), report.getId(),
+                Player.rpc.addAnswer(getTenantId(), report.getId(),
                         answer, new PlayerAsyncCallback<Void>() {
                             @Override
                             public void onSuccess(Void result) {
@@ -413,7 +413,7 @@ public class TestScreen extends MainScreen {
                     startTestTimer(publication.getMaxTakeTestTime());
                 }
 
-                Player.storageRpc.startReport(getTenantId(), report,
+                Player.rpc.startReport(getTenantId(), report,
                         new PlayerAsyncEmptyCallback<Void>());
             }
 
@@ -465,7 +465,7 @@ public class TestScreen extends MainScreen {
 
         case report:
             report.setFinished(true);
-            Player.storageRpc.finishReport(getTenantId(), report.getId(), report.isThisInterrupted(),
+            Player.rpc.finishReport(getTenantId(), report.getId(), report.isThisInterrupted(),
                     new PlayerAsyncCallback<Void>() {
                         @Override
                         public void onSuccess(Void result) {

@@ -1,6 +1,7 @@
 package com.attestator.player.server;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -9,11 +10,13 @@ import java.util.Map;
 
 import org.apache.log4j.Logger;
 
+import com.attestator.admin.server.LoginManager;
 import com.attestator.common.server.CommonLogic;
 import com.attestator.common.shared.helper.CheckHelper;
 import com.attestator.common.shared.helper.ReportHelper;
 import com.attestator.common.shared.vo.AnswerVO;
 import com.attestator.common.shared.vo.BaseVO;
+import com.attestator.common.shared.vo.ChangeMarkerVO;
 import com.attestator.common.shared.vo.MTEGroupVO;
 import com.attestator.common.shared.vo.MTEQuestionVO;
 import com.attestator.common.shared.vo.MetaTestEntryVO;
@@ -23,6 +26,8 @@ import com.attestator.common.shared.vo.QuestionVO;
 import com.attestator.common.shared.vo.ReportVO;
 import com.attestator.common.shared.vo.SingleChoiceQuestionVO;
 import com.google.code.morphia.query.Query;
+import com.google.common.base.Predicate;
+import com.google.common.collect.Iterables;
 
 public class PlayerLogic extends CommonLogic{
     private static final Logger logger = Logger.getLogger(PlayerLogic.class);
@@ -102,6 +107,41 @@ public class PlayerLogic extends CommonLogic{
         return result;
     }
     
+    public List<ChangeMarkerVO> getChangesSince(Date time, String clientId) {
+        CheckHelper.throwIfNullOrEmpty(clientId, "clientId");
+        
+        if (time == null) {
+            return Arrays.asList(new ChangeMarkerVO(LoginManager.getThreadLocalTenatId()));
+        }
+        
+        Query<ChangeMarkerVO> q = Singletons.ds().createQuery(ChangeMarkerVO.class);
+        if (time != null) { 
+            q.field("time").greaterThan(time);
+        }
+        
+        q.or(
+            q.criteria("key.clientId").doesNotExist(),
+            q.criteria("key.clientId").equal(clientId)
+        );        
+        q.order("time");
+        
+        List<ChangeMarkerVO> allChanges = q.asList();
+        
+        ChangeMarkerVO globalChange = Iterables.find(allChanges, new Predicate<ChangeMarkerVO>() {
+            @Override
+            public boolean apply(ChangeMarkerVO marker) {
+                return marker.isGlobal();
+            }
+        }, null);
+        
+        if (globalChange != null) {
+            return Arrays.asList(globalChange);
+        }
+        else {
+            return allChanges;
+        }
+    }
+    
     public long getNumberOfAttempts(String publicatioId, String clientId) {
         CheckHelper.throwIfNullOrEmpty(publicatioId, "publicatioId");
         CheckHelper.throwIfNullOrEmpty(clientId, "clientId");        
@@ -121,6 +161,7 @@ public class PlayerLogic extends CommonLogic{
         Query<ReportVO> q = Singletons.ds().createQuery(ReportVO.class);
         q.field("publication._id").equal(publicatioId);
         q.field("clientId").equal(clientId);
+        q.field("finished").equal(true);
         q.order("-start");
         q.retrievedFields(true, "_id");
         

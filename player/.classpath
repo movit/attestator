@@ -10,7 +10,6 @@
 	<classpathentry kind="lib" path="war/WEB-INF/lib/geronimo-jpa_2.0_spec-1.0.jar"/>
 	<classpathentry kind="lib" path="war/WEB-INF/lib/gwt-lzma-1.1.jar"/>
 	<classpathentry kind="lib" path="war/WEB-INF/lib/gwt-servlet.jar"/>
-	<classpathentry kind="lib" path="war/WEB-INF/lib/gwtprojsonserializer-1.0.4.jar"/>
 	<classpathentry kind="lib" path="war/WEB-INF/lib/jdo-api-3.0.1.jar"/>
 	<classpathentry kind="lib" path="war/WEB-INF/lib/jsr107cache-1.1.jar"/>
 	<classpathentry kind="lib" path="war/WEB-INF/lib/jta-1.1.jar"/>
@@ -20,5 +19,8 @@
 	<classpathentry kind="lib" path="war/WEB-INF/lib/morphia-0.99.1-SNAPSHOT.jar"/>
 	<classpathentry kind="lib" path="war/WEB-INF/lib/morphia-gwt-0.99-SNAPSHOT.jar"/>
 	<classpathentry kind="lib" path="war/WEB-INF/lib/morphia-validation-0.99.jar"/>
+	<classpathentry kind="lib" path="war/WEB-INF/lib/guava-gwt-14.0.1.jar"/>
+	<classpathentry kind="lib" path="war/WEB-INF/lib/guava-14.0.1.jar"/>
+	<classpathentry kind="lib" path="war/WEB-INF/lib/gwtprojsonserializer-1.0.5.SNAPSHOT.jar"/>
 	<classpathentry kind="output" path="war/WEB-INF/classes"/>
 </classpath>
