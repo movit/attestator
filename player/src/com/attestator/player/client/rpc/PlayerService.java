@@ -20,6 +20,7 @@ public interface PlayerService extends RemoteService {
     List<ActivePublicationDTO> getActivePulications(String tenantId) throws IllegalStateException;
     TestDTO getActiveTest(String tenantId, String publicationId) throws IllegalStateException;
     ReportVO getReport(String tenantId, String reportId) throws IllegalStateException;
+    ReportVO getLatestUnfinishedReport(String tenantId, String publicationId);
     void startReport(String tenantId, ReportVO report) throws IllegalStateException;
     void addAnswer(String tenantId, String reportId, AnswerVO answer) throws IllegalStateException;
     void finishReport(String tenantId, String reportId, boolean interrupted) throws IllegalStateException;

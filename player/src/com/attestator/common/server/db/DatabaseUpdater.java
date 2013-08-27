@@ -157,12 +157,12 @@ public class DatabaseUpdater {
         }
         ge  = new MTEGroupVO();
         ge.setGroupId(grSign.getId());
-        ge.setNumberOfQuestions(50);
+        ge.setNumberOfQuestions(10);
         mt.getEntries().add(ge);
         
         ge  = new MTEGroupVO();
         ge.setGroupId(grOther.getId());
-        ge.setNumberOfQuestions(50);
+        ge.setNumberOfQuestions(10);
         mt.getEntries().add(ge);
 
         Singletons.ds().save(mt);

@@ -16,6 +16,7 @@ public class VOHelper {
         }
         return result;
     }
+    
     public static List<String> getNames(List<GroupVO> vos) {
         ArrayList<String> result = new ArrayList<String>();
         if (NullHelper.isNotEmptyOrNull(vos)) {

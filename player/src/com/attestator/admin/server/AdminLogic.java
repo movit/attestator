@@ -193,15 +193,15 @@ public class AdminLogic extends CommonLogic {
     }
     
     public void saveQuestion(QuestionVO question) {
-        CheckHelper.throwIfNull(question, "question");
-        
+        CheckHelper.throwIfNull(question, "question");        
         Singletons.ds().save(question);
+        putGlobalChangesMarker();
     }
     
     public void saveGroup(GroupVO group) {
-        CheckHelper.throwIfNull(group, "group");
-        
+        CheckHelper.throwIfNull(group, "group");        
         Singletons.ds().save(group);
+        putGlobalChangesMarker();
     }
     
     public GroupVO getDeafultGroup() {
@@ -268,6 +268,7 @@ public class AdminLogic extends CommonLogic {
             // Save group
             Singletons.ds().save(groupToSave);
         }
+        putGlobalChangesMarker();
     }
     
     public void deleteQuestions(List<String> questionIds) {
@@ -299,6 +300,7 @@ public class AdminLogic extends CommonLogic {
         
         
         Singletons.ds().delete(qQuestion);
+        putGlobalChangesMarker();
     }
     
     public void setQuestionsGroup(List<String> questionIds, String groupId) {
@@ -324,6 +326,8 @@ public class AdminLogic extends CommonLogic {
         uo.set("groupName", group.getName());
         
         Singletons.ds().update(q, uo);
+        
+        putGlobalChangesMarker();
     }
 
     public UserVO createNewUser(String email, String password) {
@@ -368,8 +372,9 @@ public class AdminLogic extends CommonLogic {
         Query<ReportVO> qReport = Singletons.ds().createQuery(ReportVO.class);
         qReport.field("_id").in(reportsIds);
         
-        
         Singletons.ds().delete(qReport);
+        
+        putGlobalChangesMarker();
     }
     
     public ReportVO getReport(String reportId) {

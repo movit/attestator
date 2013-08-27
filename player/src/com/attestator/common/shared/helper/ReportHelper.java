@@ -1,6 +1,7 @@
 package com.attestator.common.shared.helper;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import com.attestator.common.shared.vo.AdditionalQuestionAnswerVO;
@@ -296,5 +297,22 @@ public class ReportHelper {
         }
         
         return possibleScore;
+    }
+    
+    public static boolean isRenewAllowed(ReportVO report) {
+        if (report.isThisFinished()) {
+            return false;
+        }
+        
+        Long maxTakeTestTime = report.getPublication().getMaxTakeTestTime();
+        if (maxTakeTestTime != null) {
+            Date testEnd = new Date(System.currentTimeMillis() + maxTakeTestTime);
+            Date now = new Date();
+            if (testEnd.before(now)) {
+                return false;
+            }
+        }
+        
+        return true;
     }
 }

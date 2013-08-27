@@ -110,8 +110,9 @@ public class PlayerLogic extends CommonLogic{
     public List<ChangeMarkerVO> getChangesSince(Date time, String clientId) {
         CheckHelper.throwIfNullOrEmpty(clientId, "clientId");
         
+        // If no time marker return all changes
         if (time == null) {
-            return Arrays.asList(new ChangeMarkerVO(clientId, LoginManager.getThreadLocalTenatId()));
+            return Arrays.asList(new ChangeMarkerVO(null, LoginManager.getThreadLocalTenatId()));
         }
         
         Query<ChangeMarkerVO> q = Singletons.ds().createQuery(ChangeMarkerVO.class);
@@ -119,27 +120,40 @@ public class PlayerLogic extends CommonLogic{
             q.field("time").greaterThan(time);
         }
         
+        // Look for changes
         q.or(
             q.criteria("clientId").doesNotExist(),
             q.criteria("clientId").equal(clientId)
-        );        
+        );     
         q.order("time");
         
         List<ChangeMarkerVO> allChanges = q.asList();
         
+        // If global change found return only them
         ChangeMarkerVO globalChange = Iterables.find(allChanges, new Predicate<ChangeMarkerVO>() {
             @Override
             public boolean apply(ChangeMarkerVO marker) {
                 return marker.isGlobal();
             }
-        }, null);
+        }, null);        
         
         if (globalChange != null) {
             return Arrays.asList(globalChange);
         }
-        else {
-            return allChanges;
+        
+        // Is some publications expired or became active since last query
+        Query<PublicationVO> qp = Singletons.ds().createQuery(PublicationVO.class);
+        qp.or(
+            qp.criteria("start").greaterThan(time),
+            qp.criteria("end").greaterThan(time)
+        );
+        
+        if (qp.countAll() > 0) {
+            ChangeMarkerVO activePublicationsMarker = new ChangeMarkerVO(null, LoginManager.getThreadLocalTenatId(), "type", "getActivePulications");            
+            allChanges.add(activePublicationsMarker);
         }
+        
+        return allChanges;
     }
     
     public long getNumberOfAttempts(String publicatioId, String clientId) {
@@ -154,7 +168,7 @@ public class PlayerLogic extends CommonLogic{
         return result;
     }
 
-    public String getLastFullReportId(String publicatioId, String clientId) {
+    public String getLatestFinishedReportId(String publicatioId, String clientId) {
         CheckHelper.throwIfNullOrEmpty(publicatioId, "publicatioId");
         CheckHelper.throwIfNullOrEmpty(clientId, "clientId");        
         
@@ -175,6 +189,24 @@ public class PlayerLogic extends CommonLogic{
         }
     }
     
+    private void prepare(List<QuestionVO> questions, PublicationVO publication) {
+        for (QuestionVO question: questions) {
+            prepare(question);
+        }
+        
+        if (publication.isRandomQuestionsOrder()) {
+            Collections.shuffle(questions);
+        }
+    }
+
+    private void prepare(QuestionVO question) {
+        if (question instanceof SingleChoiceQuestionVO) {
+            if (((SingleChoiceQuestionVO) question).isThisRandomChoiceOrder()) {
+                Collections.shuffle(((SingleChoiceQuestionVO) question).getChoices());
+            }
+        }
+    }
+
     public List<QuestionVO> getQuestions(PublicationVO publication) {
         CheckHelper.throwIfNull(publication, "publication");
         
@@ -259,22 +291,24 @@ public class PlayerLogic extends CommonLogic{
         return result;
     }
     
-    private void prepare(List<QuestionVO> questions, PublicationVO publication) {
-        for (QuestionVO question: questions) {
-            prepare(question);
-        }
+    public ReportVO getLatestUnfinishedReport(String clientId, String publicationId) {
+        CheckHelper.throwIfNullOrEmpty(publicationId, "publicationId");
+        CheckHelper.throwIfNullOrEmpty(clientId, "clientId");        
         
-        if (publication.isRandomQuestionsOrder()) {
-            Collections.shuffle(questions);
-        }
-    }
-    
-    private void prepare(QuestionVO question) {
-        if (question instanceof SingleChoiceQuestionVO) {
-            if (((SingleChoiceQuestionVO) question).isThisRandomChoiceOrder()) {
-                Collections.shuffle(((SingleChoiceQuestionVO) question).getChoices());
+        Query<ReportVO> q = Singletons.ds().createQuery(ReportVO.class);        
+        q.field("publication._id").equal(publicationId);
+        q.field("clientId").equal(clientId);        
+        q.order("-start");
+        
+        ReportVO result = q.get();
+        
+        if (result != null) {
+            if (ReportHelper.isRenewAllowed(result)) {
+                return result;
             }
         }
+        
+        return null;
     }
     
     public ReportVO getReport(String reportId, String clientId) {
@@ -329,13 +363,15 @@ public class PlayerLogic extends CommonLogic{
         // This question already answered
         if (report.getAnswerByQuestionId(answer.getQuestionId()) != null) {
             return;
-        }        
+        }
         
         report.getAnswers().add(answer);
         report.setEnd(new Date());        
         ReportHelper.updateReportStats(report);
         
         Singletons.ds().save(report);
+        putChangesMarker(clientId, "type", "getReport", "reportId", report.getId());
+        
         
 //        UpdateOperations<ReportVO> uo = Singletons.ds().createUpdateOperations(ReportVO.class);        
 //        uo.add("answers", answer);
@@ -365,6 +401,7 @@ public class PlayerLogic extends CommonLogic{
         ReportHelper.updateReportStats(report);
         
         Singletons.ds().save(report);
+        putChangesMarker(clientId, "type", "getActivePublications");
         
 //        UpdateOperations<ReportVO> uo = Singletons.ds().createUpdateOperations(ReportVO.class);        
 //        uo.set("end", new Date());

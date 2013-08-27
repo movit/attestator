@@ -47,7 +47,7 @@ public class PlayerServiceImpl extends RemoteServiceServlet implements
             
             for (PublicationVO publication: activePublications) {
                 long numberOfAttempts = Singletons.pl().getNumberOfAttempts(publication.getId(), clientId);
-                String lastFullReportId = Singletons.pl().getLastFullReportId(publication.getId(), clientId);
+                String lastFullReportId = Singletons.pl().getLatestFinishedReportId(publication.getId(), clientId);
                 
                 ActivePublicationDTO resultItem = new ActivePublicationDTO();
                 resultItem.setPublication(publication);
@@ -68,6 +68,23 @@ public class PlayerServiceImpl extends RemoteServiceServlet implements
             throw new IllegalStateException(DEFAULT_ERROR_MESSAGE);
         }
     }    
+    
+    @Override
+    public ReportVO getLatestUnfinishedReport(String tenantId, String publicationId) {
+        try {
+            login(tenantId);
+            String clientId = ClientIdManager.getThreadLocalClientId();
+            return Singletons.pl().getLatestUnfinishedReport(clientId, publicationId);
+        }
+        catch (LoginException e) {
+            logger.info(e.getMessage());
+            throw new IllegalStateException(e.getMessage());
+        }
+        catch (Throwable e) {
+            logger.error("Error: ", e);
+            throw new IllegalStateException(DEFAULT_ERROR_MESSAGE);
+        }
+    }
     
     @Override
     public ReportVO getReport(String tenantId, String reportId) throws IllegalStateException {

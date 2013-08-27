@@ -266,6 +266,55 @@ public class TestScreen extends MainScreen {
         mainPanel.forceLayout();
     }
 
+    private void loadActiveTest(String publicationId) {
+        mainLayout.mask("Загрузка...");
+        
+        Player.rpc.getActiveTest(getTenantId(), publicationId,
+            new PlayerAsyncCallback<TestDTO>() {
+                @Override
+                public void onSuccess(TestDTO result) {
+                    mainLayout.unmask();
+                    if (result == null || NullHelper.isEmptyOrNull(result.getQuestions())) {
+                        History.newItem(newToken("publications"));
+                        return;
+                    } else {
+                        initFromTest(result);
+                    }
+                    WindowHelper.setBrowserWindowTitle(result.getPublication().getMetatest().getName());
+                }
+
+                @Override
+                public void onFailure(Throwable caught) {
+                    mainLayout.unmask();
+                    super.onFailure(caught);
+                    WindowHelper.setBrowserWindowTitle("Тест не найден");
+                }
+            });
+    }
+
+    private void loadUnfinishedReportOrStartNewTest(final String publicationId) {
+        mainLayout.mask("Загрузка...");
+        Player.rpc.getLatestUnfinishedReport(getTenantId(), publicationId, new PlayerAsyncCallback<ReportVO>() {
+            @Override
+            public void onSuccess(ReportVO result) {
+                mainLayout.unmask();
+                if (result != null) {
+                    WindowHelper.setBrowserWindowTitle(result.getPublication().getMetatest().getName());
+                    initFromReport(result);
+                }
+                else {
+                    loadActiveTest(publicationId);
+                }
+            }
+            
+            @Override
+            public void onFailure(Throwable caught) {
+                mainLayout.unmask();
+                loadActiveTest(publicationId);
+            }
+        });
+    }
+    
     @Override
     public void initContent(HistoryToken token) {
         String publicationId = token.getProperties().get("publicationId");
@@ -276,36 +325,21 @@ public class TestScreen extends MainScreen {
         }
 
         switchTo(State.clean);
-
-        mainLayout.mask("Загрузка...");
-        Player.rpc.getActiveTest(getTenantId(), publicationId,
-                new PlayerAsyncCallback<TestDTO>() {
-                    @Override
-                    public void onSuccess(TestDTO result) {
-                        mainLayout.unmask();
-                        if (result == null
-                        || NullHelper.isEmptyOrNull(result.getQuestions())) {
-                            History.newItem(newToken("publications"));
-                            return;
-                        } else {
-                            initFromTest(result);
-                        }
-                        WindowHelper.setBrowserWindowTitle(
-                                result.
-                                    getPublication().
-                                        getMetatest().
-                                            getName());
-                    }
-
-                    @Override
-                    public void onFailure(Throwable caught) {
-                        mainLayout.unmask();
-                        super.onFailure(caught);
-                        WindowHelper.setBrowserWindowTitle("Тест не найден");
-                    }
-                });
+        
+        loadUnfinishedReportOrStartNewTest(publicationId);
     }
 
+    private void initFromReport(ReportVO report) {
+        switchTo(State.clean);
+
+        this.publication = report.getPublication();
+        this.report = report;
+
+        mainPanel.setHeadingText(report.getPublication().getMetatest().getName());
+        
+        switchToNextQuestionOrReport();
+    }
+    
     private void initFromTest(TestDTO test) {
         switchTo(State.clean);
 
@@ -409,12 +443,16 @@ public class TestScreen extends MainScreen {
                     addNavigationButtons();
                 }
 
-                if (publication.getMaxTakeTestTime() != null) {
-                    startTestTimer(publication.getMaxTakeTestTime());
+                if (report.getStart() == null) {
+                    Player.rpc.startReport(getTenantId(), report, new PlayerAsyncEmptyCallback<Void>());
                 }
-
-                Player.rpc.startReport(getTenantId(), report,
-                        new PlayerAsyncEmptyCallback<Void>());
+                else {
+                    if (publication.getMaxTakeTestTime() != null) {
+                        Long maxTakeTestTime = publication.getMaxTakeTestTime();
+                        maxTakeTestTime = maxTakeTestTime - (System.currentTimeMillis() - report.getStart().getTime()); 
+                        startTestTimer(maxTakeTestTime);
+                    }
+                }
             }
 
             cancelQuestionTimer();
@@ -658,7 +696,12 @@ public class TestScreen extends MainScreen {
             btn.setData("no", new Integer(i));
             btn.setHTML(navButtonHTML(i, false));
             btn.setToolTip(question.getText());
-            btn.setIcon(Resources.ICONS.checkBoxUnchecked16x16());
+            if (report.isQuestionAnswered(question.getId())) {
+                btn.setIcon(Resources.ICONS.checkBoxChecked16x16());
+            }
+            else {
+                btn.setIcon(Resources.ICONS.checkBoxUnchecked16x16());
+            }
             btn.setIconAlign(IconAlign.RIGHT);
             btn.addSelectHandler(navigationButtonHandler);
             layout.add(btn, layoutData);

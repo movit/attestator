@@ -15,12 +15,18 @@ public class ChangeMarkerVO extends TenantableVO {
     private Map<String, String> key = new TreeMap<String, String>();
     
     public ChangeMarkerVO() {
-    }    
+    }
+    
     public ChangeMarkerVO(String clientId, String tenantId, String ... entries) {
+        if (tenantId == null) {
+            throw new IllegalArgumentException("tenantId required");
+        }
         this.clientId = clientId;
-        setTenantId(tenantId);        
-        for (int i = 0; i < entries.length - 1; i += 2) {
-            key.put(entries[i], entries[i+1]);
+        setTenantId(tenantId);
+        if (entries != null) {
+            for (int i = 0; i < entries.length - 1; i += 2) {
+                key.put(entries[i], entries[i+1]);
+            }
         }
     }
     public Date getTime() {
