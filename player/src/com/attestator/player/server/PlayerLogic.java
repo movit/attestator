@@ -17,6 +17,7 @@ import com.attestator.common.shared.helper.ReportHelper;
 import com.attestator.common.shared.vo.AnswerVO;
 import com.attestator.common.shared.vo.BaseVO;
 import com.attestator.common.shared.vo.ChangeMarkerVO;
+import com.attestator.common.shared.vo.InterruptionCauseEnum;
 import com.attestator.common.shared.vo.MTEGroupVO;
 import com.attestator.common.shared.vo.MTEQuestionVO;
 import com.attestator.common.shared.vo.MetaTestEntryVO;
@@ -162,6 +163,7 @@ public class PlayerLogic extends CommonLogic{
         
         Query<ReportVO> q = Singletons.ds().createQuery(ReportVO.class);
         q.field("publication._id").equal(publicatioId);
+        q.field("finished").equal(true);
         q.field("clientId").equal(clientId);
         
         long result = q.countAll();
@@ -323,8 +325,9 @@ public class PlayerLogic extends CommonLogic{
         return result;
     }
     
-    public void startReport(ReportVO report, String clientId, String host) {
+    public void startReport(ReportVO report, Date start, String clientId, String host) {
         CheckHelper.throwIfNull(report, "report");        
+        CheckHelper.throwIfNull(start, "start");        
         CheckHelper.throwIfNull(report.getPublication(), "report.publication");        
         CheckHelper.throwIfNull(report.getPublication().getMetatest(), "report.publication.metatest");        
         CheckHelper.throwIfNullOrEmpty(clientId, "clientId");
@@ -332,7 +335,7 @@ public class PlayerLogic extends CommonLogic{
         report.setMetatestName(report.getPublication().getMetatest().getName());
         report.setClientId(clientId);
         report.setHost(host);
-        report.setStart(new Date());
+        report.setStart(start);
         
         ReportHelper.updateReportStats(report);
         
@@ -369,9 +372,7 @@ public class PlayerLogic extends CommonLogic{
         report.setEnd(new Date());        
         ReportHelper.updateReportStats(report);
         
-        Singletons.ds().save(report);
-        putChangesMarker(clientId, "type", "getReport", "reportId", report.getId());
-        
+        Singletons.ds().save(report);        
         
 //        UpdateOperations<ReportVO> uo = Singletons.ds().createUpdateOperations(ReportVO.class);        
 //        uo.add("answers", answer);
@@ -380,9 +381,10 @@ public class PlayerLogic extends CommonLogic{
 //        Singletons.ds().update(q, uo);
     }
     
-    public void finishReport(String reportId, String clientId, boolean interrupted) {
+    public void finishReport(String reportId, String clientId, Date end, InterruptionCauseEnum interruptionCause) {
         CheckHelper.throwIfNullOrEmpty(reportId, "reportId");
         CheckHelper.throwIfNullOrEmpty(clientId, "clientId");
+        CheckHelper.throwIfNull(end, "end");
         
         Query<ReportVO> q = Singletons.ds().createQuery(ReportVO.class);        
         q.field("_id").equal(reportId);
@@ -395,9 +397,9 @@ public class PlayerLogic extends CommonLogic{
             return;
         }
         
-        report.setEnd(new Date());
+        report.setEnd(end);
         report.setFinished(true);
-        report.setInterrupted(interrupted);
+        report.setInterruptionCause(interruptionCause);
         ReportHelper.updateReportStats(report);
         
         Singletons.ds().save(report);

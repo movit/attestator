@@ -11,6 +11,7 @@ import org.apache.log4j.Logger;
 import com.attestator.admin.server.LoginManager;
 import com.attestator.common.shared.vo.AnswerVO;
 import com.attestator.common.shared.vo.ChangeMarkerVO;
+import com.attestator.common.shared.vo.InterruptionCauseEnum;
 import com.attestator.common.shared.vo.PublicationVO;
 import com.attestator.common.shared.vo.QuestionVO;
 import com.attestator.common.shared.vo.ReportVO;
@@ -104,14 +105,14 @@ public class PlayerServiceImpl extends RemoteServiceServlet implements
     }
 
     @Override
-    public void startReport(String tenantId, ReportVO report) throws IllegalStateException {
+    public void startReport(String tenantId, ReportVO report, Date start) throws IllegalStateException {
         try {
             login(tenantId);
             
             String clientId = ClientIdManager.getThreadLocalClientId();
             String host = getThreadLocalRequest().getRemoteAddr();
             
-            Singletons.pl().startReport(report, clientId, host);
+            Singletons.pl().startReport(report, start, clientId, host);
         }
         catch (LoginException e) {
             logger.info(e.getMessage());
@@ -142,10 +143,10 @@ public class PlayerServiceImpl extends RemoteServiceServlet implements
     }
 
     @Override
-    public void finishReport(String tenantId, String reportId, boolean interrupted) throws IllegalStateException {
+    public void finishReport(String tenantId, String reportId, Date end, InterruptionCauseEnum interruptionCause) throws IllegalStateException {
         try {
             login(tenantId);            
-            Singletons.pl().finishReport(reportId, ClientIdManager.getThreadLocalClientId(), interrupted);
+            Singletons.pl().finishReport(reportId, ClientIdManager.getThreadLocalClientId(), end, interruptionCause);
         }
         catch (LoginException e) {
             logger.info(e.getMessage());

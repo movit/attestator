@@ -25,7 +25,7 @@ public class ReportVO extends TenantableVO {
     private Date end;
 
     private Boolean finished;
-    private Boolean interrupted;
+    private InterruptionCauseEnum interruptionCause;
 
     private String clientId;
     private String host;
@@ -198,17 +198,13 @@ public class ReportVO extends TenantableVO {
     public void setNumUnanswered(Integer numUnanswered) {
         this.numUnanswered = numUnanswered;
     }
-
-    public boolean isThisInterrupted() {
-        return NullHelper.nullSafeTrue(interrupted);
-    }
     
-    public Boolean getInterrupted() {
-        return interrupted;
+    public InterruptionCauseEnum getInterruptionCause() {
+        return interruptionCause;
     }
 
-    public void setInterrupted(Boolean interrupted) {
-        this.interrupted = interrupted;
+    public void setInterruptionCause(InterruptionCauseEnum interruptionCause) {
+        this.interruptionCause = interruptionCause;
     }
 
     public List<QuestionVO> getQuestions() {

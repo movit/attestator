@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.attestator.common.shared.vo.AnswerVO;
 import com.attestator.common.shared.vo.ChangeMarkerVO;
+import com.attestator.common.shared.vo.InterruptionCauseEnum;
 import com.attestator.common.shared.vo.ReportVO;
 import com.attestator.player.shared.dto.ActivePublicationDTO;
 import com.attestator.player.shared.dto.TestDTO;
@@ -21,7 +22,7 @@ public interface PlayerServiceAsync {
     void getReport(String tenantId, String reportId, AsyncCallback<ReportVO> callback) throws IllegalStateException;
     void getLatestUnfinishedReport(String tenantId, String publicationId, AsyncCallback<ReportVO> callback) throws IllegalStateException;
 
-    void startReport(String tenantId, ReportVO report, AsyncCallback<Void> callback) throws IllegalStateException;
+    void startReport(String tenantId, ReportVO report, Date start, AsyncCallback<Void> callback) throws IllegalStateException;
     void addAnswer(String tenantId, String reportId, AnswerVO answer, AsyncCallback<Void> callback) throws IllegalStateException;
-    void finishReport(String tenantId, String reportId, boolean interrupted, AsyncCallback<Void> callback) throws IllegalStateException;
+    void finishReport(String tenantId, String reportId, Date end, InterruptionCauseEnum interruptionCause, AsyncCallback<Void> callback) throws IllegalStateException;
 }

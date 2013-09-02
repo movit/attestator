@@ -119,7 +119,7 @@ public class DatabaseUpdater {
         Singletons.ds().save(mt);
         
         PublicationVO publication = new PublicationVO();
-        publication.setMaxTakeTestTime(600000l);
+        publication.setMaxTakeTestTime(60000l);
         publication.setMaxQuestionAnswerTime(60000l);
         publication.setMinScore(2d);
         publication.setInterruptOnFalure(true);
@@ -157,19 +157,21 @@ public class DatabaseUpdater {
         }
         ge  = new MTEGroupVO();
         ge.setGroupId(grSign.getId());
-        ge.setNumberOfQuestions(10);
+        ge.setNumberOfQuestions(5);
         mt.getEntries().add(ge);
         
         ge  = new MTEGroupVO();
         ge.setGroupId(grOther.getId());
-        ge.setNumberOfQuestions(10);
+        ge.setNumberOfQuestions(5);
         mt.getEntries().add(ge);
 
         Singletons.ds().save(mt);
         
         publication = new PublicationVO();
         publication.setMetatestId(mt.getId());
-        publication.setMaxTakeTestTime(600000l);
+        publication.setMaxTakeTestTime(60000l);
+        publication.setMinScore(9d);
+        publication.setInterruptOnFalure(true);
         publication.setAllowSkipQuestions(true);
         Singletons.ds().save(publication);
         
@@ -290,7 +292,7 @@ public class DatabaseUpdater {
         publication.setAskMiddleNameRequired(true);
         
         try {
-            publication.setEnd((new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")).parse("2013-07-27T00:00:00+0400"));
+            publication.setEnd((new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")).parse("2013-08-31T00:00:00+0400"));
         }
         catch (Exception e) {
         }

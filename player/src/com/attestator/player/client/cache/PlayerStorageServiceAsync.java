@@ -10,6 +10,7 @@ import java.util.Set;
 import com.attestator.common.shared.helper.ReportHelper;
 import com.attestator.common.shared.vo.AnswerVO;
 import com.attestator.common.shared.vo.ChangeMarkerVO;
+import com.attestator.common.shared.vo.InterruptionCauseEnum;
 import com.attestator.common.shared.vo.ReportVO;
 import com.attestator.player.client.cache.co.AddAnswerCO;
 import com.attestator.player.client.cache.co.FinishReportCO;
@@ -18,6 +19,7 @@ import com.attestator.player.client.cache.co.TenantCacheVersionCO;
 import com.attestator.player.client.rpc.PlayerServiceAsync;
 import com.attestator.player.shared.dto.ActivePublicationDTO;
 import com.attestator.player.shared.dto.TestDTO;
+import com.google.common.base.Predicate;
 import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 
@@ -69,12 +71,12 @@ public class PlayerStorageServiceAsync implements PlayerServiceAsync {
             AsyncCallback<List<ActivePublicationDTO>> callback)
             throws IllegalStateException {
         psc.setCurrentTenant(tenantId);
-        String key = psc.cacheKey("tenantId", tenantId, "type", "getActivePulications");
+        String key = psc.cacheKey("tenantId", tenantId, "type", "getActivePublications");
         if (isOnline()) {
-            rpc.getActivePulications(tenantId, new CacheReaderCallback<List<ActivePublicationDTO>>((Class<List<ActivePublicationDTO>>)(Class<?>)(List.class), key, callback));
+            rpc.getActivePulications(tenantId, new CacheReaderCallback<List<ActivePublicationDTO>>((Class<List<ActivePublicationDTO>>)(Class<?>)(ArrayList.class), key, callback));
         }
         else {
-            callCallbackOnCachedValue((Class<List<ActivePublicationDTO>>)(Class<?>)List.class, key, callback);
+            callCallbackOnCachedValue((Class<List<ActivePublicationDTO>>)(Class<?>)ArrayList.class, key, callback);
         }
     }
 
@@ -92,9 +94,22 @@ public class PlayerStorageServiceAsync implements PlayerServiceAsync {
     }
 
     @Override
-    public void getReport(String tenantId, String reportId,
+    public void getReport(String tenantId, final String reportId,
             AsyncCallback<ReportVO> callback) throws IllegalStateException {
         psc.setCurrentTenant(tenantId);
+        
+        ReportVO renewReport = getUnfinishedReportFromCache(new Predicate<ReportVO>() {
+            @Override
+            public boolean apply(ReportVO report) {
+                return report.getId().equals(reportId);
+            }
+        });
+        
+        if (renewReport != null) {
+            callback.onSuccess(renewReport);
+            return;
+        }
+        
         String key = psc.cacheKey("tenantId", tenantId, "type", "getReport", "reportId", reportId);
         if (isOnline()) {
             rpc.getReport(tenantId, reportId, new CacheReaderCallback<ReportVO>(ReportVO.class, key, callback));
@@ -104,17 +119,17 @@ public class PlayerStorageServiceAsync implements PlayerServiceAsync {
         }
     }     
     
-    private ReportVO getUnfinishedReportFromCache(String publicationId) {
+    private ReportVO getUnfinishedReportFromCache(Predicate<ReportVO> predicate) {
         Set<String> keys = psc.getKeys("kind=renew");
         ReportVO result = null;
         for (String key : keys) {
             Map<String, String> keyMap = psc.key(key);            
             if ("startReport".equals(keyMap.get("type"))) {
                 StartReportCO item = psc.getItem(StartReportCO.class, key);
-                if (item.getReport().getPublication().getId().equals(publicationId)) {
+                if (predicate == null || predicate.apply(item.getReport())) {
                     result = item.getReport();
-                    continue;
                 }
+                continue;
             }
             
             if (result == null) {
@@ -126,6 +141,17 @@ public class PlayerStorageServiceAsync implements PlayerServiceAsync {
                 if (item.getReportId().equals(result.getId())) {
                     result.getAnswers().add(item.getAnswer());
                 }
+                continue;
+            }            
+            
+            if ("finishReport".equals(keyMap.get("type"))) {
+                FinishReportCO item = psc.getItem(FinishReportCO.class, key);
+                if (item.getReportId().equals(result.getId())) {
+                    result.setFinished(true);
+                    result.setEnd(item.getEnd());
+                    result.setInterruptionCause(item.getInterruptionCause());
+                }
+                continue;
             }
         }
         return result;
@@ -139,7 +165,13 @@ public class PlayerStorageServiceAsync implements PlayerServiceAsync {
         psc.setCurrentTenant(tenantId);
         
         // First of all look in cache for unfinished report
-        ReportVO report = getUnfinishedReportFromCache(publicationId);
+        ReportVO report = getUnfinishedReportFromCache(new Predicate<ReportVO>() {
+            @Override
+            public boolean apply(ReportVO report) {
+                return report.getPublication().getId().equals(publicationId);
+            }
+        });
+        
         if (report != null) {
             if (ReportHelper.isRenewAllowed(report)) {
                 callback.onSuccess(report);
@@ -148,7 +180,7 @@ public class PlayerStorageServiceAsync implements PlayerServiceAsync {
                 callback.onSuccess(null);
             }
             return;
-        }        
+        }
         
         // Unable to load from cache before, so try got them from server
         if (isOnline()) {
@@ -169,19 +201,19 @@ public class PlayerStorageServiceAsync implements PlayerServiceAsync {
     }
 
     @Override
-    public void startReport(String tenantId, ReportVO report,
+    public void startReport(String tenantId, ReportVO report, Date start,
             AsyncCallback<Void> callback) throws IllegalStateException {
         psc.setCurrentTenant(tenantId);
         
-        report.setStart(new Date());
-        StartReportCO item = new StartReportCO(tenantId, report);
+        report.setStart(start);
+        StartReportCO item = new StartReportCO(tenantId, report, start);
         
         String reportKey = psc.reportKey("type", "startReport", "reportId", report.getId());
         psc.setItem(reportKey, item);        
         
+        String renewKey = psc.renewKey("type", "startReport", "reportId", report.getId());        
         psc.removeThisItemsByRegex("kind=renew", ".*");
-        String renewKey = psc.renewKey("type", "startReport", "reportId", report.getId());
-        psc.setItem(renewKey, item);   
+        psc.setItem(renewKey, item);
         
         callback.onSuccess(null);
     }
@@ -202,13 +234,17 @@ public class PlayerStorageServiceAsync implements PlayerServiceAsync {
     }
 
     @Override
-    public void finishReport(String tenantId, String reportId, boolean interrupted,
+    public void finishReport(String tenantId, String reportId, Date end, InterruptionCauseEnum interruptionCause,
             AsyncCallback<Void> callback) throws IllegalStateException {
         psc.setCurrentTenant(tenantId);
-        String key = psc.reportKey("type", "finishReport", "reportId", reportId);
-        FinishReportCO item = new FinishReportCO(tenantId, reportId, interrupted);        
-        psc.setItem(key, item);
-        psc.removeThisItemsByRegex("kind=renew", ".*");
+        FinishReportCO item = new FinishReportCO(tenantId, reportId, end, interruptionCause);        
+        
+        String reportKey = psc.reportKey("type", "finishReport", "reportId", reportId);
+        psc.setItem(reportKey, item);
+        
+        String renewKey = psc.renewKey("type", "finishReport", "reportId", reportId);
+        psc.setItem(renewKey, item);
+        
         callback.onSuccess(null);
     }
     
@@ -314,7 +350,7 @@ public class PlayerStorageServiceAsync implements PlayerServiceAsync {
             
             if ("startReport".equals(method)) {
                 StartReportCO p = psc.getItem(StartReportCO.class, keyStr);
-                rpc.startReport(p.getTenantId(), p.getReport(), new SendingCallback(callbacks, keyStr));
+                rpc.startReport(p.getTenantId(), p.getReport(), p.getStart(), new SendingCallback(callbacks, keyStr));
             }
             else if ("addAnswer".equals(method)) {
                 AddAnswerCO p = psc.getItem(AddAnswerCO.class, keyStr);
@@ -322,7 +358,7 @@ public class PlayerStorageServiceAsync implements PlayerServiceAsync {
             }
             else if ("finishReport".equals(method)) {
                 FinishReportCO p = psc.getItem(FinishReportCO.class, keyStr);
-                rpc.finishReport(p.getTenantId(), p.getTenantId(), p.isInterrupted(), new SendingCallback(callbacks, keyStr));
+                rpc.finishReport(p.getTenantId(), p.getReportId(), p.getEnd(), p.getInterruptionCause(), new SendingCallback(callbacks, keyStr));
             }
             else {
                 buzzy = false;
@@ -415,9 +451,9 @@ public class PlayerStorageServiceAsync implements PlayerServiceAsync {
         private void cacheChanges(final ChangeMarkerVO marker, final TenantCacheVersionCO version) {            
             if (marker.isGlobal()) {
                 psc.removeThisItemsByRegex("kind=cache", psc.marker("tenantId", marker.getTenantId()));
-                cacheChanges(new ChangeMarkerVO(marker.getClientId(), marker.getTenantId(), "type", "getActivePulications"), version);
-            }
-            else if ("getActivePulications".equals(marker.getKeyEntry("type"))) {                
+                cacheChanges(new ChangeMarkerVO(marker.getClientId(), marker.getTenantId(), "type", "getActivePublications"), version);
+            }         
+            else if ("getActivePublications".equals(marker.getKeyEntry("type"))) {                
                 rpc.getActivePulications(marker.getTenantId(), new CachingCallback<List<ActivePublicationDTO>>(callbacks, version) {
                     @Override
                     public void onResult(final List<ActivePublicationDTO> result) {                        
