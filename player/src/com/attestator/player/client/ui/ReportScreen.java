@@ -1,6 +1,5 @@
 package com.attestator.player.client.ui;
 
-import com.attestator.common.shared.helper.NullHelper;
 import com.attestator.common.shared.helper.ReportHelper;
 import com.attestator.common.shared.helper.ReportHelper.ReportType;
 import com.attestator.common.shared.vo.ReportVO;
@@ -68,10 +67,10 @@ public class ReportScreen extends MainScreen {
         clear();
         String reportId = token.getProperties().get("id");
         
-        if (TestScreen.instance().getReport() != null && NullHelper.nullSafeEquals(TestScreen.instance().getReport().getId(), reportId)) {
-            initFromReport(TestScreen.instance().getReport());
-            return;
-        }
+//        if (TestScreen.instance().getReport() != null && NullHelper.nullSafeEquals(TestScreen.instance().getReport().getId(), reportId)) {
+//            initFromReport(TestScreen.instance().getReport());
+//            return;
+//        }
         
         vl.mask("Загрузка...");
         Player.rpc.getReport(getTenantId(), reportId, new PlayerAsyncCallback<ReportVO>() {

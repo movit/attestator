@@ -17,7 +17,7 @@ import com.google.gwt.regexp.shared.RegExp;
 import com.google.gwt.storage.client.Storage;
 
 public class PlayerStorageCache {
-    private static final int VERSION = 2;
+    private static final int VERSION = 3;
     private static final String KEY_PAIR_SEPARATOR = ", ";
 
     private Storage localStorage = Storage.getLocalStorageIfSupported();

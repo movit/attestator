@@ -2,6 +2,7 @@ package com.attestator.player.client.ui;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 import com.attestator.common.client.ui.resolurces.Resources;
@@ -10,6 +11,7 @@ import com.attestator.common.shared.helper.NullHelper;
 import com.attestator.common.shared.helper.ReportHelper;
 import com.attestator.common.shared.helper.StringHelper;
 import com.attestator.common.shared.vo.AnswerVO;
+import com.attestator.common.shared.vo.InterruptionCauseEnum;
 import com.attestator.common.shared.vo.PublicationVO;
 import com.attestator.common.shared.vo.QuestionVO;
 import com.attestator.common.shared.vo.ReportVO;
@@ -88,7 +90,7 @@ public class TestScreen extends MainScreen {
     private Timer testTimer;
 
     private enum State {
-        clean, publication, question, report, loading
+        clean, publication, question, finish, loading
     };
 
     private State state = State.clean;
@@ -126,7 +128,7 @@ public class TestScreen extends MainScreen {
                 if (publicationPoprtlet.isValid()) {
                     publicationPoprtlet.fillReport(report);
 
-                    switchToNextQuestionOrReport();
+                    switchToNextQuestionOrFinish();
                 } else {
                     (new AlertMessageBox("Предупреждение",
                             "Не все поля заполнены правильно")).show();
@@ -138,7 +140,7 @@ public class TestScreen extends MainScreen {
         introductionButton.addSelectHandler(new SelectHandler() {
             @Override
             public void onSelect(SelectEvent event) {
-                switchToNextQuestionOrReport();
+                switchToNextQuestionOrFinish();
             }
         });
 
@@ -147,7 +149,7 @@ public class TestScreen extends MainScreen {
         interruptTestButton.addSelectHandler(new SelectHandler() {
             @Override
             public void onSelect(SelectEvent event) {
-                switchTo(State.report);
+                switchTo(State.finish);
             }
         });
 
@@ -156,7 +158,7 @@ public class TestScreen extends MainScreen {
         skipQuestionButton.addSelectHandler(new SelectHandler() {
             @Override
             public void onSelect(SelectEvent event) {
-                switchToNextQuestionOrReport();
+                switchToNextQuestionOrFinish();
             }
         });
 
@@ -185,7 +187,7 @@ public class TestScreen extends MainScreen {
                                     navButton.setIcon(Resources.ICONS
                                             .checkBoxChecked16x16());
                                 }
-                                switchToNextQuestionOrReport();
+                                switchToNextQuestionOrFinish();
                             }
                         });
 
@@ -337,7 +339,7 @@ public class TestScreen extends MainScreen {
 
         mainPanel.setHeadingText(report.getPublication().getMetatest().getName());
         
-        switchToNextQuestionOrReport();
+        switchToNextQuestionOrFinish();
     }
     
     private void initFromTest(TestDTO test) {
@@ -443,15 +445,16 @@ public class TestScreen extends MainScreen {
                     addNavigationButtons();
                 }
 
-                if (report.getStart() == null) {
-                    Player.rpc.startReport(getTenantId(), report, new PlayerAsyncEmptyCallback<Void>());
+                if (publication.getMaxTakeTestTime() != null) {
+                    Long maxTakeTestTime = publication.getMaxTakeTestTime();
+                    if (report.getStart() != null) {
+                        maxTakeTestTime = maxTakeTestTime - (System.currentTimeMillis() - report.getStart().getTime());
+                    }                     
+                    startTestTimer(maxTakeTestTime);
                 }
-                else {
-                    if (publication.getMaxTakeTestTime() != null) {
-                        Long maxTakeTestTime = publication.getMaxTakeTestTime();
-                        maxTakeTestTime = maxTakeTestTime - (System.currentTimeMillis() - report.getStart().getTime()); 
-                        startTestTimer(maxTakeTestTime);
-                    }
+                
+                if (report.getStart() == null) {
+                    Player.rpc.startReport(getTenantId(), report, new Date(), new PlayerAsyncEmptyCallback<Void>());
                 }
             }
 
@@ -501,9 +504,10 @@ public class TestScreen extends MainScreen {
             this.questionNo = newQuestionNo;
             break;
 
-        case report:
+        case finish:
+            clear();
             report.setFinished(true);
-            Player.rpc.finishReport(getTenantId(), report.getId(), report.isThisInterrupted(),
+            Player.rpc.finishReport(getTenantId(), report.getId(), new Date(), report.getInterruptionCause(),
                     new PlayerAsyncCallback<Void>() {
                         @Override
                         public void onSuccess(Void result) {
@@ -526,25 +530,21 @@ public class TestScreen extends MainScreen {
         return "На этот вопрос - " + DateHelper.formatTimeValue(sec);
     }
 
-    private void switchToNextQuestionOrReport() {
+    private void switchToNextQuestionOrFinish() {
         int no = nextUnansweredQuestion(questionNo);
 
         boolean interrupt = false;
-        if (report.getPublication().getThisMinScore() > 0
-                && report.getPublication().isThisInterruptOnFalure()) {
-
-            interrupt = ReportHelper.getPossibleScore(report, no) < 
-                    report.getPublication().getThisMinScore();
+        if (report.getPublication().getThisMinScore() > 0 && report.getPublication().isThisInterruptOnFalure()) {
+            interrupt = ReportHelper.getPossibleScore(report, no) < report.getPublication().getThisMinScore();
         }
 
         if (interrupt) {
-            report.setInterrupted(true);
-            switchTo(State.report);
+            report.setInterruptionCause(InterruptionCauseEnum.toManyErrors);
+            switchTo(State.finish);            
         }
-
-        if (!publication.isAllowSkipQuestions()) {
+        else if (!publication.isAllowSkipQuestions()) {
             if (no < questionNo || no < 0) {
-                switchTo(State.report);
+                switchTo(State.finish);
             } else {
                 switchTo(State.question, no);
             }
@@ -552,7 +552,7 @@ public class TestScreen extends MainScreen {
             if (no >= 0) {
                 switchTo(State.question, no);
             } else {
-                switchTo(State.report);
+                switchTo(State.finish);
             }
         }
     }
@@ -577,7 +577,7 @@ public class TestScreen extends MainScreen {
 
                 if (sec <= 0) {
                     cancel();
-                    switchToNextQuestionOrReport();
+                    switchToNextQuestionOrFinish();
                 }
             }
         };
@@ -605,7 +605,8 @@ public class TestScreen extends MainScreen {
 
                 if (sec <= 0) {
                     cancel();
-                    switchTo(State.report);
+                    report.setInterruptionCause(InterruptionCauseEnum.timerExpired);
+                    switchTo(State.finish);
                 }
             }
         };

@@ -67,8 +67,22 @@ public class ReportHelper {
         }
         
         hb.appendText("Тест:&nbsp;");
-        if (report.isThisInterrupted()) {
-            hb.appendText("<b>" + "прерван - слишком много ошибок" + "</b>");
+        if (report.getInterruptionCause() != null) {
+            switch(report.getInterruptionCause()) {
+                case timerExpired:
+                    hb.appendText("<b>" + "прерван - время вышло" + "</b>");
+                    break;    
+                case toManyErrors:
+                    hb.appendText("<b>" + "прерван - слишком много ошибок" + "</b>");
+                    break;
+                case user:
+                    hb.appendText("<b>" + "прерван испытуемым" + "</b>");
+                break;
+                default:
+                    hb.appendText("<b>" + "прерван" + "</b>");
+                break;
+            }
+            
         }
         else {
             if (report.isThisFinished()) {
@@ -305,8 +319,8 @@ public class ReportHelper {
         }
         
         Long maxTakeTestTime = report.getPublication().getMaxTakeTestTime();
-        if (maxTakeTestTime != null) {
-            Date testEnd = new Date(System.currentTimeMillis() + maxTakeTestTime);
+        if (maxTakeTestTime != null && report.getStart() != null) {
+            Date testEnd = new Date(report.getStart().getTime() + maxTakeTestTime);
             Date now = new Date();
             if (testEnd.before(now)) {
                 return false;
