@@ -5,7 +5,7 @@ import com.attestator.common.shared.vo.PublicationVO;
 public class ActivePublicationDTO extends BaseDTO {
     private static final long serialVersionUID = 4868465484264452397L;
     private PublicationVO publication;
-    private long          numberOfAttempts;
+    private Long          attemptsLeft;
     private String        lastFullReportId;
     
     public PublicationVO getPublication() {
@@ -13,12 +13,12 @@ public class ActivePublicationDTO extends BaseDTO {
     }
     public void setPublication(PublicationVO publication) {
         this.publication = publication;
+    }    
+    public Long getAttemptsLeft() {
+        return attemptsLeft;
     }
-    public long getNumberOfAttempts() {
-        return numberOfAttempts;
-    }
-    public void setNumberOfAttempts(long numberOfAttempts) {
-        this.numberOfAttempts = numberOfAttempts;
+    public void setAttemptsLeft(Long attemptsLeft) {
+        this.attemptsLeft = attemptsLeft;
     }
     public String getLastFullReportId() {
         return lastFullReportId;

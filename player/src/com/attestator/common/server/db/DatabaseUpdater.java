@@ -7,6 +7,7 @@ import org.apache.log4j.Logger;
 import com.attestator.admin.server.LoginManager;
 import com.attestator.common.shared.vo.AdditionalQuestionVO;
 import com.attestator.common.shared.vo.BaseVO;
+import com.attestator.common.shared.vo.ChangeMarkerVO;
 import com.attestator.common.shared.vo.ChoiceVO;
 import com.attestator.common.shared.vo.DBVersionVO;
 import com.attestator.common.shared.vo.GroupVO;
@@ -17,11 +18,12 @@ import com.attestator.common.shared.vo.PublicationVO;
 import com.attestator.common.shared.vo.SingleChoiceQuestionVO;
 import com.attestator.common.shared.vo.UserVO;
 import com.attestator.player.server.Singletons;
+import com.google.code.morphia.query.Query;
 
 public class DatabaseUpdater {
     private static Logger logger = Logger.getLogger(DatabaseUpdater.class);
     
-    public static final int DB_VERSION = 1;
+    public static final int DB_VERSION = 2;
     
     public static void updateDatabase() {
         DBVersionVO version = Singletons.rawDs().createQuery(DBVersionVO.class).get();
@@ -37,6 +39,11 @@ public class DatabaseUpdater {
         
         if (version.getVersion() < 1) {
             addTestData();
+        }
+        
+        if (version.getVersion() < 2) {
+            Query<ChangeMarkerVO> q = Singletons.rawDs().createQuery(ChangeMarkerVO.class);
+            Singletons.rawDs().delete(q);
         }
         
         if (version.getVersion() < DB_VERSION) {

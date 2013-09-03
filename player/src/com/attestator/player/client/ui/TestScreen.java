@@ -25,7 +25,6 @@ import com.attestator.player.client.rpc.PlayerAsyncEmptyCallback;
 import com.attestator.player.client.ui.portlet.PublicationPortlet;
 import com.attestator.player.client.ui.portlet.question.QuestionPortlet;
 import com.attestator.player.client.ui.portlet.question.SCQuestionPortlet;
-import com.attestator.player.shared.dto.TestDTO;
 import com.google.gwt.dom.client.Style.TextAlign;
 import com.google.gwt.dom.client.Style.Unit;
 import com.google.gwt.event.logical.shared.AttachEvent;
@@ -268,13 +267,13 @@ public class TestScreen extends MainScreen {
         mainPanel.forceLayout();
     }
 
-    private void loadActiveTest(String publicationId) {
+    private void startTest(String publicationId) {
         mainLayout.mask("Загрузка...");
         
-        Player.rpc.getActiveTest(getTenantId(), publicationId,
-            new PlayerAsyncCallback<TestDTO>() {
+        Player.rpc.startTest(getTenantId(), publicationId,
+            new PlayerAsyncCallback<ReportVO>() {
                 @Override
-                public void onSuccess(TestDTO result) {
+                public void onSuccess(ReportVO result) {
                     mainLayout.unmask();
                     if (result == null || NullHelper.isEmptyOrNull(result.getQuestions())) {
                         History.newItem(newToken("publications"));
@@ -294,9 +293,9 @@ public class TestScreen extends MainScreen {
             });
     }
 
-    private void loadUnfinishedReportOrStartNewTest(final String publicationId) {
+    private void renewOrStartTest(final String publicationId) {
         mainLayout.mask("Загрузка...");
-        Player.rpc.getLatestUnfinishedReport(getTenantId(), publicationId, new PlayerAsyncCallback<ReportVO>() {
+        Player.rpc.renewTest(getTenantId(), publicationId, new PlayerAsyncCallback<ReportVO>() {
             @Override
             public void onSuccess(ReportVO result) {
                 mainLayout.unmask();
@@ -305,14 +304,14 @@ public class TestScreen extends MainScreen {
                     initFromReport(result);
                 }
                 else {
-                    loadActiveTest(publicationId);
+                    startTest(publicationId);
                 }
             }
             
             @Override
             public void onFailure(Throwable caught) {
                 mainLayout.unmask();
-                loadActiveTest(publicationId);
+                startTest(publicationId);
             }
         });
     }
@@ -328,7 +327,7 @@ public class TestScreen extends MainScreen {
 
         switchTo(State.clean);
         
-        loadUnfinishedReportOrStartNewTest(publicationId);
+        renewOrStartTest(publicationId);
     }
 
     private void initFromReport(ReportVO report) {
@@ -342,13 +341,11 @@ public class TestScreen extends MainScreen {
         switchToNextQuestionOrFinish();
     }
     
-    private void initFromTest(TestDTO test) {
+    private void initFromTest(ReportVO test) {
         switchTo(State.clean);
 
         this.publication = test.getPublication();
-        this.report = new ReportVO();
-        report.setPublication(test.getPublication());
-        report.setQuestions(test.getQuestions());
+        this.report = test;
 
         mainPanel.setHeadingText(test.getPublication().getMetatest().getName());
 

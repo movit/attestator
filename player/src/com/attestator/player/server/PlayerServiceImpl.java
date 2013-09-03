@@ -18,7 +18,6 @@ import com.attestator.common.shared.vo.ReportVO;
 import com.attestator.common.shared.vo.UserVO;
 import com.attestator.player.client.rpc.PlayerService;
 import com.attestator.player.shared.dto.ActivePublicationDTO;
-import com.attestator.player.shared.dto.TestDTO;
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 
 /**
@@ -53,7 +52,18 @@ public class PlayerServiceImpl extends RemoteServiceServlet implements
                 ActivePublicationDTO resultItem = new ActivePublicationDTO();
                 resultItem.setPublication(publication);
                 resultItem.setLastFullReportId(lastFullReportId);
-                resultItem.setNumberOfAttempts(numberOfAttempts);
+                
+                if (!publication.isUnlimitedAttempts()) {
+                    ReportVO reportForRenew = Singletons.pl().getLastReportForRenew(clientId, publication.getId());
+                    
+                    if (reportForRenew != null) {
+                        numberOfAttempts--;
+                    }
+                    
+                    long attemptsLeft = publication.getMaxAttempts() - numberOfAttempts;
+                    attemptsLeft = Math.max(attemptsLeft, 0);                    
+                    resultItem.setAttemptsLeft(attemptsLeft);
+                }
                 
                 result.add(resultItem);
             }
@@ -70,22 +80,6 @@ public class PlayerServiceImpl extends RemoteServiceServlet implements
         }
     }    
     
-    @Override
-    public ReportVO getLatestUnfinishedReport(String tenantId, String publicationId) {
-        try {
-            login(tenantId);
-            String clientId = ClientIdManager.getThreadLocalClientId();
-            return Singletons.pl().getLatestUnfinishedReport(clientId, publicationId);
-        }
-        catch (LoginException e) {
-            logger.info(e.getMessage());
-            throw new IllegalStateException(e.getMessage());
-        }
-        catch (Throwable e) {
-            logger.error("Error: ", e);
-            throw new IllegalStateException(DEFAULT_ERROR_MESSAGE);
-        }
-    }
     
     @Override
     public ReportVO getReport(String tenantId, String reportId) throws IllegalStateException {
@@ -159,22 +153,11 @@ public class PlayerServiceImpl extends RemoteServiceServlet implements
     }
 
     @Override
-    public TestDTO getActiveTest(String tenantId, String publicationId)
-            throws IllegalStateException {
+    public List<ChangeMarkerVO> getChangesSince(String tenantId, Date time) {
         try {
             login(tenantId);
-            
-            PublicationVO publication = Singletons.pl().getActivePublication(publicationId);            
-            if (publication == null) {
-                throw new IllegalStateException("Active publication with id " + publicationId + " not found.");
-            }
-            
-            List<QuestionVO> questions = Singletons.pl().getQuestions(publication);
-            
-            TestDTO result = new TestDTO();
-            result.setPublication(publication);
-            result.setQuestions(questions);
-            
+            String clientId = ClientIdManager.getThreadLocalClientId();
+            List<ChangeMarkerVO> result = Singletons.pl().getChangesSince(time, clientId);
             return result;            
         }
         catch (LoginException e) {
@@ -188,12 +171,65 @@ public class PlayerServiceImpl extends RemoteServiceServlet implements
     }
 
     @Override
-    public List<ChangeMarkerVO> getChangesSince(String tenantId, Date time) {
+    public ReportVO startTest(String tenantId, String publicationId) throws IllegalStateException {        
         try {
             login(tenantId);
             String clientId = ClientIdManager.getThreadLocalClientId();
-            List<ChangeMarkerVO> result = Singletons.pl().getChangesSince(time, clientId);
-            return result;            
+            
+            // Look for active publication
+            PublicationVO publication = Singletons.pl().getActivePublication(publicationId);
+            
+            if (publication == null) {
+                return null;
+            }            
+
+            if (!publication.isUnlimitedAttempts()) {
+                long numberOfAttempts = Singletons.pl().getNumberOfAttempts(publicationId, clientId);
+                if (numberOfAttempts >= publication.getMaxAttempts()) {
+                    return null;
+                }
+            }
+
+            // Active publication found. Generate new test
+            List<QuestionVO> questions = Singletons.pl().getQuestions(publication);
+            
+            ReportVO result = new ReportVO();
+            result.setPublication(publication);
+            result.setQuestions(questions);
+            
+            return result;
+        }
+        catch (LoginException e) {
+            logger.info(e.getMessage());
+            throw new IllegalStateException(e.getMessage());
+        }
+        catch (Throwable e) {
+            logger.error("Error: ", e);
+            throw new IllegalStateException(DEFAULT_ERROR_MESSAGE);
+        }
+    }
+
+    @Override
+    public ReportVO renewTest(String tenantId, String publicationId)
+            throws IllegalStateException {
+        try {
+            login(tenantId);
+            
+            String clientId = ClientIdManager.getThreadLocalClientId();
+            
+            // Look for unfinished report
+            ReportVO result = Singletons.pl().getLastReportForRenew(clientId, publicationId);
+            
+            // We have something for renew and this is has limited attempts
+            if (result != null && !result.getPublication().isUnlimitedAttempts()) {
+                long numberOfAttempts = Singletons.pl().getNumberOfAttempts(publicationId, clientId);
+                if (numberOfAttempts > result.getPublication().getMaxAttempts()) {
+                    return null;
+                }
+            }
+            
+            return result;
+            
         }
         catch (LoginException e) {
             logger.info(e.getMessage());

@@ -48,8 +48,7 @@ public class PublicationsScreen extends MainScreen {
         HtmlBuilder hb = new HtmlBuilder();
         
         hb.startTag("div", Resources.STYLES.publicationScreenCss().publicationTitle());
-        if (publicationData.getPublication().isUnlimitedAttempts()
-        ||  publicationData.getPublication().getMaxAttempts() > publicationData.getNumberOfAttempts()) {
+        if (publicationData.getPublication().isUnlimitedAttempts() || publicationData.getAttemptsLeft() > 0) {
             hb.addAnchor(
                     "#" + newToken("test", "publicationId", publicationData.getPublication().getId()), 
                     publicationData.getPublication().getMetatest().getName());
@@ -66,9 +65,7 @@ public class PublicationsScreen extends MainScreen {
             hb.appendText("не ограничено");
         }
         else {
-            long attempsRemain = publicationData.getPublication().getMaxAttempts() - publicationData.getNumberOfAttempts();
-            attempsRemain = Math.max(attempsRemain, 0);
-            hb.appendText("" + attempsRemain);
+            hb.appendText("" + publicationData.getAttemptsLeft());
         }
         hb.appendText(" ");
         

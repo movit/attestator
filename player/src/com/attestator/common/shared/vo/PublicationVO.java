@@ -38,14 +38,14 @@ public class PublicationVO extends TenantableVO {
     
     private Integer         maxAttempts = 0;
 
-    private Double			minScore = 0d;
+    private Double			minScore = 0d;    
     private Boolean 		interruptOnFalure;
     
     private Long            maxTakeTestTime;
     private Long            maxQuestionAnswerTime;
-    private Boolean         allowSkipQuestions = false;  
-    private Boolean         allowInterruptTest = false;  
-    private Boolean         randomQuestionsOrder = false;
+    private Boolean         allowSkipQuestions; 
+    private Boolean         allowInterruptTest;
+    private Boolean         randomQuestionsOrder;
     
     private List<AdditionalQuestionVO> additionalQuestions = new ArrayList<AdditionalQuestionVO>();    
     

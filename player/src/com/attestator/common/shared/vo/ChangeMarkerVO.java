@@ -4,30 +4,40 @@ import java.util.Date;
 import java.util.Map;
 import java.util.TreeMap;
 
+import com.attestator.common.shared.helper.CheckHelper;
 import com.google.code.morphia.annotations.Entity;
 
 @Entity("changemarker")
 public class ChangeMarkerVO extends TenantableVO {
     private static final long serialVersionUID = -6155856555799173610L;
     private String clientId;
+    
     private Date time = new Date();
+    private CacheType type;
     
     private Map<String, String> key = new TreeMap<String, String>();
     
     public ChangeMarkerVO() {
     }
     
-    public ChangeMarkerVO(String clientId, String tenantId, String ... entries) {
-        if (tenantId == null) {
-            throw new IllegalArgumentException("tenantId required");
-        }
+    public ChangeMarkerVO(String clientId, String tenantId, CacheType type, String ... entries) {
+        CheckHelper.throwIfNull(tenantId, "tenantId");
+        
         this.clientId = clientId;
+        this.type = type;
+        
         setTenantId(tenantId);
-        if (entries != null) {
-            for (int i = 0; i < entries.length - 1; i += 2) {
-                key.put(entries[i], entries[i+1]);
-            }
+        
+        for (int i = 0; i < entries.length - 1; i += 2) {
+            key.put(entries[i], entries[i+1]);
         }
+    }
+    
+    public CacheType getType() {
+        return type;
+    }
+    public void setType(CacheType type) {
+        this.type = type;
     }
     public Date getTime() {
         return time;
@@ -51,6 +61,6 @@ public class ChangeMarkerVO extends TenantableVO {
         this.key = key;
     }
     public boolean isGlobal() {
-        return key.isEmpty();
+        return type == null;
     }
 }

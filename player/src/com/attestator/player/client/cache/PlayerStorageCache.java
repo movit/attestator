@@ -8,7 +8,10 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 
 import com.attestator.common.client.helper.SerializationHelper;
+import com.attestator.common.shared.helper.CheckHelper;
 import com.attestator.common.shared.helper.StringHelper;
+import com.attestator.common.shared.vo.CacheKind;
+import com.attestator.common.shared.vo.CacheType;
 import com.attestator.common.shared.vo.ChangeMarkerVO;
 import com.attestator.player.client.cache.co.TenantCacheVersionCO;
 import com.attestator.player.client.cache.co.TenantCacheVersionsCO;
@@ -17,10 +20,23 @@ import com.google.gwt.regexp.shared.RegExp;
 import com.google.gwt.storage.client.Storage;
 
 public class PlayerStorageCache {
-    private static final int VERSION = 3;
+    
+    private static final int VERSION = 5;
     private static final String KEY_PAIR_SEPARATOR = ", ";
 
     private Storage localStorage = Storage.getLocalStorageIfSupported();
+    
+    private PlayerStorageCache() {
+        String key = key(CacheKind.internal, CacheType.cacheVersion);
+        VersionCO version = getItem(VersionCO.class, key);
+        if (version == null) {
+            version = new VersionCO(); 
+        }
+        if (version.getVersion() < VERSION) {
+            localStorage.clear();
+        }
+        setItem(key, new VersionCO(VERSION));
+    }
     
     public static PlayerStorageCache getPlayerStorageIfSupported() {
         if (Storage.isLocalStorageSupported()) {
@@ -31,17 +47,6 @@ public class PlayerStorageCache {
         }
     }
 
-    private PlayerStorageCache() {
-        VersionCO version = getItem(VersionCO.class, "version");
-        if (version == null) {
-            version = new VersionCO(); 
-        }
-        if (version.getVersion() < VERSION) {
-            localStorage.clear();
-        }
-        setItem("version", new VersionCO(VERSION));
-    }
-    
     public <T> void setItem(String key, T value) {
         String serializedValue = SerializationHelper.serialize(value);
         localStorage.setItem(key, serializedValue);
@@ -56,32 +61,6 @@ public class PlayerStorageCache {
         return result;
     }
 
-    public <T> T getItem(Class<T> clazz, String key, T defaultValue) {
-        T result = getItem(clazz, key);
-        return result != null ? result : defaultValue;
-    }
-    
-    public String valuesMarker(String paramName, String ... paramValues) {
-        StringBuilder sb = new StringBuilder();
-        
-        sb.append("(");
-        int i = 0;
-        for (String paramValue : paramValues) {
-            if (i > 0) {
-                sb.append("|");
-            }
-            sb.append("(" + paramName + "=" + paramValue + ")");
-            i++;
-        }
-        sb.append(")");
-        
-        return sb.toString();
-    }
-    
-    public String marker(String ... entries) {
-        return StringHelper.toPairsString(".*", entries);
-    }
-    
     public void leaveOnlyThisItemsByRegex(String markerRegex, String leaveRegex) {
         RegExp marker = RegExp.compile(markerRegex);
         RegExp leave  = RegExp.compile(leaveRegex);
@@ -89,7 +68,6 @@ public class PlayerStorageCache {
         for (int i = localStorage.getLength() - 1; i >= 0; i--) {
             String storageKey = localStorage.key(i);
             if (!marker.test(storageKey)) {
-                // Process only items identified by marker
                 continue;
             }
             if (!leave.test(storageKey)) {
@@ -114,7 +92,7 @@ public class PlayerStorageCache {
     }
 
     public void removeOrphanCacheTenantItems() {
-        TenantCacheVersionsCO versions = getItem(TenantCacheVersionsCO.class, key("type", "tenantVersions")); 
+        TenantCacheVersionsCO versions = getItem(TenantCacheVersionsCO.class, key(CacheKind.internal, CacheType.tenantVersions)); 
         if (versions != null && versions.getItems().size() > 0) {
             StringBuilder sb = new StringBuilder();
             sb.append("(");
@@ -127,7 +105,7 @@ public class PlayerStorageCache {
                 i++;
             }
             sb.append(")");
-            leaveOnlyThisItemsByRegex(marker("kind", "cache"), sb.toString());
+            leaveOnlyThisItemsByRegex(marker(CacheKind.cache), sb.toString());
         }
     }
 
@@ -135,7 +113,7 @@ public class PlayerStorageCache {
         if (version.getTenantId() == null) {
             return;
         }        
-        String key = key("type", "tenantVersions");
+        String key = key(CacheKind.internal, CacheType.tenantVersions);
         TenantCacheVersionsCO versions = getItem(TenantCacheVersionsCO.class, key);
         if (versions == null) {
             versions = new TenantCacheVersionsCO();
@@ -145,7 +123,7 @@ public class PlayerStorageCache {
     }
 
     public TenantCacheVersionCO getCurrentTenantVersion() {
-        TenantCacheVersionsCO versions = getItem(TenantCacheVersionsCO.class, key("type", "tenantVersions"));
+        TenantCacheVersionsCO versions = getItem(TenantCacheVersionsCO.class, key(CacheKind.internal, CacheType.tenantVersions));
         if (versions == null) {
             versions = new TenantCacheVersionsCO();
         }
@@ -156,7 +134,7 @@ public class PlayerStorageCache {
         if (tenantId == null) {
             return;
         }
-        String key = key("type", "tenantVersions");
+        String key = key(CacheKind.internal, CacheType.tenantVersions);
         TenantCacheVersionsCO versions = getItem(TenantCacheVersionsCO.class, key);
         if (versions == null) {
             versions = new TenantCacheVersionsCO();
@@ -165,48 +143,105 @@ public class PlayerStorageCache {
         setItem(key, versions);
     }
     
-    
-    public String key(Map<String, String> map) {
-        return StringHelper.toPairsString(KEY_PAIR_SEPARATOR, map);
+    public String marker(String paramName, String ... paramValues) {
+        StringBuilder sb = new StringBuilder();
+        
+        sb.append("(");
+        int i = 0;
+        for (String paramValue : paramValues) {
+            if (i > 0) {
+                sb.append("|");
+            }
+            sb.append("(" + paramName + "=" + paramValue + ")");
+            i++;
+        }
+        sb.append(")");
+        
+        return sb.toString();
     }
     
-    public String key(String ... keyEntries) {
-        return StringHelper.toPairsString(KEY_PAIR_SEPARATOR, keyEntries);
-    }
-    
-    public String cacheKey(String ... keyEntries) {
-        ArrayList<String> keyEntriesList = new ArrayList<String>(Arrays.asList(keyEntries));
-        keyEntriesList.add("kind");
-        keyEntriesList.add("cache");
-        return StringHelper.toPairsString(KEY_PAIR_SEPARATOR, keyEntriesList.toArray(new String[0]));
-    }
-    
-    public String cacheKey(ChangeMarkerVO marker) {
-        Map<String, String> map = new TreeMap<String, String>(marker.getKey());
-        map.put("tenantId", marker.getTenantId());
-        map.put("kind", "cache");
-        return StringHelper.toPairsString(KEY_PAIR_SEPARATOR, map);
+    public String marker(CacheKind kind) {
+        return marker(kind, null);
     }
 
-    public String renewKey(String ... keyEntries) {
-        ArrayList<String> keyEntriesList = new ArrayList<String>(Arrays.asList(keyEntries));
-        keyEntriesList.add("kind");
-        keyEntriesList.add("renew");
-        keyEntriesList.add("a");
-        keyEntriesList.add("" + System.currentTimeMillis());
-        return StringHelper.toPairsString(KEY_PAIR_SEPARATOR, keyEntriesList.toArray(new String[0]));
+    public String marker(CacheKind kind, CacheType type, String ... entries) {
+        ArrayList<String> array = null;
+        if (entries != null) {
+            array = new ArrayList<String>(Arrays.asList(entries));
+        }
+        else {
+            array = new ArrayList<String>();
+        }
+        
+        if (kind != null) {
+            array.add("kind");
+            array.add(kind.toString());
+        }
+        
+        if (type != null) {
+            array.add("type");
+            array.add(type.toString());
+        }
+        
+        return StringHelper.toPairsString(".*", array.toArray(new String[0]));
     }
     
-    public String reportKey(String ... keyEntries) {
-        ArrayList<String> keyEntriesList = new ArrayList<String>(Arrays.asList(keyEntries));
-        keyEntriesList.add("kind");
-        keyEntriesList.add("report");
-        keyEntriesList.add("a");
-        keyEntriesList.add("" + System.currentTimeMillis());
-        return StringHelper.toPairsString(KEY_PAIR_SEPARATOR, keyEntriesList.toArray(new String[0]));
+    public String keyWithTime(CacheKind kind, CacheType type, String ... keyEntries) {
+        CheckHelper.throwIfNull(kind, "kind");
+        CheckHelper.throwIfNull(type, "type");
+        
+        ArrayList<String> array = null;
+        if (keyEntries != null) {
+            array = new ArrayList<String>(Arrays.asList(keyEntries));
+        }
+        else {
+            array = new ArrayList<String>();
+        }
+        
+        array.add("kind");
+        array.add(kind.toString());
+    
+        array.add("type");
+        array.add(type.toString());
+        
+        array.add("a");
+        array.add("" + System.currentTimeMillis());
+        
+        return StringHelper.toPairsString(KEY_PAIR_SEPARATOR, array.toArray(new String[0]));
     }
     
-    public Map<String, String> key(String key) {
+    public String key(CacheKind kind, CacheType type, String ... keyEntries) {
+        CheckHelper.throwIfNull(kind, "kind");
+        CheckHelper.throwIfNull(type, "type");
+
+        ArrayList<String> array = null;
+        if (keyEntries != null) {
+            array = new ArrayList<String>(Arrays.asList(keyEntries));
+        }
+        else {
+            array = new ArrayList<String>();
+        }
+        
+        array.add("kind");
+        array.add(kind.toString());
+        
+        array.add("type");
+        array.add(type.toString());
+        
+        return StringHelper.toPairsString(KEY_PAIR_SEPARATOR, array.toArray(new String[0]));
+    }
+    
+    public String key(ChangeMarkerVO marker) {
+        TreeMap<String, String> keyMap = new TreeMap<String, String>(marker.getKey());
+        
+        keyMap.put("kind", CacheKind.cache.toString());
+        keyMap.put("type", marker.getType().toString());
+        keyMap.put("tenantId", marker.getTenantId());
+        
+        return StringHelper.toPairsString(KEY_PAIR_SEPARATOR, keyMap);
+    }    
+    
+    public Map<String, String> keyMap(String key) {
         Map<String, String> result = new TreeMap<String, String>();
         String[] pairs = key.split(KEY_PAIR_SEPARATOR);
         for (int i = 0; i < pairs.length; i++) {

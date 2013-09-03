@@ -5,6 +5,7 @@ import org.apache.log4j.Logger;
 import com.attestator.admin.server.LoginManager;
 import com.attestator.common.shared.helper.CheckHelper;
 import com.attestator.common.shared.vo.BaseVO;
+import com.attestator.common.shared.vo.CacheType;
 import com.attestator.common.shared.vo.ChangeMarkerVO;
 import com.attestator.player.server.Singletons;
 import com.google.code.morphia.query.Query;
@@ -24,11 +25,11 @@ public class CommonLogic {
     }
     
     protected void putGlobalChangesMarker() {
-        putChangesMarker(null, (String[])null);
+        putChangesMarker(null, null);
     }
 
-    protected void putChangesMarker(String clientId, String ... entries) {
-        ChangeMarkerVO marker = new ChangeMarkerVO(clientId, LoginManager.getThreadLocalTenatId(), entries);
+    protected void putChangesMarker(String clientId, CacheType type, String ... entries) {
+        ChangeMarkerVO marker = new ChangeMarkerVO(clientId, LoginManager.getThreadLocalTenatId(), type, entries);
         Singletons.ds().save(marker);
     }
 }

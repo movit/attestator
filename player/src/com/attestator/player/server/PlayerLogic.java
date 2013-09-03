@@ -16,6 +16,7 @@ import com.attestator.common.shared.helper.CheckHelper;
 import com.attestator.common.shared.helper.ReportHelper;
 import com.attestator.common.shared.vo.AnswerVO;
 import com.attestator.common.shared.vo.BaseVO;
+import com.attestator.common.shared.vo.CacheType;
 import com.attestator.common.shared.vo.ChangeMarkerVO;
 import com.attestator.common.shared.vo.InterruptionCauseEnum;
 import com.attestator.common.shared.vo.MTEGroupVO;
@@ -113,7 +114,7 @@ public class PlayerLogic extends CommonLogic{
         
         // If no time marker return all changes
         if (time == null) {
-            return Arrays.asList(new ChangeMarkerVO(null, LoginManager.getThreadLocalTenatId()));
+            return Arrays.asList(new ChangeMarkerVO(null, LoginManager.getThreadLocalTenatId(), null));
         }
         
         Query<ChangeMarkerVO> q = Singletons.ds().createQuery(ChangeMarkerVO.class);
@@ -150,20 +151,19 @@ public class PlayerLogic extends CommonLogic{
         );
         
         if (qp.countAll() > 0) {
-            ChangeMarkerVO activePublicationsMarker = new ChangeMarkerVO(null, LoginManager.getThreadLocalTenatId(), "type", "getActivePulications");            
+            ChangeMarkerVO activePublicationsMarker = new ChangeMarkerVO(null, LoginManager.getThreadLocalTenatId(), CacheType.getActivePulications);            
             allChanges.add(activePublicationsMarker);
         }
         
         return allChanges;
     }
     
-    public long getNumberOfAttempts(String publicatioId, String clientId) {
-        CheckHelper.throwIfNullOrEmpty(publicatioId, "publicatioId");
+    public long getNumberOfAttempts(String publicationId, String clientId) {
+        CheckHelper.throwIfNullOrEmpty(publicationId, "publicatioId");
         CheckHelper.throwIfNullOrEmpty(clientId, "clientId");        
         
         Query<ReportVO> q = Singletons.ds().createQuery(ReportVO.class);
-        q.field("publication._id").equal(publicatioId);
-        q.field("finished").equal(true);
+        q.field("publication._id").equal(publicationId);
         q.field("clientId").equal(clientId);
         
         long result = q.countAll();
@@ -293,7 +293,7 @@ public class PlayerLogic extends CommonLogic{
         return result;
     }
     
-    public ReportVO getLatestUnfinishedReport(String clientId, String publicationId) {
+    public ReportVO getLastReportForRenew(String clientId, String publicationId) {
         CheckHelper.throwIfNullOrEmpty(publicationId, "publicationId");
         CheckHelper.throwIfNullOrEmpty(clientId, "clientId");        
         
@@ -373,12 +373,6 @@ public class PlayerLogic extends CommonLogic{
         ReportHelper.updateReportStats(report);
         
         Singletons.ds().save(report);        
-        
-//        UpdateOperations<ReportVO> uo = Singletons.ds().createUpdateOperations(ReportVO.class);        
-//        uo.add("answers", answer);
-//        uo.set("end", new Date());
-//        
-//        Singletons.ds().update(q, uo);
     }
     
     public void finishReport(String reportId, String clientId, Date end, InterruptionCauseEnum interruptionCause) {
@@ -403,12 +397,6 @@ public class PlayerLogic extends CommonLogic{
         ReportHelper.updateReportStats(report);
         
         Singletons.ds().save(report);
-        putChangesMarker(clientId, "type", "getActivePublications");
-        
-//        UpdateOperations<ReportVO> uo = Singletons.ds().createUpdateOperations(ReportVO.class);        
-//        uo.set("end", new Date());
-//        uo.set("finished", true);
-//        
-//        Singletons.ds().update(q, uo);
+        putChangesMarker(clientId, CacheType.getActivePulications);
     }
 }

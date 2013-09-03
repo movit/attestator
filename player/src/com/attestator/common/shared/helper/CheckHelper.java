@@ -15,6 +15,15 @@ public class CheckHelper {
         }
     }
     
+    public static <T> void throwIfNullOrEmpty(T[] value, String valueName) {
+        if (value == null) {
+            throw new IllegalArgumentException("[" + valueName + "] should be not null");
+        }
+        if (NullHelper.isEmptyOrNull(value)) {
+            throw new IllegalArgumentException("[" + valueName + "] should be not empty");
+        }
+    }
+    
     public static void throwIfNullOrEmpty(Collection<?> value, String valueName) {
         if (value == null) {
             throw new IllegalArgumentException("[" + valueName + "] should be not null");
