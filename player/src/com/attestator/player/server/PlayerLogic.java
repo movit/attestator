@@ -331,6 +331,13 @@ public class PlayerLogic extends CommonLogic{
         CheckHelper.throwIfNull(report.getPublication(), "report.publication");        
         CheckHelper.throwIfNull(report.getPublication().getMetatest(), "report.publication.metatest");        
         CheckHelper.throwIfNullOrEmpty(clientId, "clientId");
+
+        Query<ReportVO> q = Singletons.ds().createQuery(ReportVO.class);        
+        q.field("_id").equal(report.getId());
+        long count = q.countAll();
+        if (count > 0) {
+            return;
+        }
         
         report.setMetatestName(report.getPublication().getMetatest().getName());
         report.setClientId(clientId);
@@ -388,6 +395,10 @@ public class PlayerLogic extends CommonLogic{
         ReportVO report = q.get();
         
         if (report == null) {
+            return;
+        }
+        
+        if (report.isThisFinished()) {
             return;
         }
         
