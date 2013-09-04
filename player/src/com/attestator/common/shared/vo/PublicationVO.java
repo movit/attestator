@@ -229,7 +229,7 @@ public class PublicationVO extends TenantableVO {
     public Boolean getAllowSkipQuestions() {
         return allowSkipQuestions;
     }
-    public boolean isAllowSkipQuestions() {
+    public boolean isThisAllowSkipQuestions() {
         return NullHelper.nullSafeTrue(allowSkipQuestions);
     }
     public void setAllowSkipQuestions(Boolean allowSkipQuestions) {

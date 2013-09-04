@@ -4,6 +4,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.attestator.common.shared.helper.StringHelper;
+import com.google.gwt.core.client.Scheduler;
+import com.google.gwt.core.client.Scheduler.ScheduledCommand;
+import com.google.gwt.user.client.History;
 
 public class HistoryHelper {
     public static class HistoryToken{
@@ -118,5 +121,14 @@ public class HistoryHelper {
         else {
             return parts[1];
         }
+    }
+    
+    public static void deferredHistoryItem(final String token) {
+        Scheduler.get().scheduleDeferred(new ScheduledCommand() {                                
+            @Override
+            public void execute() {
+                History.newItem(token);                                    
+            }
+        });
     }
 }

@@ -288,9 +288,13 @@ public class ReportHelper {
     
     public static double getPossibleScore(ReportVO report, int firstAllowedQuestionNo) {
         List<QuestionVO> questions = new ArrayList<QuestionVO>(report.getQuestions());
-        if (firstAllowedQuestionNo < 0) {
+        
+        if (report.getPublication().isThisAllowSkipQuestions()) {
+            firstAllowedQuestionNo = 0;
+        }        
+        else if (firstAllowedQuestionNo < 0) {
             firstAllowedQuestionNo = questions.size();
-        }
+        }        
         
         double score = 0;
         for (int i = questions.size() - 1; i >= 0; i--) {

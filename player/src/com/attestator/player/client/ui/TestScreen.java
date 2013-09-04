@@ -18,6 +18,7 @@ import com.attestator.common.shared.vo.ReportVO;
 import com.attestator.common.shared.vo.SingleChoiceQuestionVO;
 import com.attestator.player.client.MainScreen;
 import com.attestator.player.client.Player;
+import com.attestator.player.client.helper.HistoryHelper;
 import com.attestator.player.client.helper.HistoryHelper.HistoryToken;
 import com.attestator.player.client.helper.WindowHelper;
 import com.attestator.player.client.rpc.PlayerAsyncCallback;
@@ -30,7 +31,6 @@ import com.google.gwt.dom.client.Style.Unit;
 import com.google.gwt.event.logical.shared.AttachEvent;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
-import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Widget;
@@ -180,7 +180,7 @@ public class TestScreen extends MainScreen {
                         answer, new PlayerAsyncCallback<Void>() {
                             @Override
                             public void onSuccess(Void result) {
-                                if (publication.isAllowSkipQuestions()) {
+                                if (publication.isThisAllowSkipQuestions()) {
                                     TextButton navButton = navigationButtons
                                             .get(questionNo);
                                     navButton.setIcon(Resources.ICONS
@@ -241,10 +241,10 @@ public class TestScreen extends MainScreen {
             }
         });
     }
-
+ 
     private int nextUnansweredQuestion(int fromQuestion) {
-        for (int i = 1; i < report.getQuestions().size(); i++) {
-            int no = (fromQuestion + i) % report.getQuestions().size();
+        for (int i = 0; i < report.getQuestions().size(); i++) {
+            int no = (fromQuestion + 1 + i) % report.getQuestions().size();
             QuestionVO question = report.getQuestions().get(no);
             if (!report.isQuestionAnswered(question.getId())) {
                 return no;
@@ -276,7 +276,7 @@ public class TestScreen extends MainScreen {
                 public void onSuccess(ReportVO result) {
                     mainLayout.unmask();
                     if (result == null || NullHelper.isEmptyOrNull(result.getQuestions())) {
-                        History.newItem(newToken("publications"));
+                        HistoryHelper.deferredHistoryItem(newToken("publications"));
                         return;
                     } else {
                         initFromTest(result);
@@ -321,7 +321,7 @@ public class TestScreen extends MainScreen {
         String publicationId = token.getProperties().get("publicationId");
 
         if (publicationId == null) {
-            History.newItem(newToken("publications"));
+            HistoryHelper.deferredHistoryItem(newToken("publications"));
             return;
         }
 
@@ -438,7 +438,7 @@ public class TestScreen extends MainScreen {
 
                 initTopPanel();
 
-                if (publication.isAllowSkipQuestions()) {
+                if (publication.isThisAllowSkipQuestions()) {
                     addNavigationButtons();
                 }
 
@@ -476,7 +476,7 @@ public class TestScreen extends MainScreen {
                 answerQuestionButton.setEnabled(false);
                 buttons.add(answerQuestionButton);
             }
-            if (publication.isAllowSkipQuestions()) {
+            if (publication.isThisAllowSkipQuestions()) {
                 if (this.questionNo >= 0) {
                     TextButton curNavButton = navigationButtons
                             .get(this.questionNo);
@@ -508,8 +508,7 @@ public class TestScreen extends MainScreen {
                     new PlayerAsyncCallback<Void>() {
                         @Override
                         public void onSuccess(Void result) {
-                            History.newItem(newToken("report", "id",
-                                    report.getId()));
+                            HistoryHelper.deferredHistoryItem(newToken("report", "id", report.getId()));
                         }
                     });
             break;
@@ -539,7 +538,7 @@ public class TestScreen extends MainScreen {
             report.setInterruptionCause(InterruptionCauseEnum.toManyErrors);
             switchTo(State.finish);            
         }
-        else if (!publication.isAllowSkipQuestions()) {
+        else if (!publication.isThisAllowSkipQuestions()) {
             if (no < questionNo || no < 0) {
                 switchTo(State.finish);
             } else {
@@ -628,7 +627,7 @@ public class TestScreen extends MainScreen {
     }
 
     private long questionTimerTime(int no) {
-        if (publication.isAllowSkipQuestions()) {
+        if (publication.isThisAllowSkipQuestions()) {
             return 0;
         }
         if (report.getQuestions().get(no).getMaxQuestionAnswerTime() != null) {
