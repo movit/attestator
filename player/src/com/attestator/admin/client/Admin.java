@@ -107,6 +107,7 @@ public class Admin implements EntryPoint {
         switchTo(new LoginScreen());
     }
 
+    
     public static void switchToAdmin() {
         switchTo(new AdminScreen());
     }
