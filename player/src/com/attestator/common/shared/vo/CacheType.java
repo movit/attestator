@@ -4,7 +4,7 @@ public enum CacheType {
     cacheVersion,
     tenantVersions,
     
-    getActivePulications,
+    getActivePublications,
     renewTest,
     startTest,
     getReport,

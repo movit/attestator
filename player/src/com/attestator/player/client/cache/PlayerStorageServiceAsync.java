@@ -9,10 +9,12 @@ import java.util.Set;
 
 import com.attestator.common.shared.helper.ReportHelper;
 import com.attestator.common.shared.vo.AnswerVO;
+import com.attestator.common.shared.vo.BaseVO;
 import com.attestator.common.shared.vo.CacheKind;
 import com.attestator.common.shared.vo.CacheType;
 import com.attestator.common.shared.vo.ChangeMarkerVO;
 import com.attestator.common.shared.vo.InterruptionCauseEnum;
+import com.attestator.common.shared.vo.PublicationVO;
 import com.attestator.common.shared.vo.ReportVO;
 import com.attestator.player.client.cache.co.AddAnswerCO;
 import com.attestator.player.client.cache.co.FinishReportCO;
@@ -20,6 +22,7 @@ import com.attestator.player.client.cache.co.StartReportCO;
 import com.attestator.player.client.cache.co.TenantCacheVersionCO;
 import com.attestator.player.client.rpc.PlayerServiceAsync;
 import com.attestator.player.shared.dto.ActivePublicationDTO;
+import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.rpc.AsyncCallback;
@@ -31,26 +34,34 @@ public class PlayerStorageServiceAsync implements PlayerServiceAsync {
 
     private PlayerStorageCache psc;
     private PlayerServiceAsync rpc;
-
+    private UpdateCacheTimer updateCacheTimer;
+    private SendReportsTimer sendReportsTimer;
+    
     private long online = -1l;
 
     public class CacheReaderCallback<T> implements AsyncCallback<T> {
         private Class<T> clazz;
+        private Function<T, T> preprocess;
         private String key;
         private AsyncCallback<T> callback;
 
-        public CacheReaderCallback(Class<T> clazz, String key,
+        public CacheReaderCallback(Class<T> clazz, String key, Function<T, T> preprocess,
                 AsyncCallback<T> callback) {
             super();
             this.clazz = clazz;
             this.key = key;
             this.callback = callback;
+            this.preprocess = preprocess;
+        }
+        
+        public CacheReaderCallback(Class<T> clazz, String key, AsyncCallback<T> callback) {
+            this(clazz, key, null, callback);
         }
 
         @Override
         public final void onFailure(Throwable caught) {
             online = System.currentTimeMillis() + OFFLINE_SLEEP_TIMEOUT;
-            callCallbackOnCachedValue(clazz, key, callback);
+            callCallbackOnCachedValue(clazz, key, preprocess, callback);
         }
 
         @Override
@@ -62,8 +73,12 @@ public class PlayerStorageServiceAsync implements PlayerServiceAsync {
     public PlayerStorageServiceAsync(PlayerServiceAsync arpc) {
         this.psc = PlayerStorageCache.getPlayerStorageIfSupported();
         this.rpc = arpc;
-        (new UpdateCacheTimer()).scheduleRepeating(CACHE_POLLING_INTERVAL);
-        (new SendReportsTimer()).scheduleRepeating(REPORT_POLLING_INTERVAL);
+        
+        updateCacheTimer = new UpdateCacheTimer();
+        updateCacheTimer.scheduleRepeating(CACHE_POLLING_INTERVAL);
+        
+        sendReportsTimer = new SendReportsTimer(); 
+        sendReportsTimer.scheduleRepeating(REPORT_POLLING_INTERVAL);
     }
 
     @SuppressWarnings("unchecked")
@@ -74,7 +89,7 @@ public class PlayerStorageServiceAsync implements PlayerServiceAsync {
 
         psc.setCurrentTenant(tenantId);
 
-        String key = psc.key(CacheKind.cache, CacheType.getActivePulications,
+        String key = psc.key(CacheKind.cache, CacheType.getActivePublications,
                 "tenantId", tenantId);
         Class<List<ActivePublicationDTO>> clazz = (Class<List<ActivePublicationDTO>>) (Class<?>) ArrayList.class;
 
@@ -207,22 +222,51 @@ public class PlayerStorageServiceAsync implements PlayerServiceAsync {
             callCallbackOnCachedValue(ReportVO.class, key, callback);
         }
     }
-
+    
+    private ActivePublicationDTO getActivePublication(List<ActivePublicationDTO> activePublications, String publicationId) {
+        for (ActivePublicationDTO ap : activePublications) {
+            if (publicationId.equals(ap.getPublication().getId())) {
+                return ap;
+            }
+        }
+        return null;
+    }
+    
+    
     @Override
-    public void startTest(String tenantId, final String publicationId,
+    public void startTest(final String tenantId, final String publicationId,
             final AsyncCallback<ReportVO> callback)
             throws IllegalStateException {
         psc.setCurrentTenant(tenantId);
-
+        
         String key = psc.key(CacheKind.cache, CacheType.startTest, "tenantId",
                 tenantId, "publicationId", publicationId);
 
+        Function<ReportVO, ReportVO> setNewId = new Function<ReportVO, ReportVO>() {            
+            @Override
+            public ReportVO apply(ReportVO report) {
+                String apKey = psc.key(CacheKind.cache, CacheType.getActivePublications, "tenantId", tenantId);
+                @SuppressWarnings("unchecked")
+                List<ActivePublicationDTO> activePublications = psc.getItem((Class<List<ActivePublicationDTO>>) (Class<?>) ArrayList.class, apKey);
+                ActivePublicationDTO ap = getActivePublication(activePublications, publicationId);
+                if (ap != null) {
+                    if (ap.getAttemptsLeft() <= 0) {
+                        return null;
+                    }
+                }
+                
+                report.setId(BaseVO.idString());
+                
+                return report;
+            }
+        };
+        
         if (isOnline()) {
             rpc.startTest(tenantId, publicationId,
                     new CacheReaderCallback<ReportVO>(ReportVO.class, key,
-                            callback));
+                            setNewId, callback));
         } else {
-            callCallbackOnCachedValue(ReportVO.class, key, callback);
+            callCallbackOnCachedValue(ReportVO.class, key, setNewId, callback);
         }
     }
 
@@ -245,6 +289,8 @@ public class PlayerStorageServiceAsync implements PlayerServiceAsync {
                 CacheType.startReport, "reportId", report.getId());
         psc.setItem(renewKey, item);
 
+        sendReportsTimer.run();
+        
         callback.onSuccess(null);
     }
 
@@ -262,16 +308,39 @@ public class PlayerStorageServiceAsync implements PlayerServiceAsync {
                 "reportId", reportId);
         psc.setItem(renewKey, item);
 
+        sendReportsTimer.run();
+        
         callback.onSuccess(null);
     }
-
+    
     @Override
     public void finishReport(String tenantId, String reportId, Date end,
             InterruptionCauseEnum interruptionCause,
             AsyncCallback<Void> callback) throws IllegalStateException {
 
         psc.setCurrentTenant(tenantId);
-
+        
+        // Update number of attempts left in cache
+        PublicationVO reportPublication = null;
+        String startReportKey = psc.getKey(psc.marker(CacheKind.renew, CacheType.startReport, "reportId", reportId));
+        if (startReportKey != null) {
+            StartReportCO startReportCO = psc.getItem(StartReportCO.class, startReportKey);
+            reportPublication = startReportCO.getReport().getPublication();
+        }
+        
+        if (reportPublication != null && !reportPublication.isUnlimitedAttempts()) {
+            String apKey = psc.key(CacheKind.cache, CacheType.getActivePublications, "tenantId", tenantId);
+            @SuppressWarnings("unchecked")
+            List<ActivePublicationDTO> activePublications = psc.getItem((Class<List<ActivePublicationDTO>>) (Class<?>) ArrayList.class, apKey);
+            ActivePublicationDTO activePublication = getActivePublication(activePublications, reportPublication.getId());
+            if (activePublication != null) {
+                long attemptsLeft = Math.max(activePublication.getAttemptsLeft() - 1, 0);
+                activePublication.setAttemptsLeft(attemptsLeft);
+                psc.setItem(apKey, activePublications);
+            }
+        }
+        
+        // Put finish report record
         FinishReportCO item = new FinishReportCO(tenantId, reportId, end,
                 interruptionCause);
 
@@ -282,6 +351,8 @@ public class PlayerStorageServiceAsync implements PlayerServiceAsync {
         String renewKey = psc.keyWithTime(CacheKind.renew,
                 CacheType.finishReport, "reportId", reportId);
         psc.setItem(renewKey, item);
+        
+        sendReportsTimer.run();
 
         callback.onSuccess(null);
     }
@@ -300,8 +371,16 @@ public class PlayerStorageServiceAsync implements PlayerServiceAsync {
 
     private <T> void callCallbackOnCachedValue(Class<T> clazz, String key,
             AsyncCallback<T> callback) {
+        callCallbackOnCachedValue(clazz, key, null, callback);
+    }
+
+    private <T> void callCallbackOnCachedValue(Class<T> clazz, String key, 
+            Function<T, T> preprocess, AsyncCallback<T> callback) {
         T cachedResult = psc.getItem(clazz, key);
         if (cachedResult != null) {
+            if (preprocess != null) {
+                callback.onSuccess(preprocess.apply(cachedResult));
+            }
             callback.onSuccess(cachedResult);
         } else {
             callback.onFailure(new IllegalStateException(
@@ -525,10 +604,10 @@ public class PlayerStorageServiceAsync implements PlayerServiceAsync {
                 cacheChanges(
                         new ChangeMarkerVO(marker.getClientId(),
                                 marker.getTenantId(),
-                                CacheType.getActivePulications), newTenantVersion);
+                                CacheType.getActivePublications), newTenantVersion);
             } else {
                 switch (marker.getType()) {
-                case getActivePulications:
+                case getActivePublications:
                     rpc.getActivePulications(marker.getTenantId(),
                             new CachingCallback<List<ActivePublicationDTO>>(callbacks, newTenantVersion) {
                                 @Override

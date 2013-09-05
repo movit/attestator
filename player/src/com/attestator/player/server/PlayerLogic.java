@@ -151,7 +151,7 @@ public class PlayerLogic extends CommonLogic{
         );
         
         if (qp.countAll() > 0) {
-            ChangeMarkerVO activePublicationsMarker = new ChangeMarkerVO(null, LoginManager.getThreadLocalTenatId(), CacheType.getActivePulications);            
+            ChangeMarkerVO activePublicationsMarker = new ChangeMarkerVO(null, LoginManager.getThreadLocalTenatId(), CacheType.getActivePublications);            
             allChanges.add(activePublicationsMarker);
         }
         
@@ -408,6 +408,6 @@ public class PlayerLogic extends CommonLogic{
         ReportHelper.updateReportStats(report);
         
         Singletons.ds().save(report);
-        putChangesMarker(clientId, CacheType.getActivePulications);
+        putChangesMarker(clientId, CacheType.getActivePublications);
     }
 }
