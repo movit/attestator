@@ -3,6 +3,7 @@ package com.attestator.admin.client.rpc;
 import java.util.List;
 
 import com.attestator.common.shared.vo.GroupVO;
+import com.attestator.common.shared.vo.PublicationVO;
 import com.attestator.common.shared.vo.QuestionVO;
 import com.attestator.common.shared.vo.ReportVO;
 import com.attestator.common.shared.vo.UserVO;
@@ -18,6 +19,7 @@ import com.sencha.gxt.data.shared.loader.PagingLoadResult;
 public interface AdminService extends RemoteService {
     PagingLoadResult<QuestionVO> loadQuestions(FilterPagingLoadConfig loadConfig);
     PagingLoadResult<ReportVO> loadReports(FilterPagingLoadConfig loadConfig);
+    List<PublicationVO> loadAllPublications();
     List<GroupVO> getGroups();
     void saveGroup(GroupVO group);
     void setGroups(List<GroupVO> groups);

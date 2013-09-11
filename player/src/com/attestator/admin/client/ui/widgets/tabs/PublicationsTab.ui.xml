@@ -23,12 +23,12 @@
 
 	<ui:with
 		type="com.sencha.gxt.widget.core.client.grid.CheckBoxSelectionModel"
-		field="reportsSm"></ui:with>
+		field="gridSm"></ui:with>
 	<ui:with type="com.sencha.gxt.widget.core.client.grid.ColumnModel"
-		field="reportsCm"></ui:with>
-	<ui:with type="com.sencha.gxt.data.shared.ListStore" field="reportsStore"></ui:with>
-	<ui:with type="com.sencha.gxt.widget.core.client.grid.GridView"
-		field="reportsView">
+		field="gridCm"></ui:with>
+	<ui:with type="com.sencha.gxt.data.shared.ListStore" field="gridStore"></ui:with>
+	<ui:with type="com.sencha.gxt.widget.core.client.grid.GroupingView"
+		field="gridView">
 		<ui:attributes stripeRows="true" forceFit="true"
 			autoFill="true"></ui:attributes>
 	</ui:with>
@@ -48,14 +48,14 @@
 			</toolbar:ToolBar>
 		</row:child>
 		<row:child layoutData="{maxWidthMaxHeightVLData}">
-			<grid:Grid ui:field="reportsGrid" selectionModel="{reportsSm}"
-				view="{reportsView}" loadMask="true" columnReordering="true"
+			<grid:Grid ui:field="grid" selectionModel="{gridSm}"
+				view="{gridView}" loadMask="true" columnReordering="true"
 				borders="false">
 			</grid:Grid>
 		</row:child>
 		<row:child layoutData="{maxWidthMinHeightVLData}">
-			<toolbar:PagingToolBar ui:field="reportsPager"
-				pageSize="50" reuseConfig="false"></toolbar:PagingToolBar>
+<!-- 			<toolbar:PagingToolBar ui:field="gridPager" -->
+<!-- 				pageSize="50" reuseConfig="false"></toolbar:PagingToolBar> -->
 		</row:child>
 	</row:VerticalLayoutContainer>
 </ui:UiBinder>	

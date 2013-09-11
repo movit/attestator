@@ -3,6 +3,7 @@ package com.attestator.admin.client.rpc;
 import java.util.List;
 
 import com.attestator.common.shared.vo.GroupVO;
+import com.attestator.common.shared.vo.PublicationVO;
 import com.attestator.common.shared.vo.QuestionVO;
 import com.attestator.common.shared.vo.ReportVO;
 import com.attestator.common.shared.vo.UserVO;
@@ -31,4 +32,6 @@ public interface AdminServiceAsync {
     void logout(AsyncCallback<Void> callback);
     
     void getReport(String reportId, AsyncCallback<ReportVO> callback);
+    
+    void loadAllPublications(AsyncCallback<List<PublicationVO>> callback);
 }

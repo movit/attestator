@@ -5,26 +5,22 @@ import java.util.Date;
 import java.util.List;
 
 import com.attestator.admin.client.Admin;
-import com.attestator.admin.client.props.ReportVOPropertyAccess;
+import com.attestator.admin.client.props.PublicationVOPropertyAccess;
 import com.attestator.admin.client.rpc.AdminAsyncCallback;
-import com.attestator.admin.client.ui.ReportWindow;
-import com.attestator.common.shared.helper.NullHelper;
-import com.attestator.common.shared.helper.VOHelper;
-import com.attestator.common.shared.vo.ReportVO;
-import com.google.gwt.cell.client.AbstractCell;
+import com.attestator.admin.client.ui.widgets.BooleanCell;
+import com.attestator.common.shared.vo.PublicationVO;
 import com.google.gwt.cell.client.DateCell;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.core.client.Scheduler;
 import com.google.gwt.core.client.Scheduler.ScheduledCommand;
 import com.google.gwt.i18n.client.DateTimeFormat;
 import com.google.gwt.i18n.client.DateTimeFormat.PredefinedFormat;
-import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
-import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Widget;
 import com.sencha.gxt.core.client.IdentityValueProvider;
+import com.sencha.gxt.core.client.ValueProvider;
 import com.sencha.gxt.data.client.loader.RpcProxy;
 import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.data.shared.loader.FilterPagingLoadConfig;
@@ -36,9 +32,6 @@ import com.sencha.gxt.data.shared.loader.PagingLoader;
 import com.sencha.gxt.widget.core.client.Composite;
 import com.sencha.gxt.widget.core.client.button.TextButton;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
-import com.sencha.gxt.widget.core.client.event.RowDoubleClickEvent;
-import com.sencha.gxt.widget.core.client.event.RowDoubleClickEvent.RowDoubleClickHandler;
-import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.grid.CheckBoxSelectionModel;
 import com.sencha.gxt.widget.core.client.grid.ColumnConfig;
 import com.sencha.gxt.widget.core.client.grid.ColumnModel;
@@ -49,43 +42,32 @@ public class PublicationsTab extends Composite {
     interface UiBinderImpl extends UiBinder<Widget, PublicationsTab> {
     }
     private static UiBinderImpl uiBinder = GWT.create(UiBinderImpl.class);
-    private static ReportVOPropertyAccess reportProperties = GWT.create(ReportVOPropertyAccess.class);
+    private static PublicationVOPropertyAccess publicationProperties = GWT.create(PublicationVOPropertyAccess.class);
 
     @UiField(provided = true)
-    Grid<ReportVO> reportsGrid;
-    Grid<ReportVO> createReportsGrid(
-            final PagingLoader<FilterPagingLoadConfig, PagingLoadResult<ReportVO>> loader,
-            final ListStore<ReportVO> store, ColumnModel<ReportVO> cm) {
-        
-        Grid<ReportVO> result = new Grid<ReportVO>(store, cm);        
-        result.setLoader(loader);
-        result.addRowDoubleClickHandler(new RowDoubleClickHandler() {            
-            @Override
-            public void onRowDoubleClick(RowDoubleClickEvent event) {
-                showReportWindow(store.get(event.getRowIndex()));
-            }
-        });
-
+    Grid<PublicationVO> grid;
+    Grid<PublicationVO> createGrid(final ListStore<PublicationVO> store, ColumnModel<PublicationVO> cm) {        
+        Grid<PublicationVO> result = new Grid<PublicationVO>(store, cm);
         return result;
     }
 
     @UiField(provided = true)
-    ListStore<ReportVO> reportsStore;
+    ListStore<PublicationVO> gridStore;
 
-    ListStore<ReportVO> createReportsStore() {
-        ListStore<ReportVO> result = new ListStore<ReportVO>(reportProperties.id());
+    ListStore<PublicationVO> createGridStore() {
+        ListStore<PublicationVO> result = new ListStore<PublicationVO>(publicationProperties.id());        
         return result;
     }
 
     @UiField(provided = true)
-    CheckBoxSelectionModel<ReportVO> reportsSm;
+    CheckBoxSelectionModel<PublicationVO> gridSm;
 
-    CheckBoxSelectionModel<ReportVO> createReportsSm() {
-        IdentityValueProvider<ReportVO> identity = new IdentityValueProvider<ReportVO>();
-        CheckBoxSelectionModel<ReportVO> result = new CheckBoxSelectionModel<ReportVO>(
+    CheckBoxSelectionModel<PublicationVO> createGridSm() {
+        IdentityValueProvider<PublicationVO> identity = new IdentityValueProvider<PublicationVO>();
+        CheckBoxSelectionModel<PublicationVO> result = new CheckBoxSelectionModel<PublicationVO>(
                 identity) {
             @Override
-            protected void onSelectChange(ReportVO model,
+            protected void onSelectChange(PublicationVO model,
                     boolean select) {
                 super.onSelectChange(model, select);
                 enableButtons();
@@ -96,78 +78,58 @@ public class PublicationsTab extends Composite {
     }
 
     @UiField(provided = true)
-    ColumnModel<ReportVO> reportsCm;
+    ColumnModel<PublicationVO> gridCm;
 
-    ColumnModel<ReportVO> createReportsCm(CheckBoxSelectionModel<ReportVO> sm) {
+    private ColumnConfig<PublicationVO, Boolean> createBooleanColumnConfig(ValueProvider<PublicationVO, Boolean> valueProvider, int width, String header) {
+        ColumnConfig<PublicationVO, Boolean> result = new ColumnConfig<PublicationVO, Boolean>(valueProvider, 20, header);
+        result.setCell(new BooleanCell());
+        return result;
+    }
+
+    private ColumnConfig<PublicationVO, Date> createDateColumnConfig(ValueProvider<PublicationVO, Date> valueProvider, int width, String header) {
+        ColumnConfig<PublicationVO, Date> result = new ColumnConfig<PublicationVO, Date>(valueProvider, 20, header);
+        result.setCell(new DateCell(DateTimeFormat.getFormat(PredefinedFormat.DATE_TIME_SHORT)));
+        return result;
+    }
+    
+    ColumnModel<PublicationVO> createGridCm(CheckBoxSelectionModel<PublicationVO> sm) {
         
-        List<ColumnConfig<ReportVO, ?>> l = new ArrayList<ColumnConfig<ReportVO, ?>>();
+        List<ColumnConfig<PublicationVO, ?>> l = new ArrayList<ColumnConfig<PublicationVO, ?>>();
+        
         l.add(sm.getColumn());
-        l.add(new ColumnConfig<ReportVO, String>(reportProperties.metatestName(), 60, "Тест"));
-        l.add(new ColumnConfig<ReportVO, String>(reportProperties.fullName(), 80, "Имя"));
-        l.add(new ColumnConfig<ReportVO, String>(reportProperties.host(), 30, "Хост"));
-        l.add(new ColumnConfig<ReportVO, String>(reportProperties.clientId(), 20, "ID клиента"));
-        ColumnConfig<ReportVO, Date> ccStart = new ColumnConfig<ReportVO, Date>(reportProperties.start(), 30, "Первый ответ");
-        ccStart.setCell(new DateCell(DateTimeFormat.getFormat(PredefinedFormat.DATE_TIME_SHORT)));
-        l.add(ccStart);
-        ColumnConfig<ReportVO, Date> ccEnd = new ColumnConfig<ReportVO, Date>(reportProperties.end(), 30, "Последний ответ");
-        ccEnd.setCell(new DateCell(DateTimeFormat.getFormat(PredefinedFormat.DATE_TIME_SHORT)));
-        l.add(ccEnd);
-        ColumnConfig<ReportVO, Boolean> ccFinished = new ColumnConfig<ReportVO, Boolean>(reportProperties.finished(), 30, "Тест завершен");
-        ccFinished.setCell(new AbstractCell<Boolean>() {
-            @Override
-            public void render(Context context,
-                    Boolean value, SafeHtmlBuilder sb) {
-                if (NullHelper.nullSafeTrue(value)) {
-                    sb.appendEscaped("да");
-                }
-                else {
-                    sb.appendEscaped("нет");
-                }
-            }
-        });
-        l.add(ccFinished);        
-        l.add(new ColumnConfig<ReportVO, Double>(reportProperties.score(), 30, "Набрано баллов"));
-        l.add(new ColumnConfig<ReportVO, Integer>(reportProperties.numAnswers(), 30, "Всего ответов"));
-        l.add(new ColumnConfig<ReportVO, Integer>(reportProperties.numUnanswered(), 30, "Неотвечено"));
-        l.add(new ColumnConfig<ReportVO, Integer>(reportProperties.numErrors(), 30, "Ошибок"));
+        l.add(new ColumnConfig<PublicationVO, String>(publicationProperties.metatestId() , 20, "Тест ID"));
+        l.add(new ColumnConfig<PublicationVO, String>(publicationProperties.metatestName() , 20, "Тест"));
+        l.add(new ColumnConfig<PublicationVO, Long>(publicationProperties.reportsCount() , 20, "Отчетов"));
+        l.add(createDateColumnConfig(publicationProperties.start(), 30, "Начало"));
+        l.add(createDateColumnConfig(publicationProperties.end(), 30, "Конец"));        
+        l.add(new ColumnConfig<PublicationVO, String>(publicationProperties.introduction() , 20, "Ведение"));
+        l.add(new ColumnConfig<PublicationVO, Integer>(publicationProperties.maxAttempts() , 20, "Макс. попыток"));
+
+        l.add(new ColumnConfig<PublicationVO, Double>(publicationProperties.minScore(), 20, "Нужно баллов"));
         
-        ColumnModel<ReportVO> result = new ColumnModel<ReportVO>(l);
+        l.add(createBooleanColumnConfig(publicationProperties.interruptOnFalure(), 20, "Прерывать ли"));
+        
+        l.add(new ColumnConfig<PublicationVO, Long>(publicationProperties.maxTakeTestTime(), 20, "Время на тест"));
+        l.add(new ColumnConfig<PublicationVO, Long>(publicationProperties.maxQuestionAnswerTime(), 20, "Время на вопрос"));
+
+        l.add(createBooleanColumnConfig(publicationProperties.allowSkipQuestions(), 20, "Можно пропускать"));
+        l.add(createBooleanColumnConfig(publicationProperties.allowInterruptTest(), 20, "Прерывать тест"));
+        l.add(createBooleanColumnConfig(publicationProperties.randomQuestionsOrder(), 20, "Случайный порядок"));
+        
+        l.add(createBooleanColumnConfig(publicationProperties.askFirstName(), 20, "Спрашивать имя"));
+        l.add(createBooleanColumnConfig(publicationProperties.askFirstNameRequired(), 20, "Имя обязательно"));
+        
+        l.add(createBooleanColumnConfig(publicationProperties.askLastName(), 20, "Спрашивать фамилию"));
+        l.add(createBooleanColumnConfig(publicationProperties.askLastNameRequired(), 20, "Фамилия обязательна"));
+        
+        l.add(createBooleanColumnConfig(publicationProperties.askMiddleName(), 20, "Спрашивать отчество"));
+        l.add(createBooleanColumnConfig(publicationProperties.askMiddleNameRequired(), 20, "Отчество обязательно"));        
+        
+        ColumnModel<PublicationVO> result = new ColumnModel<PublicationVO>(l);
 
         return result;
     }
 
-    PagingLoader<FilterPagingLoadConfig, PagingLoadResult<ReportVO>> reportsLoader;
-
-    PagingLoader<FilterPagingLoadConfig, PagingLoadResult<ReportVO>> createReportsLoader(
-            final ListStore<ReportVO> store) {
-        RpcProxy<FilterPagingLoadConfig, PagingLoadResult<ReportVO>> rpcProxy = new RpcProxy<FilterPagingLoadConfig, PagingLoadResult<ReportVO>>() {
-            @Override
-            public void load(FilterPagingLoadConfig loadConfig,
-                    AsyncCallback<PagingLoadResult<ReportVO>> callback) {
-                Admin.RPC.loadReports(loadConfig, callback);
-            }
-        };
-
-        PagingLoader<FilterPagingLoadConfig, PagingLoadResult<ReportVO>> result = new PagingLoader<FilterPagingLoadConfig, PagingLoadResult<ReportVO>>(
-                rpcProxy) {
-            @Override
-            protected FilterPagingLoadConfig newLoadConfig() {
-                FilterPagingLoadConfig result = new FilterPagingLoadConfigBean();
-                return result;
-            }
-        };
-        result.setRemoteSort(true);
-        result.addLoadHandler(new LoadResultListStoreBinding<FilterPagingLoadConfig, ReportVO, PagingLoadResult<ReportVO>>(
-                store) {
-            @Override
-            public void onLoad(LoadEvent<FilterPagingLoadConfig, PagingLoadResult<ReportVO>> event) {
-                super.onLoad(event);
-                enableButtons();
-            }
-        });
-
-        return result;
-    }
     @UiField(provided=true)
     protected VerticalLayoutContainer top;
     private VerticalLayoutContainer createTop() {
@@ -187,9 +149,6 @@ public class PublicationsTab extends Composite {
     }
     
     @UiField
-    PagingToolBar reportsPager;
-    
-    @UiField
     TextButton deleteReportsButton;
 
     @UiField
@@ -199,61 +158,32 @@ public class PublicationsTab extends Composite {
         // Prepare fields for UiBuilder
         top = createTop();
         
-        reportsSm = createReportsSm();
-        reportsCm = createReportsCm(reportsSm);
-        reportsStore = createReportsStore();
-        reportsLoader = createReportsLoader(reportsStore);
-        reportsGrid = createReportsGrid(reportsLoader,
-                reportsStore, reportsCm);
+        gridSm = createGridSm();
+        gridCm = createGridCm(gridSm);
+        gridStore = createGridStore();
+        grid = createGrid(gridStore, gridCm);
 
         // Create UI
         initWidget(uiBinder.createAndBindUi(this));
-        
-        // Use created by UiBuilder fields to finish configuration
-        reportsPager.bind(reportsLoader);
     }
     
-    private void showReportWindow(ReportVO report) {
-        Admin.RPC.getReport(report.getId(), new AdminAsyncCallback<ReportVO>() {
+    private void refresh() {
+        refreshGrid(); //TODO enableButtons() called after grid refresh is finished to reflect new selected state
+    }
+    
+    private void refreshGrid() {
+        Admin.RPC.loadAllPublications(new AdminAsyncCallback<List<PublicationVO>>() {
             @Override
-            public void onSuccess(ReportVO result) {
-                ReportWindow window = new ReportWindow(result);
-                window.asWidget().show();
+            public void onSuccess(List<PublicationVO> result) {
+                gridStore.clear();
+                gridStore.addAll(result);
             }
         });
     }
     
-    @UiHandler("showReportButton") 
-    public void showReportClick(SelectEvent event) {
-        if (reportsSm.getSelectedItems().size() == 1) {
-            showReportWindow(reportsSm.getSelectedItem());
-        }
-    }
-
-    @UiHandler("deleteReportsButton") 
-    public void deleteReportsButtonClick(SelectEvent event) {
-        if (reportsSm.getSelectedItems().size() > 0) {
-            List<String> ids = VOHelper.getIds(reportsSm.getSelectedItems());
-            Admin.RPC.deleteReports(ids, new AdminAsyncCallback<Void>() {
-                @Override
-                public void onSuccess(Void result) {
-                    refreshGrid();
-                }
-            });
-        }
-    }
-    
-    private void refresh() {
-        refreshGrid(); //enableButtons() called after grid refresh is finished to reflect new selected state
-    }
-    
-    private void refreshGrid() {
-        reportsLoader.load();
-    }
-    
     private void enableButtons() {
-        boolean isOneSelected = reportsSm.getSelectedItems().size() == 1;
-        boolean isSomeSelected = reportsSm.getSelectedItems().size() > 0;
+        boolean isOneSelected = gridSm.getSelectedItems().size() == 1;
+        boolean isSomeSelected = gridSm.getSelectedItems().size() > 0;
         showReportButton.setEnabled(isOneSelected);
         deleteReportsButton.setEnabled(isSomeSelected);
     }

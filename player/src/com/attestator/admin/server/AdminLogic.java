@@ -15,6 +15,7 @@ import com.attestator.common.shared.vo.GroupVO;
 import com.attestator.common.shared.vo.MTEGroupVO;
 import com.attestator.common.shared.vo.MTEQuestionVO;
 import com.attestator.common.shared.vo.MetaTestVO;
+import com.attestator.common.shared.vo.PublicationVO;
 import com.attestator.common.shared.vo.QuestionVO;
 import com.attestator.common.shared.vo.ReportVO;
 import com.attestator.common.shared.vo.UserVO;
@@ -385,5 +386,10 @@ public class AdminLogic extends CommonLogic {
         
         ReportVO result = q.get();
         return result;
+    }
+    
+    public List<PublicationVO> getAllPublications() {
+        Query<PublicationVO> q = Singletons.ds().createQuery(PublicationVO.class);
+        return q.asList();
     }
 }

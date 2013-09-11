@@ -6,6 +6,7 @@ import org.apache.log4j.Logger;
 
 import com.attestator.admin.client.rpc.AdminService;
 import com.attestator.common.shared.vo.GroupVO;
+import com.attestator.common.shared.vo.PublicationVO;
 import com.attestator.common.shared.vo.QuestionVO;
 import com.attestator.common.shared.vo.ReportVO;
 import com.attestator.common.shared.vo.UserVO;
@@ -161,6 +162,17 @@ public class AdminServiceImpl extends RemoteServiceServlet implements
     public ReportVO getReport(String reportId) {
         try {
             return Singletons.al().getReport(reportId);
+        }
+        catch (Throwable e) {
+            logger.error("Error: ", e);
+            throw new IllegalStateException(DEFAULT_ERROR_MESSAGE, e);
+        }
+    }
+
+    @Override
+    public List<PublicationVO> loadAllPublications() {
+        try {
+            return Singletons.al().getAllPublications();
         }
         catch (Throwable e) {
             logger.error("Error: ", e);
