@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.List;
 
 import com.attestator.common.server.db.annotation.Reference;
+import com.attestator.common.server.db.annotation.ReferenceCount;
 import com.attestator.common.shared.helper.NullHelper;
 import com.google.code.morphia.annotations.Entity;
 import com.google.code.morphia.annotations.Transient;
@@ -19,22 +20,14 @@ public class PublicationVO extends TenantableVO {
     @Reference(fromField = "metatestId",  excludeFields = {"entries"})
     private MetaTestVO      metatest;
 
+    @Transient
+    @ReferenceCount(toClass=ReportVO.class, toField="publication._id")
+    private Long            reportsCount;
+    
     private Date            start;
     private Date            end;
     
     private String          introduction;
-
-    private Boolean         askFirstName;
-    private Boolean         askFirstNameRequired;
-    
-    private Boolean         askLastName;
-    private Boolean         askLastNameRequired;
-
-    private Boolean         askMiddleName;
-    private Boolean         askMiddleNameRequired;
-
-    private Boolean         askEmail;
-    private Boolean         askEmailRequired;
     
     private Integer         maxAttempts = 0;
 
@@ -46,6 +39,19 @@ public class PublicationVO extends TenantableVO {
     private Boolean         allowSkipQuestions; 
     private Boolean         allowInterruptTest;
     private Boolean         randomQuestionsOrder;
+    
+    // Additional questions 
+    private Boolean         askFirstName;
+    private Boolean         askFirstNameRequired;
+    
+    private Boolean         askLastName;
+    private Boolean         askLastNameRequired;
+
+    private Boolean         askMiddleName;
+    private Boolean         askMiddleNameRequired;
+
+    private Boolean         askEmail;
+    private Boolean         askEmailRequired;
     
     private List<AdditionalQuestionVO> additionalQuestions = new ArrayList<AdditionalQuestionVO>();    
     
@@ -270,9 +276,15 @@ public class PublicationVO extends TenantableVO {
 	}
 	public boolean isThisInterruptOnFalure(){
 		return NullHelper.nullSafeTrue(interruptOnFalure);
-	}
+	}	
+	public Long getReportsCount() {
+        return reportsCount;
+    }
+    public void setReportsCount(Long reportsCount) {
+        this.reportsCount = reportsCount;
+    }
 
-	@Override
+    @Override
     public String toString() {
         return "PublicationVO [metatestId=" + metatestId + ", metatest="
                 + metatest + ", start=" + start + ", end=" + end

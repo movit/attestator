@@ -49,9 +49,9 @@
 	</ui:with>
 
 	<ui:with type="com.sencha.gxt.widget.core.client.TabItemConfig"
-		field="testsTabConfig">
+		field="publicationsTabConfig">
 		    
-		<ui:attributes text="Тесты" enabled="false" />
+		<ui:attributes text="Тесты" />
 		  
 	</ui:with>
 
@@ -87,9 +87,9 @@
 				<gxt:child config="{questionBankTabConfig}">
 					<tabs:QuestionsBankTab/>
 				</gxt:child>
-<!-- 				<gxt:child config="{testsTabConfig}"> -->
-<!-- 					<g:Label text="aaaa" /> -->
-<!-- 				</gxt:child> -->
+				<gxt:child config="{publicationsTabConfig}">
+					<tabs:PublicationsTab />
+				</gxt:child>
 				<gxt:child config="{reportsTabConfig}">
 					<tabs:ReportsTab/>
 				</gxt:child>

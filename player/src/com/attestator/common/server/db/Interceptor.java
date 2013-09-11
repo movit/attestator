@@ -114,23 +114,13 @@ public class Interceptor extends AbstractEntityInterceptor {
                 
                 MappedClass mappedToClazz = mapper.getMappedClass(refCount.toClass());
 
-                MappedField toField = mappedToClazz.getMappedField(refCount
-                        .toField());
-                if (toField == null) {
-                    logger.error("Can't load " + refernceCountField.getName()
-                            + " for " + obj.getClass().getName() + " toField "
-                            + refCount.toField() + " does not exists in "
-                            + refernceCountField.getType().getName());
-                    continue;
-                }
-
                 Object referenceValue = fromField.getFieldValue(obj);
                 if (referenceValue == null) {
                     continue;
                 }
 
                 Query q = Singletons.ds().createQuery(mappedToClazz.getClazz());
-                q.field(toField.getNameToStore()).equal(referenceValue);
+                q.field(refCount.toField()).equal(referenceValue);
 
                 refernceCountField.set(obj, q.countAll());
             }
