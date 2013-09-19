@@ -51,7 +51,7 @@
 	<ui:with type="com.sencha.gxt.widget.core.client.TabItemConfig"
 		field="publicationsTabConfig">
 		    
-		<ui:attributes text="Тесты" />
+		<ui:attributes text="Тесты и публикации" />
 		  
 	</ui:with>
 

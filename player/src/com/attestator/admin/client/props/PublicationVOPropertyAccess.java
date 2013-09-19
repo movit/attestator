@@ -2,6 +2,7 @@ package com.attestator.admin.client.props;
 
 import java.util.Date;
 
+import com.attestator.common.shared.vo.MetaTestVO;
 import com.attestator.common.shared.vo.PublicationVO;
 import com.google.gwt.editor.client.Editor.Path;
 import com.sencha.gxt.core.client.ValueProvider;
@@ -9,7 +10,10 @@ import com.sencha.gxt.data.shared.ModelKeyProvider;
 import com.sencha.gxt.data.shared.PropertyAccess;
 
 public interface PublicationVOPropertyAccess extends PropertyAccess<PublicationVO> {
+    ValueProvider<PublicationVO, MetaTestVO> metatest();
+
     ValueProvider<PublicationVO, String> metatestId();
+    
     @Path("metatest.name")
     ValueProvider<PublicationVO, String> metatestName();
 

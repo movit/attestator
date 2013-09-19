@@ -305,4 +305,5 @@ public class PublicationVO extends TenantableVO {
                 + ", getTenantId()="
                 + getTenantId() + ", getId()=" + getId() + "]";
     }
+
 }
