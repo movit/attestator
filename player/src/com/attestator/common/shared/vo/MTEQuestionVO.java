@@ -11,4 +11,9 @@ public class MTEQuestionVO extends MetaTestEntryVO {
     public void setQuestionId(String questionId) {
         this.questionId = questionId;
     }
+
+    @Override
+    public Integer getNumberOfQuestions() {
+        return 1;
+    }
 }

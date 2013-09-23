@@ -27,7 +27,7 @@
 	<ui:with type="com.sencha.gxt.widget.core.client.grid.ColumnModel"
 		field="gridCm"></ui:with>
 	<ui:with type="com.sencha.gxt.data.shared.ListStore" field="gridStore"></ui:with>
-	<ui:with type="com.attestator.admin.client.ui.widgets.GroupSummaryViewExt"
+	<ui:with type="com.attestator.admin.client.ui.widgets.GroupingViewExt"
 		field="gridView">
 		<ui:attributes stripeRows="true" forceFit="true" autoFill="true" enableGroupingMenu="false"/>
 	</ui:with>

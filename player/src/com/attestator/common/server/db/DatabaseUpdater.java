@@ -181,6 +181,9 @@ public class DatabaseUpdater {
         publication.setInterruptOnFalure(true);
         publication.setAllowSkipQuestions(true);
         Singletons.ds().save(publication);
+
+        publication.setId(BaseVO.idString());
+        Singletons.ds().save(publication);
         
         user = Singletons.al().createNewUser("e_moskovkina@fgufccs.ru", "mskvkn", "fgufccs");
         

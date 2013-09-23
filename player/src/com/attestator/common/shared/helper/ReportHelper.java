@@ -257,8 +257,28 @@ public class ReportHelper {
         return hb.toString();
     }
     
+    public static String formatNumberOfQuestions(int number) {
+        if ((number - ((int)number)) != 0) {
+            return number + " вопроса";
+        }
+        else if (number < 10 || number > 19) {
+            int mod = ((int)number) % 10;
+            if (mod == 1) {
+                return (int)number + " вопрос";
+            }
+            else if (mod >= 2 && mod <= 4) {
+                return (int)number + " вопроса";
+            }
+            else {
+                return (int)number + " вопросов";
+            }
+        }
+        else {
+            return (int)number + " вопросов";
+        }
+    }
     
-    private static String formatScore(double score) {
+    public static String formatScore(double score) {
         if ((score - ((int)score)) != 0) {
             return score + " балла";
         }
