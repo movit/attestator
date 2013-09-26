@@ -23,6 +23,9 @@ public class AdditionalQuestionVO extends BaseVO {
     public Boolean getRequired() {
         return required;
     }
+    public boolean isThisRequired() {
+        return NullHelper.nullSafeTrue(required);
+    }
     public void setRequired(Boolean required) {
         this.required = required;
     }

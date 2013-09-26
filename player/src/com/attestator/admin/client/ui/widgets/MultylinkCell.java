@@ -1,5 +1,8 @@
 package com.attestator.admin.client.ui.widgets;
 
+import com.attestator.admin.client.ui.event.MultyLinikSelectEvent;
+import com.attestator.admin.client.ui.event.MultyLinikSelectEvent.HasMultyLinikSelectHandlers;
+import com.attestator.admin.client.ui.event.MultyLinikSelectEvent.MultyLinikSelectHandler;
 import com.google.gwt.cell.client.ValueUpdater;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.BrowserEvents;
@@ -12,39 +15,9 @@ import com.google.gwt.safehtml.shared.SafeHtml;
 import com.sencha.gxt.cell.core.client.ResizeCell;
 import com.sencha.gxt.core.client.XTemplates;
 import com.sencha.gxt.core.client.dom.XElement;
-import com.sencha.gxt.widget.core.client.event.BeforeSelectEvent;
-import com.sencha.gxt.widget.core.client.event.SelectEvent;
-import com.sencha.gxt.widget.core.client.event.SelectEvent.HasSelectHandlers;
 
 public abstract class MultylinkCell<T> extends ResizeCell<T> implements
-        HasSelectHandlers {
-    
-    public static class MultyLinikSelectEvent<T> extends SelectEvent {
-        private String linkType;
-        private T value;
-        
-        public String getLinkType() {
-            return linkType;
-        }
-
-        public void setLinkType(String linkType) {
-            this.linkType = linkType;
-        }
-
-        public T getValue() {
-            return value;
-        }
-
-        public void setValue(T value) {
-            this.value = value;
-        }
-
-        public MultyLinikSelectEvent(Context context, String linkType, T value) {
-            super(context);
-            this.linkType = linkType;
-            this.value = value;
-        }
-    }
+        HasMultyLinikSelectHandlers<T> {
     
     public static interface LinkTemplate extends XTemplates {
         @XTemplate("<span class='{anchorClassName}'><a class='{typeClassName}' href='#'>{text}</a></span>")
@@ -68,9 +41,8 @@ public abstract class MultylinkCell<T> extends ResizeCell<T> implements
     }
 
     @Override
-    public HandlerRegistration addSelectHandler(
-            SelectEvent.SelectHandler handler) {
-        return addHandler(handler, SelectEvent.getType());
+    public HandlerRegistration addMultyLinikSelectHandler(MultyLinikSelectHandler<T> handler) {
+        return addHandler(handler, MultyLinikSelectEvent.getType());        
     }
 
     @Override
@@ -84,7 +56,7 @@ public abstract class MultylinkCell<T> extends ResizeCell<T> implements
                 
                 if (linkOuter != null) {
                     XElement link = linkOuter.getChild(0).cast();
-                    onClick(context, value, link.getClassName());
+                    fireEvent(context, new MultyLinikSelectEvent<T>(context, link.getClassName(), value));
                     return;
                 }
             }
@@ -92,17 +64,10 @@ public abstract class MultylinkCell<T> extends ResizeCell<T> implements
         super.onBrowserEvent(context, parent, value, event, valueUpdater);
     }
     
-    public SafeHtml createClicableElement(String type, String text) {
+    public SafeHtml createClickableElement(String type, String text) {
         return LINK_TEMPLATE.link(RESOURCES.multyLinkCellCss().multyLink(), type, text);
     }        
 
-    protected void onClick(Context context, T value, String linkType) {
-        if (!isDisableEvents()
-                && fireCancellableEvent(context, new BeforeSelectEvent(context))) {
-            fireEvent(context, new MultyLinikSelectEvent<T>(context, linkType, value));
-        }
-    }
-    
     static {
         RESOURCES.multyLinkCellCss().ensureInjected();
     }
