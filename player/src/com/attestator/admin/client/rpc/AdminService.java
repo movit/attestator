@@ -10,6 +10,7 @@ import com.attestator.common.shared.vo.UserVO;
 import com.google.gwt.user.client.rpc.RemoteService;
 import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
 import com.sencha.gxt.data.shared.loader.FilterPagingLoadConfig;
+import com.sencha.gxt.data.shared.loader.ListLoadResult;
 import com.sencha.gxt.data.shared.loader.PagingLoadResult;
 
 /**
@@ -19,16 +20,24 @@ import com.sencha.gxt.data.shared.loader.PagingLoadResult;
 public interface AdminService extends RemoteService {
     PagingLoadResult<QuestionVO> loadQuestions(FilterPagingLoadConfig loadConfig);
     PagingLoadResult<ReportVO> loadReports(FilterPagingLoadConfig loadConfig);
-    List<PublicationVO> loadAllPublications();
-    List<GroupVO> getGroups();
+    ReportVO loadReport(String reportId);
+    
+    ListLoadResult<PublicationVO> loadPublications();
+    List<GroupVO> loadGroups();
+    
     void saveGroup(GroupVO group);
-    void setGroups(List<GroupVO> groups);
+    void savePublication(PublicationVO publication);
+    void saveGroups(List<GroupVO> groups);
     void saveQuestion(QuestionVO question);
+    
     void deleteQuestions(List<String> questionIds);
     void deleteReports(List<String> reportIds);
+    void deletePublications(List<String> publicationIds);
+    
     void setQuestionsGroup(List<String> questionIds, String groupId);
+    
     UserVO getLoggedUser();
     UserVO login(String login, String password);
     void logout();
-    ReportVO getReport(String reportId);
+    
 }

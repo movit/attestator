@@ -42,13 +42,5 @@ public class MetaTestVO extends TenantableVO {
             count += NullHelper.nullSafeIntegerOrZerro(entry.getNumberOfQuestions());
         }
         numberOfQuestions = count;
-    }
-    
-//    @Override
-//    public boolean equals(Object other) {
-//        if (other instanceof MetaTestVO) {
-//            return NullHelper.nullSafeEquals(getId(), ((MetaTestVO) other).getId());
-//        }
-//        return super.equals(other);        
-//    }
+    }    
 }

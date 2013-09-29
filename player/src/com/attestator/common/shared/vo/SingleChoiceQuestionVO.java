@@ -7,6 +7,7 @@ import javax.validation.constraints.Size;
 
 import com.attestator.common.shared.helper.NullHelper;
 import com.google.code.morphia.annotations.Entity;
+import com.google.code.morphia.annotations.PostLoad;
 
 @Entity("question")
 public class SingleChoiceQuestionVO extends QuestionVO {
@@ -43,6 +44,15 @@ public class SingleChoiceQuestionVO extends QuestionVO {
             }
         }
         return null;
+    }
+    
+    @SuppressWarnings("unused")
+    @PostLoad   
+    private void postLoad() {
+        //Update order field for editor framework
+        for (int i = 0; i < choices.size(); i++) {
+            choices.get(i).setOrder(i);
+        }
     }
     
     @Override

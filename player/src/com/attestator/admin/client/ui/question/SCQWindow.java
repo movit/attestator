@@ -6,7 +6,6 @@ import java.util.Comparator;
 import com.attestator.admin.client.Admin;
 import com.attestator.admin.client.props.MilisecondsPropertyEditor;
 import com.attestator.admin.client.rpc.AdminAsyncEmptyCallback;
-import com.attestator.admin.client.ui.event.CancelEvent;
 import com.attestator.admin.client.ui.event.SaveEvent;
 import com.attestator.admin.client.ui.event.SaveEvent.HasSaveEventHandlers;
 import com.attestator.admin.client.ui.event.SaveEvent.SaveHandler;
@@ -118,7 +117,6 @@ public class SCQWindow implements IsWidget, Editor<SingleChoiceQuestionVO>, HasS
 
     @UiHandler("cancelButton")
     protected void cancelButtonClick(SelectEvent event) {
-        fireEvent(new CancelEvent());
         window.hide();
     }
 

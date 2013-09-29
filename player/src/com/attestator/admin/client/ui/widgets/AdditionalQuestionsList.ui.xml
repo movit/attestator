@@ -1,0 +1,47 @@
+<!DOCTYPE ui:UiBinder SYSTEM "http://dl.google.com/gwt/DTD/xhtml.ent">
+<ui:UiBinder xmlns:ui='urn:ui:com.google.gwt.uibinder'
+	xmlns:g="urn:import:com.google.gwt.user.client.ui" xmlns:gxt="urn:import:com.sencha.gxt.widget.core.client"
+	xmlns:row="urn:import:com.sencha.gxt.widget.core.client.container"
+	xmlns:menu="urn:import:com.sencha.gxt.widget.core.client.menu"
+	xmlns:button="urn:import:com.sencha.gxt.widget.core.client.button"
+	xmlns:form="urn:import:com.sencha.gxt.widget.core.client.form"
+	xmlns:toolbar="urn:import:com.sencha.gxt.widget.core.client.toolbar"
+	xmlns:grid="urn:import:com.sencha.gxt.widget.core.client.grid"
+	xmlns:att="urn:import:com.attestator.admin.client.ui.widgets">
+	
+	<ui:with type="com.sencha.gxt.core.client.util.Margins" field="addButtonMargins">
+		<ui:attributes top="0" right="0" bottom="0" left="0" />
+	</ui:with>
+
+	<ui:with
+		type="com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData"
+		field="maxWidthMinHeightVLData">
+		<ui:attributes width="1" height="-1" />
+	</ui:with>
+
+	<ui:with
+		type="com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData"
+		field="addButtonVLData">
+		<ui:attributes width="-1" height="-1" margins="{addButtonMargins}"/>
+	</ui:with>
+
+	<ui:with
+		type="com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData"
+		field="maxWidthMaxHeightVLData">
+		<ui:attributes width="1" height="1" />
+	</ui:with>
+
+	<row:VerticalLayoutContainer ui:field="topContainer">
+		<row:child layoutData="{maxWidthMinHeightVLData}">
+			<row:VerticalLayoutContainer ui:field="aqContainer">
+			</row:VerticalLayoutContainer>
+<!-- 			<row:VerticalLayoutContainer ui:field="aqContainer" -->
+<!-- 				scrollMode="AUTOY" adjustForScroll="true"> -->
+<!-- 			</row:VerticalLayoutContainer> -->
+		</row:child>
+		<row:child layoutData="{addButtonVLData}">
+			<button:TextButton ui:field="addButton" text="Добавить" />
+		</row:child>
+	</row:VerticalLayoutContainer>
+
+</ui:UiBinder>

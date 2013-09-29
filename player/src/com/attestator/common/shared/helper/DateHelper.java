@@ -24,4 +24,12 @@ public class DateHelper {
               + StringHelper.prependUpToLen('0', 2, "" + m) + ":"
               + StringHelper.prependUpToLen('0', 2, "" + s);
     }
+    
+    public static long getDatePart(Date date) {
+        return date.getTime() - getTimePart(date);
+    }
+    
+    public static long getTimePart(Date date) {
+        return date.getTime() % (1000 * 60 * 60 * 24);
+    }
 }

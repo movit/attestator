@@ -11,6 +11,7 @@ import com.attestator.common.server.helper.ReflectionHelper;
 import com.attestator.common.shared.helper.CheckHelper;
 import com.attestator.common.shared.helper.NullHelper;
 import com.attestator.common.shared.helper.StringHelper;
+import com.attestator.common.shared.vo.CacheType;
 import com.attestator.common.shared.vo.GroupVO;
 import com.attestator.common.shared.vo.MTEGroupVO;
 import com.attestator.common.shared.vo.MTEQuestionVO;
@@ -27,6 +28,8 @@ import com.sencha.gxt.data.shared.SortInfo;
 import com.sencha.gxt.data.shared.SortInfoBean;
 import com.sencha.gxt.data.shared.loader.FilterConfig;
 import com.sencha.gxt.data.shared.loader.FilterPagingLoadConfig;
+import com.sencha.gxt.data.shared.loader.ListLoadResult;
+import com.sencha.gxt.data.shared.loader.ListLoadResultBean;
 import com.sencha.gxt.data.shared.loader.PagingLoadResult;
 import com.sencha.gxt.data.shared.loader.PagingLoadResultBean;
 
@@ -193,12 +196,27 @@ public class AdminLogic extends CommonLogic {
         return result;
     }
     
+    public ListLoadResult<PublicationVO> getAllPublications() {
+        Query<PublicationVO> q = Singletons.ds().createQuery(PublicationVO.class);
+        List<PublicationVO> qRes = q.asList();
+        
+        ListLoadResultBean<PublicationVO> result = new ListLoadResultBean<PublicationVO>();
+        result.setData(qRes);
+        return result;
+    }
+
     public void saveQuestion(QuestionVO question) {
         CheckHelper.throwIfNull(question, "question");        
         Singletons.ds().save(question);
         putGlobalChangesMarker();
     }
-    
+
+    public void savePublication(PublicationVO publication) {
+        CheckHelper.throwIfNull(publication, "publication");        
+        Singletons.ds().save(publication);
+        putChangesMarker(null, CacheType.getActivePublications);
+    }
+
     public void saveGroup(GroupVO group) {
         CheckHelper.throwIfNull(group, "group");        
         Singletons.ds().save(group);
@@ -269,38 +287,6 @@ public class AdminLogic extends CommonLogic {
             // Save group
             Singletons.ds().save(groupToSave);
         }
-        putGlobalChangesMarker();
-    }
-    
-    public void deleteQuestions(List<String> questionIds) {
-        CheckHelper.throwIfNull(questionIds, "questionIds");
-        
-        if (questionIds.isEmpty()) {
-            return;
-        }
-        
-        // Remove all metatest entries referanced to this question
-        Query<MetaTestVO> qMetatest = Singletons.ds().createQuery(MetaTestVO.class);
-        qMetatest.disableValidation().field("entries.groupId").in(questionIds).enableValidation();        
-        
-        ArrayList<MTEQuestionVO> mteTemplates = new ArrayList<MTEQuestionVO>();
-        for (String questionId: questionIds) {
-            MTEQuestionVO mteTemplate = ReflectionHelper.createEmpty(MTEQuestionVO.class);
-            mteTemplate.setQuestionId(questionId);
-            mteTemplates.add(mteTemplate);
-        }
-        
-        UpdateOperations<MetaTestVO> uoMetatest = Singletons.ds().createUpdateOperations(MetaTestVO.class);
-        uoMetatest.removeAll("entries", mteTemplates);
-
-        Singletons.ds().update(qMetatest, uoMetatest);
-        
-        // Remove questions
-        Query<QuestionVO> qQuestion = Singletons.ds().createQuery(QuestionVO.class);
-        qQuestion.field("_id").in(questionIds);
-        
-        
-        Singletons.ds().delete(qQuestion);
         putGlobalChangesMarker();
     }
     
@@ -378,6 +364,54 @@ public class AdminLogic extends CommonLogic {
         putGlobalChangesMarker();
     }
     
+    public void deletePublications(List<String> publicationIds) {
+        CheckHelper.throwIfNull(publicationIds, "reportsIds");
+        
+        if (publicationIds.isEmpty()) {
+            return;
+        }
+        
+        // Remove reports
+        Query<PublicationVO> q = Singletons.ds().createQuery(PublicationVO.class);
+        q.field("_id").in(publicationIds);
+        
+        Singletons.ds().delete(q);
+        
+        putChangesMarker(null, CacheType.getActivePublications);
+    }
+    
+    public void deleteQuestions(List<String> questionIds) {
+        CheckHelper.throwIfNull(questionIds, "questionIds");
+        
+        if (questionIds.isEmpty()) {
+            return;
+        }
+        
+        // Remove all metatest entries referanced to this question
+        Query<MetaTestVO> qMetatest = Singletons.ds().createQuery(MetaTestVO.class);
+        qMetatest.disableValidation().field("entries.groupId").in(questionIds).enableValidation();        
+        
+        ArrayList<MTEQuestionVO> mteTemplates = new ArrayList<MTEQuestionVO>();
+        for (String questionId: questionIds) {
+            MTEQuestionVO mteTemplate = ReflectionHelper.createEmpty(MTEQuestionVO.class);
+            mteTemplate.setQuestionId(questionId);
+            mteTemplates.add(mteTemplate);
+        }
+        
+        UpdateOperations<MetaTestVO> uoMetatest = Singletons.ds().createUpdateOperations(MetaTestVO.class);
+        uoMetatest.removeAll("entries", mteTemplates);
+    
+        Singletons.ds().update(qMetatest, uoMetatest);
+        
+        // Remove questions
+        Query<QuestionVO> qQuestion = Singletons.ds().createQuery(QuestionVO.class);
+        qQuestion.field("_id").in(questionIds);
+        
+        
+        Singletons.ds().delete(qQuestion);
+        putGlobalChangesMarker();
+    }
+
     public ReportVO getReport(String reportId) {
         CheckHelper.throwIfNullOrEmpty(reportId, "reportId");
         
@@ -386,10 +420,5 @@ public class AdminLogic extends CommonLogic {
         
         ReportVO result = q.get();
         return result;
-    }
-    
-    public List<PublicationVO> getAllPublications() {
-        Query<PublicationVO> q = Singletons.ds().createQuery(PublicationVO.class);
-        return q.asList();
     }
 }

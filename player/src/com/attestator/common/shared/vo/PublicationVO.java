@@ -8,6 +8,7 @@ import com.attestator.common.server.db.annotation.Reference;
 import com.attestator.common.server.db.annotation.ReferenceCount;
 import com.attestator.common.shared.helper.NullHelper;
 import com.google.code.morphia.annotations.Entity;
+import com.google.code.morphia.annotations.PostLoad;
 import com.google.code.morphia.annotations.Transient;
 
 @Entity("publication")
@@ -103,7 +104,7 @@ public class PublicationVO extends TenantableVO {
         this.introduction = introduction;
     }
 
-    public boolean isAskFirstName() {
+    public boolean isThisAskFirstName() {
         return NullHelper.nullSafeTrue(askFirstName);
     }
 
@@ -115,7 +116,7 @@ public class PublicationVO extends TenantableVO {
         this.askFirstName = askFirstName;
     }
 
-    public boolean isAskFirstNameRequired() {
+    public boolean isThisAskFirstNameRequired() {
         return NullHelper.nullSafeTrue(askFirstNameRequired);
     }
     
@@ -127,7 +128,7 @@ public class PublicationVO extends TenantableVO {
         this.askFirstNameRequired = askFirstNameReqired;
     }
 
-    public boolean isAskLastName() {
+    public boolean isThisAskLastName() {
         return NullHelper.nullSafeTrue(askLastName);
     }
     
@@ -139,7 +140,7 @@ public class PublicationVO extends TenantableVO {
         this.askLastName = askLastName;
     }
 
-    public boolean isAskLastNameRequired() {
+    public boolean isThisAskLastNameRequired() {
         return NullHelper.nullSafeTrue(askLastNameRequired);
     }
     
@@ -151,7 +152,7 @@ public class PublicationVO extends TenantableVO {
         this.askLastNameRequired = askLastNameRequired;
     }
 
-    public boolean isAskMiddleName() {
+    public boolean isThisAskMiddleName() {
         return NullHelper.nullSafeTrue(askMiddleName);
     }
     
@@ -163,7 +164,7 @@ public class PublicationVO extends TenantableVO {
         this.askMiddleName = askMiddleName;
     }
 
-    public boolean isAskMiddleNameRequired() {
+    public boolean isThisAskMiddleNameRequired() {
         return NullHelper.nullSafeTrue(askMiddleNameRequired);
     }
     
@@ -175,7 +176,7 @@ public class PublicationVO extends TenantableVO {
         this.askMiddleNameRequired = askMiddleNameRequired;
     }
 
-    public boolean isAskEmail() {
+    public boolean isThisAskEmail() {
         return NullHelper.nullSafeTrue(askEmail);
     }
     
@@ -187,7 +188,7 @@ public class PublicationVO extends TenantableVO {
         this.askEmail = askEmail;
     }
 
-    public boolean isAskEmailRequired() {
+    public boolean isThisAskEmailRequired() {
         return NullHelper.nullSafeTrue(askEmailRequired);
     }
     
@@ -199,7 +200,7 @@ public class PublicationVO extends TenantableVO {
         this.askEmailRequired = askEmailRequired;
     }
     
-    public boolean isUnlimitedAttempts() {
+    public boolean isThisUnlimitedAttempts() {
         return NullHelper.nullSafeIntegerOrZerro(maxAttempts) == 0;
     }
     
@@ -241,7 +242,7 @@ public class PublicationVO extends TenantableVO {
     public void setAllowSkipQuestions(Boolean allowSkipQuestions) {
         this.allowSkipQuestions = allowSkipQuestions;
     }
-    public boolean isRandomQuestionsOrder() {
+    public boolean isThisRandomQuestionsOrder() {
         return NullHelper.nullSafeTrue(allowSkipQuestions);
     }
     public Boolean getRandomQuestionsOrder() {
@@ -250,7 +251,7 @@ public class PublicationVO extends TenantableVO {
     public void setRandomQuestionsOrder(Boolean randomQuestionsOrder) {
         this.randomQuestionsOrder = randomQuestionsOrder;
     }
-    public boolean isAllowInterruptTest() {
+    public boolean isThisAllowInterruptTest() {
         return NullHelper.nullSafeTrue(allowInterruptTest);
     }
     public Boolean getAllowInterruptTest() {
@@ -283,6 +284,15 @@ public class PublicationVO extends TenantableVO {
     public void setReportsCount(Long reportsCount) {
         this.reportsCount = reportsCount;
     }
+    
+    @SuppressWarnings("unused")
+    @PostLoad   
+    private void postLoad() {
+        //Update order field for editor framework
+        for (int i = 0; i < additionalQuestions.size(); i++) {
+            additionalQuestions.get(i).setOrder(i);
+        }
+    }    
 
     @Override
     public String toString() {

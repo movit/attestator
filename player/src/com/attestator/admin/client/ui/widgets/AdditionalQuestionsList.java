@@ -7,8 +7,7 @@ import com.attestator.admin.client.ui.event.DeleteEvent;
 import com.attestator.admin.client.ui.event.DeleteEvent.DeleteHandler;
 import com.attestator.admin.client.ui.event.RearrangeEvent;
 import com.attestator.admin.client.ui.event.RearrangeEvent.RearrangeHandler;
-import com.attestator.common.shared.helper.StringHelper;
-import com.attestator.common.shared.vo.ChoiceVO;
+import com.attestator.common.shared.vo.AdditionalQuestionVO;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.editor.client.Editor.Ignore;
 import com.google.gwt.editor.client.IsEditor;
@@ -19,61 +18,51 @@ import com.google.gwt.uibinder.client.UiConstructor;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.client.ui.Widget;
-import com.sencha.gxt.core.client.util.ToggleGroup;
 import com.sencha.gxt.widget.core.client.Composite;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
 
-public class ChoicesList extends Composite implements IsEditor<ListEditor<ChoiceVO, ChoicesListItem>>{
-    private class ChoiceEditorSource extends EditorSource<ChoicesListItem> {
+public class AdditionalQuestionsList extends Composite implements IsEditor<ListEditor<AdditionalQuestionVO, AdditionalQuestionItem>>{
+    private class AdditonalQuestionEditorSource extends EditorSource<AdditionalQuestionItem> {
         @Override
-        public ChoicesListItem create(final int index) {
-            ChoicesListItem item = new ChoicesListItem();
-            
-            choicesContainer.insert(item, index, maxWidthMinHeightVLData);
+        public AdditionalQuestionItem create(final int index) {
+            AdditionalQuestionItem item = new AdditionalQuestionItem();
+            aqContainer.insert(item, index, maxWidthMinHeightVLData);
                         
-            tg.add(item.getRight());
-            
             item.addDeleteHandler(new DeleteHandler() {                
                 @Override
                 public void onDelete(DeleteEvent event) {
-                    if (listEditor.getList().size() > 1) {
-                        removeItem((ChoicesListItem)event.getSource());
-                    }
+                    removeItem((AdditionalQuestionItem)event.getSource());
                 }
             });
             
             item.addRearrangeHandler(new RearrangeHandler() {                
                 @Override
                 public void onRearrange(RearrangeEvent event) {
-                    moveItem((ChoicesListItem)event.getSource(), event.isUp());
+                    moveItem((AdditionalQuestionItem)event.getSource(), event.isUp());
                 }
             });
             
-            updateOrders();
+            updateOrders();            
 
             return item;
         }
         
-        private ToggleGroup tg = new ToggleGroup();        
-        
         @Override
-        public void dispose(ChoicesListItem item) {
-            tg.remove(item.getRight());
+        public void dispose(AdditionalQuestionItem item) {
             item.removeFromParent();
             updateOrders();
         }
         
         @Override 
-        public void setIndex(ChoicesListItem item, int index) {
-            choicesContainer.insert(item, index, maxWidthMinHeightVLData);
+        public void setIndex(AdditionalQuestionItem item, int index) {
+            aqContainer.insert(item, index, maxWidthMinHeightVLData);
             updateOrders();
-            tg.add(item.getRight());
         }
     }
     
-    interface UiBinderImpl extends UiBinder<Widget, ChoicesList> {
+    interface UiBinderImpl extends UiBinder<Widget, AdditionalQuestionsList> {
     }
     private static UiBinderImpl uiBinder = GWT.create(UiBinderImpl.class);
     
@@ -81,67 +70,66 @@ public class ChoicesList extends Composite implements IsEditor<ListEditor<Choice
     protected VerticalLayoutContainer topContainer;
     
     @UiField
-    protected VerticalLayoutContainer choicesContainer;
+    protected VerticalLayoutContainer aqContainer;
     
     @UiField
     protected VerticalLayoutData maxWidthMinHeightVLData;
     
     // This source backs the ListEditor, which adds,inserts and removes child widgets from the list.
-    private ListEditor<ChoiceVO, ChoicesListItem> listEditor = ListEditor.of(new ChoiceEditorSource());
+    private ListEditor<AdditionalQuestionVO, AdditionalQuestionItem> listEditor = ListEditor.of(new AdditonalQuestionEditorSource());
     
     @UiConstructor
-    public ChoicesList() {
+    public AdditionalQuestionsList() {
         initWidget(uiBinder.createAndBindUi(this));
         updateOrders();
     }
     
     private void updateOrders() {
-        for (int i = 0; i < choicesContainer.getWidgetCount(); i++) {
-            ChoicesListItem item = (ChoicesListItem)choicesContainer.getWidget(i);
+        for (int i = 0; i < aqContainer.getWidgetCount(); i++) {
+            AdditionalQuestionItem item = (AdditionalQuestionItem)aqContainer.getWidget(i);
             item.order.setValue(i);
-            item.deleteButton.setEnabled(choicesContainer.getWidgetCount() > 1);
         }
     }
     
-    private void moveItem(ChoicesListItem item, boolean up) {
-        int itemIndex = WidgetHelpr.widgetIndex(choicesContainer, item);
+    private void moveItem(AdditionalQuestionItem item, boolean up) {
+        int itemIndex = WidgetHelpr.widgetIndex(aqContainer, item);
         
         if (up) {
             if (itemIndex > 0) {
-                choicesContainer.insert(item, itemIndex - 1);
+                aqContainer.insert(item, itemIndex - 1);
             }
         }
         else {
-            if (itemIndex < (choicesContainer.getWidgetCount() - 1)) {
-                choicesContainer.insert(item, itemIndex + 2);
+            if (itemIndex < (aqContainer.getWidgetCount() - 1)) {
+                aqContainer.insert(item, itemIndex + 2);
             }
         }
         updateOrders();
     }
 
-    private void removeItem(ChoicesListItem item) {
+    private void removeItem(AdditionalQuestionItem item) {
         int index = listEditor.getEditors().indexOf(item);
         listEditor.getList().remove(index);
         updateOrders();
     }
     
     @Override
-    public ListEditor<ChoiceVO, ChoicesListItem> asEditor() {
+    public ListEditor<AdditionalQuestionVO, AdditionalQuestionItem> asEditor() {
         return listEditor;
     }
     
     @UiHandler("addButton")
     public void addButtonClick(SelectEvent event) {
-        listEditor.getList().add(new ChoiceVO());
+        listEditor.getList().add(new AdditionalQuestionVO());
         updateOrders();
     }
     
     @Ignore
-    public ChoicesListItem getEmptyChoiceItem() {
-        Iterator<Widget> iterator = choicesContainer.iterator();
+    public AdditionalQuestionItem getAdditonalQuestionItem(int order) {
+        Iterator<Widget> iterator = aqContainer.iterator();
         while (iterator.hasNext()) {
-            ChoicesListItem item = (ChoicesListItem)iterator.next();
-            if (StringHelper.isEmptyOrNull(item.text.getText())) {
+            AdditionalQuestionItem item = (AdditionalQuestionItem)iterator.next();
+            if (item.order.getValue() == order) {
                 return item;
             }
         }

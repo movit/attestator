@@ -214,7 +214,7 @@ public class ReportsTab extends Composite {
     }
     
     private void showReportWindow(ReportVO report) {
-        Admin.RPC.getReport(report.getId(), new AdminAsyncCallback<ReportVO>() {
+        Admin.RPC.loadReport(report.getId(), new AdminAsyncCallback<ReportVO>() {
             @Override
             public void onSuccess(ReportVO result) {
                 ReportWindow window = new ReportWindow(result);

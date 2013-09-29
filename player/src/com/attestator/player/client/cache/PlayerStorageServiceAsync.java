@@ -328,7 +328,7 @@ public class PlayerStorageServiceAsync implements PlayerServiceAsync {
             reportPublication = startReportCO.getReport().getPublication();
         }
         
-        if (reportPublication != null && !reportPublication.isUnlimitedAttempts()) {
+        if (reportPublication != null && !reportPublication.isThisUnlimitedAttempts()) {
             String apKey = psc.key(CacheKind.cache, CacheType.getActivePublications, "tenantId", tenantId);
             @SuppressWarnings("unchecked")
             List<ActivePublicationDTO> activePublications = psc.getItem((Class<List<ActivePublicationDTO>>) (Class<?>) ArrayList.class, apKey);

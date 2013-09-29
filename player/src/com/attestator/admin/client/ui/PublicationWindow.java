@@ -1,13 +1,26 @@
 package com.attestator.admin.client.ui;
 
+import java.util.Collections;
+import java.util.Comparator;
+
+import com.attestator.admin.client.Admin;
+import com.attestator.admin.client.props.DoubleGreaterZerroPropertyEditor;
+import com.attestator.admin.client.props.IntegerGreaterZerroPropertyEditor;
 import com.attestator.admin.client.props.MilisecondsPropertyEditor;
-import com.attestator.admin.client.ui.event.CancelEvent;
+import com.attestator.admin.client.rpc.AdminAsyncEmptyCallback;
 import com.attestator.admin.client.ui.event.SaveEvent;
 import com.attestator.admin.client.ui.event.SaveEvent.HasSaveEventHandlers;
 import com.attestator.admin.client.ui.event.SaveEvent.SaveHandler;
+import com.attestator.admin.client.ui.widgets.AdditionalQuestionItem;
+import com.attestator.admin.client.ui.widgets.AdditionalQuestionsList;
 import com.attestator.admin.client.ui.widgets.DateTimeSelector;
+import com.attestator.common.shared.helper.StringHelper;
+import com.attestator.common.shared.vo.AdditionalQuestionVO;
+import com.attestator.common.shared.vo.AdditionalQuestionVO.AnswerTypeEnum;
 import com.attestator.common.shared.vo.PublicationVO;
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.core.client.Scheduler;
+import com.google.gwt.core.client.Scheduler.ScheduledCommand;
 import com.google.gwt.editor.client.Editor;
 import com.google.gwt.editor.client.SimpleBeanEditorDriver;
 import com.google.gwt.event.shared.GwtEvent;
@@ -19,15 +32,21 @@ import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Widget;
+import com.sencha.gxt.widget.core.client.Component;
 import com.sencha.gxt.widget.core.client.Window;
+import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
+import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
+import com.sencha.gxt.widget.core.client.event.ExpandEvent;
+import com.sencha.gxt.widget.core.client.event.ExpandEvent.ExpandHandler;
+import com.sencha.gxt.widget.core.client.event.HideEvent;
 import com.sencha.gxt.widget.core.client.event.HideEvent.HasHideHandlers;
 import com.sencha.gxt.widget.core.client.event.HideEvent.HideHandler;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
+import com.sencha.gxt.widget.core.client.form.CheckBox;
+import com.sencha.gxt.widget.core.client.form.FieldSet;
 import com.sencha.gxt.widget.core.client.form.HtmlEditor;
 import com.sencha.gxt.widget.core.client.form.NumberField;
 import com.sencha.gxt.widget.core.client.form.NumberPropertyEditor;
-import com.sencha.gxt.widget.core.client.form.NumberPropertyEditor.DoublePropertyEditor;
-import com.sencha.gxt.widget.core.client.form.NumberPropertyEditor.LongPropertyEditor;
 
 public class PublicationWindow implements IsWidget, Editor<PublicationVO>, HasSaveEventHandlers<PublicationVO>,  HasHideHandlers {
     interface DriverImpl extends
@@ -43,6 +62,9 @@ public class PublicationWindow implements IsWidget, Editor<PublicationVO>, HasSa
     @UiField
     Window window;
     
+    @UiField
+    VerticalLayoutContainer top;
+    
     @Path("metatest.name")
     @UiField
     Label metatestName;
@@ -55,6 +77,51 @@ public class PublicationWindow implements IsWidget, Editor<PublicationVO>, HasSa
     
     @UiField 
     DateTimeSelector end;
+    
+    @UiField 
+    NumberField<Integer>  maxAttempts;
+
+    @UiField
+    NumberField<Double>   minScore;    
+    
+    @UiField
+    CheckBox              interruptOnFalure;
+    
+    @UiField
+    CheckBox         allowSkipQuestions; 
+    
+    @UiField
+    CheckBox         allowInterruptTest;
+    
+    @UiField
+    CheckBox         randomQuestionsOrder;
+    
+    @UiField
+    CheckBox         askFirstName;
+    
+    @UiField
+    CheckBox         askFirstNameRequired;
+    
+    @UiField
+    CheckBox         askLastName;
+    
+    @UiField
+    CheckBox         askLastNameRequired;
+
+    @UiField
+    CheckBox         askMiddleName;
+    
+    @UiField
+    CheckBox         askMiddleNameRequired;
+
+    @UiField
+    CheckBox         askEmail;
+    
+    @UiField
+    CheckBox         askEmailRequired;
+    
+    @UiField
+    AdditionalQuestionsList additionalQuestions;
     
     @UiField
     NumberField<Long> maxTakeTestTime;
@@ -69,13 +136,16 @@ public class PublicationWindow implements IsWidget, Editor<PublicationVO>, HasSa
     NumberFormat doubleNumberFormat = NumberFormat.getFormat("0.00");
     
     @UiField(provided = true)
-    NumberPropertyEditor<Long> longPropertyEditor = new LongPropertyEditor();    
+    NumberPropertyEditor<Integer> integerPropertyEditor = new IntegerGreaterZerroPropertyEditor();    
     
     @UiField(provided = true)
-    NumberPropertyEditor<Double> doublePropertyEditor = new DoublePropertyEditor();
+    NumberPropertyEditor<Double> doublePropertyEditor = new DoubleGreaterZerroPropertyEditor();
     
     @UiField(provided = true)
     NumberPropertyEditor<Long> milisecondsPropertyEditor = new MilisecondsPropertyEditor();
+    
+    @UiField
+    FieldSet publicationParamsFieldSet;
     
     public PublicationWindow() {
         this(null); 
@@ -85,20 +155,86 @@ public class PublicationWindow implements IsWidget, Editor<PublicationVO>, HasSa
         super();
         
         uiBinder.createAndBindUi(this);
-        
+        publicationParamsFieldSet.addExpandHandler(new ExpandHandler() {            
+            @Override
+            public void onExpand(ExpandEvent event) {
+                top.getScrollSupport().ensureVisible(publicationParamsFieldSet);
+                
+            }
+        });
         driver.initialize(this);
         driver.edit(publication);
     }
 
     @UiHandler("cancelButton")
     protected void cancelButtonClick(SelectEvent event) {
-        fireEvent(new CancelEvent());
         window.hide();
     }
 
-    private boolean validate(PublicationVO question) {
+    private boolean validate(PublicationVO publication) {
+        StringBuilder sb = new StringBuilder();
+        Widget ensureVisibleWidget = null;
+        Component focusWidget = null;
+        
+        for (AdditionalQuestionVO aq : publication.getAdditionalQuestions()) {
+            if (StringHelper.isEmptyOrNull(aq.getText())) {
+                sb.append("Название поля не может быть пустым" + "<br>");                
+                if (ensureVisibleWidget == null) {
+                    AdditionalQuestionItem aqItem = additionalQuestions.getAdditonalQuestionItem(aq.getOrder());
+                    ensureVisibleWidget = aqItem.getTextField();
+                    focusWidget = aqItem.getTextField();
+                }         
+            }
+            
+            if (aq.getAnswerType() == AnswerTypeEnum.key) {
+                if (StringHelper.isEmptyOrNull(aq.getCheckValue())) {
+                    sb.append("Секретный ключ не может быть пустым" + "<br>");                
+                    if (ensureVisibleWidget == null) {
+                        AdditionalQuestionItem aqItem = additionalQuestions.getAdditonalQuestionItem(aq.getOrder());
+                        ensureVisibleWidget = aqItem.getCheckValueField();
+                        focusWidget = aqItem.getCheckValueField();
+                    }
+                }
+            }
+        }
+            
+        if (publication.getStart() != null && publication.getEnd() != null
+        &&  publication.getEnd().before(publication.getStart())) {
+            sb.append("Начало публикации должно быть раньше окончания" + "<br>");            
+            if (ensureVisibleWidget == null) {
+                ensureVisibleWidget = start;
+                focusWidget = start;
+            }
+        }
+        
+        if (sb.length() > 0) {
+            AlertMessageBox alert = new AlertMessageBox("Ошибка", sb.toString());
+            
+            if (ensureVisibleWidget != null) {
+                final Widget finalEnsureVisibleWidget = ensureVisibleWidget;
+                final Component finalFocusWiget = focusWidget;
+                alert.addHideHandler(new HideHandler() {
+                    @Override
+                    public void onHide(HideEvent event) {
+                        Scheduler.get().scheduleDeferred(new ScheduledCommand() {                            
+                            @Override
+                            public void execute() {
+                                top.getScrollSupport().ensureVisible(finalEnsureVisibleWidget);
+                                if (finalFocusWiget != null) {
+                                    finalFocusWiget.focus();
+                                }
+                            }
+                        });
+                    }
+                });
+            }
+            
+            alert.show();
+            return false;
+        }
         
         return true;
+        
     }
     
     @Override
@@ -119,6 +255,24 @@ public class PublicationWindow implements IsWidget, Editor<PublicationVO>, HasSa
     @Override
     public HandlerRegistration addHideHandler(HideHandler handler) {
         return window.addHideHandler(handler);
+    }
+    
+    @UiHandler("saveButton")
+    protected void saveButtonClick(SelectEvent event) {
+        PublicationVO publication = driver.flush();
+        
+        Collections.sort(publication.getAdditionalQuestions(), new Comparator<AdditionalQuestionVO>() {
+            @Override
+            public int compare(AdditionalQuestionVO o1, AdditionalQuestionVO o2) {
+                return o1.getOrder() - o2.getOrder();
+            }
+        });
+        
+        if (validate(publication)) {
+            Admin.RPC.savePublication(publication, new AdminAsyncEmptyCallback<Void>());
+            fireEvent(new SaveEvent<PublicationVO>(publication));
+            window.hide();
+        }
     }
 
 }

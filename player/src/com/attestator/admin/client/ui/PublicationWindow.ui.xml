@@ -36,8 +36,8 @@
 
     <ui:with
         type="com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData"
-        field="maxWidthFixedHeightVLData">
-        <ui:attributes width="-1" height="100"/>
+        field="questionsBoxesVLData">
+        <ui:attributes width="-1" height="80" margins="{marginsTop}"/>
     </ui:with>
     
     <ui:with
@@ -60,6 +60,10 @@
 
     <ui:with type="com.sencha.gxt.core.client.util.Margins" field="marginsBottom">
         <ui:attributes top="0" right="0" bottom="5" left="0" />
+    </ui:with>
+
+    <ui:with type="com.sencha.gxt.core.client.util.Margins" field="marginsTop">
+        <ui:attributes top="10" right="0" bottom="0" left="0" />
     </ui:with>
 
     <ui:with type="com.sencha.gxt.core.client.util.Margins" field="marginsT5B5">
@@ -96,7 +100,7 @@
         <ui:attributes width="1" height="-1"  />
     </ui:with>
     
-    <ui:with field="longPropertyEditor"
+    <ui:with field="integerPropertyEditor"
         type="com.sencha.gxt.widget.core.client.form.NumberPropertyEditor" />
     
     <ui:with field="longNumberFormat" type="com.google.gwt.i18n.client.NumberFormat" />
@@ -129,12 +133,12 @@
 		                <row:child layoutData="{maxWidthMinHeightVLData}">
 		                    <form:FieldLabel labelAlign="TOP" text="Показать текст">
 		                        <form:widget>
-		                            <form:HtmlEditor ui:field="introduction"  enableLinks="false"
+		                            <form:HtmlEditor ui:field="introduction"  enableLinks="false" height="140"
 		                                enableAlignments="false" enableFont="false" />
 		                        </form:widget>
 		                    </form:FieldLabel>
 		                </row:child>
-                        <row:child layoutData="{maxWidthFixedHeightVLData}">
+                        <row:child layoutData="{questionsBoxesVLData}">
                             <row:HorizontalLayoutContainer>
                                 <row:child layoutData="{minWidthMaxHeightHLData}">
                                     <row:VerticalLayoutContainer>
@@ -170,20 +174,27 @@
                                 </row:child>
                             </row:HorizontalLayoutContainer>
                         </row:child>
+                        <row:child layoutData="{maxWidthMinHeightVLData}">
+                            <form:FieldLabel labelAlign="TOP" text="Дополнительные поля перед тестом">
+                                <form:widget>
+                                    <att:AdditionalQuestionsList ui:field="additionalQuestions"/>
+                                </form:widget>
+                            </form:FieldLabel>
+                        </row:child>
 		                
 		            </row:VerticalLayoutContainer>
 		        </form:FieldSet>
             
             </row:child>
             <row:child layoutData="{maxWidthMinHeightVLData}">
-                <form:FieldSet headingText="Параметры публикации" collapsible="true">
+                <form:FieldSet ui:field="publicationParamsFieldSet" headingText="Параметры публикации" collapsible="true">
                     <row:VerticalLayoutContainer>
                         <row:child layoutData="{publicationParamsVLData}">
                             <row:HorizontalLayoutContainer>
                                 <row:child layoutData="{minWidthMaxHeightHLData}">
                                     <row:VerticalLayoutContainer>
                                         <row:child layoutData="{minWidthMinHeightVLData}">
-                                            <form:FieldLabel labelAlign="LEFT" text="Начало" labelWidth="120">
+                                            <form:FieldLabel labelAlign="LEFT" text="Начало" labelWidth="118">
                                                 <form:widget>
                                                     <att:DateTimeSelector ui:field="start"/>
                                                 </form:widget>
@@ -194,7 +205,7 @@
                                                 <form:widget>
                                                     <form:NumberField ui:field="maxTakeTestTime"
                                                         editor="{milisecondsPropertyEditor}" format="{longNumberFormat}"
-                                                        width="180" allowBlank="true" emptyText="неограничено" />
+                                                        width="176" allowBlank="true" emptyText="неограничено" />
                                                 </form:widget>
                                             </form:FieldLabel>
                                         </row:child>
@@ -202,8 +213,8 @@
                                             <form:FieldLabel labelAlign="LEFT" text="Разрешить попыток" labelWidth="120" >
                                                 <form:widget>
                                                     <form:NumberField ui:field="maxAttempts"
-                                                        editor="{milisecondsPropertyEditor}" format="{longNumberFormat}"
-                                                        width="180" allowBlank="true" emptyText="неограничено" />
+                                                        editor="{integerPropertyEditor}" format="{longNumberFormat}"
+                                                        width="176" allowBlank="true" emptyText="неограничено" />
                                                 </form:widget>
                                             </form:FieldLabel>
                                         </row:child>
@@ -218,7 +229,7 @@
                                 <row:child layoutData="{minWidthMaxHeightHLData}">
                                     <row:VerticalLayoutContainer>
                                         <row:child layoutData="{minWidthMinHeightVLData}">
-                                            <form:FieldLabel labelAlign="LEFT" text="Окончание" labelWidth="120">
+                                            <form:FieldLabel labelAlign="LEFT" text="Окончание" labelWidth="118">
                                                 <form:widget>
                                                     <att:DateTimeSelector ui:field="end"/>
                                                 </form:widget>
@@ -229,7 +240,7 @@
                                                 <form:widget>
                                                     <form:NumberField ui:field="maxQuestionAnswerTime"
                                                         editor="{milisecondsPropertyEditor}" format="{longNumberFormat}"
-                                                        width="180" allowBlank="true" emptyText="неограничено" />
+                                                        width="176" allowBlank="true" emptyText="неограничено" />
                                                 </form:widget>
                                             </form:FieldLabel>
                                         </row:child>
@@ -238,7 +249,7 @@
                                                 <form:widget>
                                                     <form:NumberField ui:field="minScore"
                                                         editor="{doublePropertyEditor}" format="{doubleNumberFormat}"
-                                                        width="180" allowBlank="true" emptyText="неважно" />
+                                                        width="176" allowBlank="true" emptyText="неважно" />
                                                 </form:widget>
                                             </form:FieldLabel>
                                         </row:child>
@@ -258,6 +269,10 @@
                 </form:FieldSet>
             </row:child>
         </row:VerticalLayoutContainer>
+        
+        <gxt:button>
+            <button:TextButton ui:field="saveButton" text="Сохранить" />
+        </gxt:button>
 
 		<gxt:button>
 			<button:TextButton ui:field="cancelButton" text="Отмена" />

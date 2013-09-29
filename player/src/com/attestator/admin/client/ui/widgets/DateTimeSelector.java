@@ -9,6 +9,7 @@ import com.attestator.admin.client.ui.event.DeleteEvent.HasDeleteEventHandlers;
 import com.attestator.admin.client.ui.event.RearrangeEvent;
 import com.attestator.admin.client.ui.event.RearrangeEvent.HasRearrangeEventHandlers;
 import com.attestator.admin.client.ui.event.RearrangeEvent.RearrangeHandler;
+import com.attestator.common.shared.helper.DateHelper;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.editor.client.LeafValueEditor;
 import com.google.gwt.event.shared.HandlerRegistration;
@@ -64,9 +65,15 @@ public class DateTimeSelector extends Composite implements LeafValueEditor<Date>
     }    
     
     @Override
-    public void setValue(Date value) {        
-        dateField.setValue(value);
-        timeField.setValue(value);
+    public void setValue(Date value) {
+        if (value != null) {
+            dateField.setValue(value);
+            timeField.setValue(value);
+        }
+        else {
+            dateField.setValue(null);
+            timeField.setValue(null);
+        }
     }
 
     @Override
@@ -74,7 +81,11 @@ public class DateTimeSelector extends Composite implements LeafValueEditor<Date>
         Date result = null;
         if (dateField.getValue() != null) {
             if (timeField.getValue() != null) {
-                result = new Date(dateField.getValue().getTime() + timeField.getValue().getTime());
+                long resultTime = DateHelper.getDatePart(dateField.getValue()) + DateHelper.getTimePart(timeField.getValue()); 
+                if (resultTime < dateField.getValue().getTime()) {
+                    resultTime += 1000 * 60 * 60 * 24;
+                }
+                result = new Date(resultTime);
             }
             else {
                 result = dateField.getValue();

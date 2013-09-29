@@ -53,7 +53,7 @@ public class PlayerServiceImpl extends RemoteServiceServlet implements
                 resultItem.setPublication(publication);
                 resultItem.setLastFullReportId(lastFullReportId);
                 
-                if (!publication.isUnlimitedAttempts()) {
+                if (!publication.isThisUnlimitedAttempts()) {
                     ReportVO reportForRenew = Singletons.pl().getLastReportForRenew(clientId, publication.getId());
                     
                     if (reportForRenew != null) {
@@ -183,7 +183,7 @@ public class PlayerServiceImpl extends RemoteServiceServlet implements
                 return null;
             }            
 
-            if (!publication.isUnlimitedAttempts()) {
+            if (!publication.isThisUnlimitedAttempts()) {
                 long numberOfAttempts = Singletons.pl().getNumberOfAttempts(publicationId, clientId);
                 if (numberOfAttempts >= publication.getMaxAttempts()) {
                     return null;
@@ -221,7 +221,7 @@ public class PlayerServiceImpl extends RemoteServiceServlet implements
             ReportVO result = Singletons.pl().getLastReportForRenew(clientId, publicationId);
             
             // We have something for renew and this is has limited attempts
-            if (result != null && !result.getPublication().isUnlimitedAttempts()) {
+            if (result != null && !result.getPublication().isThisUnlimitedAttempts()) {
                 long numberOfAttempts = Singletons.pl().getNumberOfAttempts(publicationId, clientId);
                 if (numberOfAttempts > result.getPublication().getMaxAttempts()) {
                     return null;

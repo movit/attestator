@@ -51,17 +51,17 @@ public class PublicationPortlet implements IsWidget {
             vl.add(introduction, new VerticalLayoutData(-1, -1, new Margins(5, 0, 20, 0)));
         }
         
-        if (publication.isAskLastName()) {
-        	addNameField("lastName", "Фамилия", publication.isAskLastNameRequired(), null);
+        if (publication.isThisAskLastName()) {
+        	addNameField("lastName", "Фамилия", publication.isThisAskLastNameRequired(), null);
         }
-        if (publication.isAskFirstName()) {
-        	addNameField("firstName", "Имя", publication.isAskFirstNameRequired(), null);
+        if (publication.isThisAskFirstName()) {
+        	addNameField("firstName", "Имя", publication.isThisAskFirstNameRequired(), null);
         }
-        if (publication.isAskMiddleName()) {
-        	addNameField("middleName", "Отчество", publication.isAskMiddleNameRequired(), null);
+        if (publication.isThisAskMiddleName()) {
+        	addNameField("middleName", "Отчество", publication.isThisAskMiddleNameRequired(), null);
         }
-        if (publication.isAskEmail()) {
-            addQuestionField("email", "email", publication.isAskEmailRequired(), new RegExValidator("^[_a-z0-9-]+(\\.[_a-z0-9-]+)*@[a-z0-9-]+(\\.[a-z0-9-]+)*(\\.[a-z]{2,4})$", "Неправильный email"));
+        if (publication.isThisAskEmail()) {
+            addQuestionField("email", "email", publication.isThisAskEmailRequired(), new RegExValidator("^[_a-z0-9-]+(\\.[_a-z0-9-]+)*@[a-z0-9-]+(\\.[a-z0-9-]+)*(\\.[a-z]{2,4})$", "Неправильный email"));
         }
         
         for (AdditionalQuestionVO aq: publication.getAdditionalQuestions()) {

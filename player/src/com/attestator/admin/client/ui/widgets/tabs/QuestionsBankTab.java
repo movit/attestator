@@ -387,11 +387,6 @@ public class QuestionsBankTab extends Composite {
         window.show();
     }
     
-//    @UiHandler("uploadQuestionsButton")
-//    public void uploadQuestionsButtonClick(SelectEvent event) {
-//        fileUpload.
-//    }
-    
     private void refresh() {
         refreshGrid(); //enableButtons() called after grid refresh is finished to reflect new selected state
         refreshGroups();
@@ -402,7 +397,7 @@ public class QuestionsBankTab extends Composite {
     }
     
     private void refreshGroups() {
-        Admin.RPC.getGroups(new AdminAsyncCallback<List<GroupVO>>() {
+        Admin.RPC.loadGroups(new AdminAsyncCallback<List<GroupVO>>() {
 
             @Override
             public void onSuccess(List<GroupVO> result) {

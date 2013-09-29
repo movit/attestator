@@ -8,16 +8,10 @@
 	xmlns:toolbar="urn:import:com.sencha.gxt.widget.core.client.toolbar"
 	xmlns:grid="urn:import:com.sencha.gxt.widget.core.client.grid"
 	xmlns:att="urn:import:com.attestator.admin.client.ui.widgets">
-    <ui:style>
-        .noBackground {
-            background-image: none;
-        }
-    </ui:style>
+
 	<ui:with type="com.attestator.common.client.ui.resolurces.Resources.Icons"
 		field="icons" />
 
-    <ui:with type="com.sencha.gxt.widget.core.client.form.DateTimePropertyEditor" field="datePropertyEditor"/>
-	
 	<ui:with type="com.sencha.gxt.core.client.util.Margins" field="marginsRight5">
 		<ui:attributes top="0" right="5" bottom="0" left="0" />
 	</ui:with>
@@ -27,12 +21,23 @@
 		field="flexToolbarItem">
 		<ui:attributes flex="1" />
 	</ui:with>
-     
-	<toolbar:ToolBar ui:field="container" borders="false" height="23" styleName="{style.noBackground}" width="180">
-	    <form:DateField ui:field="dateField" propertyEditor="{datePropertyEditor}" width="90"/>
-	    <form:TimeField ui:field="timeField" width="60"/>
-        <button:TextButton ui:field="clearButton"
-            iconAlign="TOP" icon="{icons.clear16x16}" height="-1"/>
+	
+	<toolbar:ToolBar ui:field="container" borders="true" height="-1" >
+        <form:ComboBox ui:field="answerType" width="130"/>
+		<form:TextField layoutData="{flexToolbarItem}"
+			ui:field="text" emptyText="Название поля" allowBlank="true" />
+        <form:TextField
+            ui:field="checkValue" emptyText="Секретное значение" visible="false" allowBlank="true" />
+		<toolbar:SeparatorToolItem />
+        <form:CheckBox ui:field="required" boxLabel="Обязательно" />		
+        <toolbar:SeparatorToolItem />
+		<button:TextButton ui:field="upButton" iconAlign="TOP"
+			icon="{icons.up16x16}" />
+		<button:TextButton ui:field="downButton" iconAlign="TOP"
+			icon="{icons.down16x16}" />
+		<toolbar:SeparatorToolItem />
+		<button:TextButton ui:field="deleteButton"
+			iconAlign="TOP" icon="{icons.delete16x16}" />
 	</toolbar:ToolBar>
 
 </ui:UiBinder>

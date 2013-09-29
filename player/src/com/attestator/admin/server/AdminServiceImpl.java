@@ -13,6 +13,7 @@ import com.attestator.common.shared.vo.UserVO;
 import com.attestator.player.server.Singletons;
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 import com.sencha.gxt.data.shared.loader.FilterPagingLoadConfig;
+import com.sencha.gxt.data.shared.loader.ListLoadResult;
 import com.sencha.gxt.data.shared.loader.PagingLoadResult;
 
 /**
@@ -37,7 +38,7 @@ public class AdminServiceImpl extends RemoteServiceServlet implements
     }
 
     @Override
-    public List<GroupVO> getGroups() {
+    public List<GroupVO> loadGroups() {
         try {
             return Singletons.al().getAllGroups();
         }
@@ -70,7 +71,7 @@ public class AdminServiceImpl extends RemoteServiceServlet implements
     }
 
     @Override
-    public void setGroups(List<GroupVO> groups) {
+    public void saveGroups(List<GroupVO> groups) {
         try {
             Singletons.al().setGroups(groups);
         }
@@ -159,7 +160,18 @@ public class AdminServiceImpl extends RemoteServiceServlet implements
     }
 
     @Override
-    public ReportVO getReport(String reportId) {
+    public void deletePublications(List<String> publicationIds) {
+        try {
+            Singletons.al().deletePublications(publicationIds);
+        }
+        catch (Throwable e) {
+            logger.error("Error: ", e);
+            throw new IllegalStateException(DEFAULT_ERROR_MESSAGE, e);
+        }
+    }
+
+    @Override
+    public ReportVO loadReport(String reportId) {
         try {
             return Singletons.al().getReport(reportId);
         }
@@ -170,9 +182,20 @@ public class AdminServiceImpl extends RemoteServiceServlet implements
     }
 
     @Override
-    public List<PublicationVO> loadAllPublications() {
+    public ListLoadResult<PublicationVO> loadPublications() {
         try {
             return Singletons.al().getAllPublications();
+        }
+        catch (Throwable e) {
+            logger.error("Error: ", e);
+            throw new IllegalStateException(DEFAULT_ERROR_MESSAGE, e);
+        }
+    }
+
+    @Override
+    public void savePublication(PublicationVO publication) {
+        try {
+            Singletons.al().savePublication(publication);
         }
         catch (Throwable e) {
             logger.error("Error: ", e);

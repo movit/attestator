@@ -469,7 +469,7 @@ public class TestScreen extends MainScreen {
             centerPanel.setWidget(questionPortlet);
 
             ArrayList<TextButton> buttons = new ArrayList<TextButton>();
-            if (publication.isAllowInterruptTest()) {
+            if (publication.isThisAllowInterruptTest()) {
                 buttons.add(interruptTestButton);
             }
             if (!report.isQuestionAnswered(question.getId())) {
@@ -643,10 +643,10 @@ public class TestScreen extends MainScreen {
 
         boolean result = !StringHelper.isEmptyOrNull(publication
                 .getIntroduction());
-        result = result || publication.isAskFirstName();
-        result = result || publication.isAskLastName();
-        result = result || publication.isAskMiddleName();
-        result = result || publication.isAskEmail();
+        result = result || publication.isThisAskFirstName();
+        result = result || publication.isThisAskLastName();
+        result = result || publication.isThisAskMiddleName();
+        result = result || publication.isThisAskEmail();
         result = result || !publication.getAdditionalQuestions().isEmpty();
 
         return result;

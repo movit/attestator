@@ -196,7 +196,7 @@ public class PlayerLogic extends CommonLogic{
             prepare(question);
         }
         
-        if (publication.isRandomQuestionsOrder()) {
+        if (publication.isThisRandomQuestionsOrder()) {
             Collections.shuffle(questions);
         }
     }

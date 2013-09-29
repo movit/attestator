@@ -94,7 +94,7 @@ public abstract class QuestionVO extends TenantableVO {
     public void setGroupName(String groupName) {
         this.groupName = groupName;
     }
-
+ 
     public abstract boolean isRightAnswer(AnswerVO answer);
 
     public abstract AnswerVO getRightAnswer();

@@ -2,23 +2,40 @@ package com.attestator.common.shared.vo;
 
 import com.attestator.common.shared.helper.NullHelper;
 import com.google.code.morphia.annotations.Embedded;
+import com.google.code.morphia.annotations.Transient;
 
 @Embedded
-public class AdditionalQuestionVO extends BaseVO {
+public class AdditionalQuestionVO extends BaseVO {    
+    public static enum AnswerTypeEnum implements Displayable {
+        text("Текстовое поле"),
+        key("Секретный ключ");
+        
+        private String displayValue;
+        
+        private AnswerTypeEnum(String displayValue) {
+            this.displayValue = displayValue;
+        }
+
+        @Override
+        public String getDisplayValue() {
+            return displayValue;
+        }
+    }
+    
     private static final long serialVersionUID = 6076155934213944850L;
     
-    private String  text;
-    private String  checkValue;
-    private Boolean required;
+    private String         text;
+    private String         checkValue;
+    private Boolean        required;
+    @Transient
+    private Integer order = 0;
+    private AnswerTypeEnum answerType = AnswerTypeEnum.text;
     
     public String getText() {
         return text;
     }
     public void setText(String text) {
         this.text = text;
-    }
-    public boolean isRequired() {
-        return NullHelper.nullSafeTrue(required);
     }
     public Boolean getRequired() {
         return required;
@@ -34,5 +51,17 @@ public class AdditionalQuestionVO extends BaseVO {
     }
     public void setCheckValue(String regex) {
         this.checkValue = regex;
-    }        
+    }
+    public AnswerTypeEnum getAnswerType() {
+        return answerType;
+    }
+    public void setAnswerType(AnswerTypeEnum answerType) {
+        this.answerType = answerType;
+    }
+    public Integer getOrder() {
+        return order;
+    }
+    public void setOrder(Integer order) {
+        this.order = order;
+    }    
 }

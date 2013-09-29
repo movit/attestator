@@ -59,7 +59,7 @@ public class GroupsWindow implements IsWidget, Editor<List<GroupVO>>, HasSaveEve
     
     @Ignore
     public void show() {
-        Admin.RPC.getGroups(new AdminAsyncCallback<List<GroupVO>>() {
+        Admin.RPC.loadGroups(new AdminAsyncCallback<List<GroupVO>>() {
             @Override
             public void onSuccess(List<GroupVO> result) {
                 driver.edit(result);
@@ -78,7 +78,7 @@ public class GroupsWindow implements IsWidget, Editor<List<GroupVO>>, HasSaveEve
         final List<GroupVO> groups = driver.flush();
         
         if (validate(groups)) {
-            Admin.RPC.setGroups(groups, new AdminAsyncCallback<Void>() {
+            Admin.RPC.saveGroups(groups, new AdminAsyncCallback<Void>() {
                 @Override
                 public void onSuccess(Void result) {
                     fireEvent(new SaveEvent<List<GroupVO>>(groups));

@@ -132,7 +132,7 @@ public class GroupsComboBox extends Composite implements LeafValueEditor<String>
     private String valueHolder;
     
     private void loadGroups() {
-        Admin.RPC.getGroups(new AdminAsyncCallback<List<GroupVO>>() {
+        Admin.RPC.loadGroups(new AdminAsyncCallback<List<GroupVO>>() {
             @Override
             public void onSuccess(List<GroupVO> result) {
                 groupStore.clear();

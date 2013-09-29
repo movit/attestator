@@ -38,6 +38,7 @@ public class Resources {
         ImageResource down16x16();
         
         ImageResource delete16x16();
+        ImageResource clear16x16();
         ImageResource next16x16();
         ImageResource checkMark16x16();
         
