@@ -427,6 +427,7 @@ public class PublicationsTab extends Composite {
         gridStore = createGridStore();
         gridLoader = createLoader(gridStore);
         grid = createGrid(gridLoader, gridStore, gridCm);
+
         
         // Create UI
         initWidget(uiBinder.createAndBindUi(this));
