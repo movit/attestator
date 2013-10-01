@@ -65,7 +65,9 @@ public class GroupingViewExt<M> extends GridView<M> implements HasCollapseItemHa
   
   public interface ClicableGroupingViewAppearance extends  GroupingViewAppearance {
       XElement findClicableElement(XElement element);
-      SafeHtml createClicableElement(String type, String id, String text);
+      String getClicableElementType(XElement element);
+      String getClicableElementId(XElement element);
+      SafeHtml createClickableElement(String type, String id, String text);
   }
 
   protected ColumnConfig<M, ?> lastGroupField;
@@ -457,8 +459,8 @@ public class GroupingViewExt<M> extends GridView<M> implements HasCollapseItemHa
     
     XElement link = groupAppearance.findClicableElement(head);
     if (link != null) {
-        ge.stopPropagation();
-        handlerManager.fireEvent(new GridGroupClickEvent<XElement>(link));        
+        ge.stopPropagation();        
+        handlerManager.fireEvent(new GridGroupClickEvent<XElement>(link, groupAppearance.getClicableElementType(link), groupAppearance.getClicableElementId(link)));        
         return;
     }
     

@@ -25,7 +25,7 @@ import com.google.code.morphia.query.UpdateOperations;
 public class DatabaseUpdater {
     private static Logger logger = Logger.getLogger(DatabaseUpdater.class);
     
-    public static final int DB_VERSION = 3;
+    public static final int DB_VERSION = 7;
     
     public static void updateDatabase() {
         DBVersionVO version = Singletons.rawDs().createQuery(DBVersionVO.class).get();
@@ -61,7 +61,11 @@ public class DatabaseUpdater {
             uo.disableValidation().set("additionalQuestions.$.answerType", AnswerTypeEnum.text).enableValidation();            
             Singletons.rawDs().update(q, uo);
         }
-        
+
+        if (version.getVersion() < 7) {
+            Singletons.rawDs().ensureIndexes();
+        }
+
         if (version.getVersion() < DB_VERSION) {
             version.setVersion(DB_VERSION);
             Singletons.rawDs().save(version);

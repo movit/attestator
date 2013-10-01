@@ -1,10 +1,8 @@
 package com.attestator.common.shared.vo;
 
 import com.attestator.common.shared.helper.NullHelper;
-import com.google.code.morphia.annotations.Embedded;
 import com.google.code.morphia.annotations.Transient;
 
-@Embedded
 public class AdditionalQuestionVO extends BaseVO {    
     public static enum AnswerTypeEnum implements Displayable {
         text("Текстовое поле"),

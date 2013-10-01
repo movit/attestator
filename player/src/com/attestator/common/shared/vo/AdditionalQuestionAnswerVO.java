@@ -1,8 +1,6 @@
 package com.attestator.common.shared.vo;
 
-import com.google.code.morphia.annotations.Embedded;
 
-@Embedded
 public class AdditionalQuestionAnswerVO extends BaseVO {
     private static final long serialVersionUID = -570096777625498816L;
     private String questionId;

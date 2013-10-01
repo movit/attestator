@@ -64,7 +64,7 @@ public class Singletons {
         morphia = new Morphia();
         rawDs   = morphia.createDatastore(mongo, "attestator");
         ds      = (Datastore) Proxy.newProxyInstance(Datastore.class.getClassLoader(), new Class[] {Datastore.class}, new DatastoreInvocationHandler(rawDs)); 
-        morphia.mapPackage("com.attestator.shared.vo");
+        morphia.mapPackage("com.attestator.common.shared.vo");
         morphia.getMapper().addInterceptor(new Interceptor());
         pl      = new PlayerLogic();
         al      = new AdminLogic();

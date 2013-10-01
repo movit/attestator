@@ -26,6 +26,8 @@ import com.attestator.common.shared.vo.AdditionalQuestionVO;
 import com.attestator.common.shared.vo.BaseVO;
 import com.attestator.common.shared.vo.MetaTestVO;
 import com.attestator.common.shared.vo.PublicationVO;
+import com.google.common.base.Predicate;
+import com.google.common.collect.Iterables;
 import com.google.gwt.cell.client.AbstractCell;
 import com.google.gwt.cell.client.DateCell;
 import com.google.gwt.core.client.GWT;
@@ -59,9 +61,9 @@ import com.sencha.gxt.widget.core.client.info.Info;
 
 public class PublicationsTab extends Composite {
     private static final String NEW_PUBLICATION_LINK_ID = "newPublication";
-    private static final String EDIT_TEST_LINK_ID = "editTest";
-    private static final String DELETE_TEST_LINK_ID = "deleteTest";
-    private static final String COPY_TEST_LINK_ID = "copyTest";
+//    private static final String EDIT_TEST_LINK_ID = "editTest";
+//    private static final String DELETE_TEST_LINK_ID = "deleteTest";
+//    private static final String COPY_TEST_LINK_ID = "copyTest";
 
     private static final String EDIT_PUBLICATION_LINK_ID = "editPublication";
     private static final String COPY_PUBLICATION_LINK_ID = "copyPublication";
@@ -86,10 +88,10 @@ public class PublicationsTab extends Composite {
                     sb.appendHtmlConstant("&laquo;").appendEscaped(metatest.getName()).appendHtmlConstant("&raquo;");
                     sb.appendEscaped(" (" + ReportHelper.formatNumberOfQuestions(metatest.getNumberOfQuestions()) + ") ");                    
                     
-                    sb.append(createClicableElement(NEW_PUBLICATION_LINK_ID, metatest.getId(), "создать публикацию"));
-                    sb.append(createClicableElement(EDIT_TEST_LINK_ID, metatest.getId(), "изменить тест"));
-                    sb.append(createClicableElement(COPY_TEST_LINK_ID, metatest.getId(), "копировать"));
-                    sb.append(createClicableElement(DELETE_TEST_LINK_ID, metatest.getId(), "удалить"));
+                    sb.append(createClickableElement(NEW_PUBLICATION_LINK_ID, metatest.getId(), "создать публикацию"));
+//                    sb.append(createClicableElement(EDIT_TEST_LINK_ID, metatest.getId(), "изменить тест"));
+//                    sb.append(createClicableElement(COPY_TEST_LINK_ID, metatest.getId(), "копировать"));
+//                    sb.append(createClicableElement(DELETE_TEST_LINK_ID, metatest.getId(), "удалить"));
                 }
                 else if (groupInfo.getValue() != null) {
                     sb.appendEscaped(groupInfo.getValue().toString());
@@ -112,7 +114,22 @@ public class PublicationsTab extends Composite {
         result.addGridGroupClickHandler(new GridGroupClickHandler<XElement>() {
             @Override
             public void onClick(GridGroupClickEvent<XElement> event) {
-                Info.display("Group click", "ID " + event.getValue().getId());
+                if (NEW_PUBLICATION_LINK_ID.equals(event.getLinkType())) {
+                    final String metatestId = event.getId();
+                    PublicationVO existingPublication = Iterables.find(grid.getStore().getAll(), new Predicate<PublicationVO>() {
+                        @Override
+                        public boolean apply(PublicationVO pub) {                            
+                            return metatestId.equals(pub.getMetatestId()); 
+                        }
+                    });                    
+                    
+                    PublicationVO publication = new PublicationVO();
+                    publication.setMetatestId(existingPublication.getMetatestId());
+                    publication.setMetatest(existingPublication.getMetatest());
+                    
+                    showPublicationWindow(publication);
+                    
+                }
             }
         });
         
@@ -330,9 +347,6 @@ public class PublicationsTab extends Composite {
                             refreshGrid();                            
                         }
                     });
-                }
-                else {
-                    Info.display("Publication click", "Type: " + event.getLinkType() + " Publication: " + event.getValue().getId());
                 }
             }
         });
