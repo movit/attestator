@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.attestator.common.shared.vo.GroupVO;
 import com.attestator.common.shared.vo.PublicationVO;
+import com.attestator.common.shared.vo.PublicationsTreeItem;
 import com.attestator.common.shared.vo.QuestionVO;
 import com.attestator.common.shared.vo.ReportVO;
 import com.attestator.common.shared.vo.UserVO;
@@ -23,6 +24,8 @@ public interface AdminService extends RemoteService {
     ReportVO loadReport(String reportId);
     
     ListLoadResult<PublicationVO> loadPublications();
+    List<PublicationsTreeItem> loadPublicationsTree(PublicationsTreeItem root);
+
     List<GroupVO> loadGroups();
     
     void saveGroup(GroupVO group);

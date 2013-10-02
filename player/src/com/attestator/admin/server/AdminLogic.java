@@ -28,8 +28,6 @@ import com.sencha.gxt.data.shared.SortInfo;
 import com.sencha.gxt.data.shared.SortInfoBean;
 import com.sencha.gxt.data.shared.loader.FilterConfig;
 import com.sencha.gxt.data.shared.loader.FilterPagingLoadConfig;
-import com.sencha.gxt.data.shared.loader.ListLoadResult;
-import com.sencha.gxt.data.shared.loader.ListLoadResultBean;
 import com.sencha.gxt.data.shared.loader.PagingLoadResult;
 import com.sencha.gxt.data.shared.loader.PagingLoadResultBean;
 
@@ -195,14 +193,27 @@ public class AdminLogic extends CommonLogic {
         
         return result;
     }
-    
-    public ListLoadResult<PublicationVO> getAllPublications() {
+
+    public List<PublicationVO> loadPublicationsByMetatestId(String metatestId) {
+        CheckHelper.throwIfNullOrEmpty(metatestId, "metatestId");        
+
         Query<PublicationVO> q = Singletons.ds().createQuery(PublicationVO.class);
-        List<PublicationVO> qRes = q.asList();
+        q.field("metatestId").equal(metatestId);
+        List<PublicationVO> result = q.asList();
         
-        ListLoadResultBean<PublicationVO> result = new ListLoadResultBean<PublicationVO>();
-        result.setData(qRes);
         return result;
+    }
+
+    public List<MetaTestVO> getAllMetaTests() {
+        Query<MetaTestVO> q = Singletons.ds().createQuery(MetaTestVO.class);
+        List<MetaTestVO> qRes = q.asList();        
+        return qRes;
+    }
+    
+    public List<PublicationVO> getAllPublications() {
+        Query<PublicationVO> q = Singletons.ds().createQuery(PublicationVO.class);
+        List<PublicationVO> qRes = q.asList();        
+        return qRes;
     }
 
     public void saveQuestion(QuestionVO question) {

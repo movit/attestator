@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.attestator.common.shared.vo.GroupVO;
 import com.attestator.common.shared.vo.PublicationVO;
+import com.attestator.common.shared.vo.PublicationsTreeItem;
 import com.attestator.common.shared.vo.QuestionVO;
 import com.attestator.common.shared.vo.ReportVO;
 import com.attestator.common.shared.vo.UserVO;
@@ -38,4 +39,5 @@ public interface AdminServiceAsync {
     void loadReport(String reportId, AsyncCallback<ReportVO> callback);
     
     void loadPublications(AsyncCallback<ListLoadResult<PublicationVO>> callback);
+    void loadPublicationsTree(PublicationsTreeItem root, AsyncCallback<List<PublicationsTreeItem>> callback);
 }

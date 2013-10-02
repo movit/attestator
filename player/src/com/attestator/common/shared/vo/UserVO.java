@@ -1,17 +1,14 @@
 package com.attestator.common.shared.vo;
 
-import java.util.Date;
-
 import com.google.code.morphia.annotations.Entity;
 
 @Entity("user")
-public class UserVO extends TenantableVO {	
+public class UserVO extends ModificationDateAwareVO {	
     private static final long serialVersionUID = -2277743477030122995L;
     
     private String defaultGroupId;
     private String email;
 	private String password;
-	private Date   created = new Date();
 	
     public UserVO() {
         setTenantId(getId());
@@ -29,12 +26,6 @@ public class UserVO extends TenantableVO {
 	public void setPassword(String password) {
 		this.password = password;
 	}
-    public Date getCreated() {
-        return created;
-    }
-    public void setCreated(Date created) {
-        this.created = created;
-    }
     public String getDefaultGroupId() {
         return defaultGroupId;
     }

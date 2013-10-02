@@ -11,7 +11,9 @@ import com.google.gwt.dom.client.NativeEvent;
 import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.resources.client.ClientBundle;
 import com.google.gwt.resources.client.CssResource;
+import com.google.gwt.resources.client.ImageResource;
 import com.google.gwt.safehtml.shared.SafeHtml;
+import com.google.gwt.safehtml.shared.SafeUri;
 import com.sencha.gxt.cell.core.client.ResizeCell;
 import com.sencha.gxt.core.client.XTemplates;
 import com.sencha.gxt.core.client.dom.XElement;
@@ -22,6 +24,9 @@ public abstract class MultylinkCell<T> extends ResizeCell<T> implements
     public static interface LinkTemplate extends XTemplates {
         @XTemplate("<span class='{anchorClassName}'><a class='{typeClassName}' href='#'>{text}</a></span>")
         public SafeHtml link(String anchorClassName, String typeClassName, String text);
+        
+        @XTemplate("<span class='{anchorClassName}'><a class='{typeClassName}' href='#' title='{text}'><img src='{imgUrl}'></a></span>")
+        public SafeHtml imageLink(String anchorClassName, String typeClassName, String text, SafeUri imgUrl);        
     }
     
     public static interface MultyLinkCellCss extends CssResource {
@@ -63,7 +68,11 @@ public abstract class MultylinkCell<T> extends ResizeCell<T> implements
         }
         super.onBrowserEvent(context, parent, value, event, valueUpdater);
     }
-    
+
+    public SafeHtml createClickableElement(String type, String text, ImageResource image) {
+        return LINK_TEMPLATE.imageLink(RESOURCES.multyLinkCellCss().multyLink(), type, text, image.getSafeUri());
+    }        
+
     public SafeHtml createClickableElement(String type, String text) {
         return LINK_TEMPLATE.link(RESOURCES.multyLinkCellCss().multyLink(), type, text);
     }        

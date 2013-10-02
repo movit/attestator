@@ -1,6 +1,10 @@
 package com.attestator.common.server.db;
 
+import java.io.IOException;
+import java.lang.reflect.Modifier;
 import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Set;
 
 import org.apache.log4j.Logger;
 
@@ -15,18 +19,23 @@ import com.attestator.common.shared.vo.GroupVO;
 import com.attestator.common.shared.vo.MTEGroupVO;
 import com.attestator.common.shared.vo.MTEQuestionVO;
 import com.attestator.common.shared.vo.MetaTestVO;
+import com.attestator.common.shared.vo.ModificationDateAwareVO;
 import com.attestator.common.shared.vo.PublicationVO;
+import com.attestator.common.shared.vo.ReportVO;
 import com.attestator.common.shared.vo.SingleChoiceQuestionVO;
 import com.attestator.common.shared.vo.UserVO;
 import com.attestator.player.server.Singletons;
+import com.google.code.morphia.annotations.Entity;
 import com.google.code.morphia.query.Query;
 import com.google.code.morphia.query.UpdateOperations;
+import com.metapossum.utils.scanner.reflect.ClassesInPackageScanner;
 
 public class DatabaseUpdater {
     private static Logger logger = Logger.getLogger(DatabaseUpdater.class);
     
-    public static final int DB_VERSION = 7;
+    public static final int DB_VERSION = 14;
     
+    @SuppressWarnings({"unchecked", "rawtypes"})
     public static void updateDatabase() {
         DBVersionVO version = Singletons.rawDs().createQuery(DBVersionVO.class).get();
         
@@ -48,7 +57,7 @@ public class DatabaseUpdater {
             Singletons.rawDs().delete(q);
         }
         
-        if (version.getVersion() < 3) {
+        if (version.getVersion() < 10) {
             Query<PublicationVO> q = Singletons.rawDs().createQuery(PublicationVO.class);
             q.disableValidation().field("additionalQuestions.checkValue").exists();
             UpdateOperations<PublicationVO> uo = Singletons.rawDs().createUpdateOperations(PublicationVO.class);
@@ -56,14 +65,63 @@ public class DatabaseUpdater {
             Singletons.rawDs().update(q, uo);
             
             q = Singletons.rawDs().createQuery(PublicationVO.class);
-            q.disableValidation().field("additionalQuestions.checkValue").doesNotExist();
+            q.disableValidation().field("additionalQuestions._id").exists().field("additionalQuestions.checkValue").doesNotExist();
             uo = Singletons.rawDs().createUpdateOperations(PublicationVO.class);
             uo.disableValidation().set("additionalQuestions.$.answerType", AnswerTypeEnum.text).enableValidation();            
             Singletons.rawDs().update(q, uo);
         }
 
-        if (version.getVersion() < 7) {
+        if (version.getVersion() < 11) {
             Singletons.rawDs().ensureIndexes();
+        }
+        
+        if (version.getVersion() < 12) {
+            Date now = new Date();
+            try {
+                Set<Class<? extends ModificationDateAwareVO>> modificationAwareClasses = 
+                        (new ClassesInPackageScanner()).findSubclasses("com.attestator.common.shared.vo", ModificationDateAwareVO.class);
+                for (Class<? extends ModificationDateAwareVO> clazz: modificationAwareClasses) {
+                    if (Modifier.isAbstract(clazz.getModifiers())) {
+                        continue;
+                    }
+                    
+                    if (clazz.getAnnotation(Entity.class) == null) {
+                        continue;
+                    }
+                    
+                    Query q = Singletons.rawDs().createQuery(clazz);
+                    UpdateOperations uo = Singletons.rawDs().createUpdateOperations(clazz);
+                    uo.set("modified", now);
+                    uo.set("created", now);
+                    
+                    Singletons.rawDs().update(q, uo);
+                }
+            } catch (IOException e) {
+            }
+            
+            Query<ReportVO> q = Singletons.rawDs().createQuery(ReportVO.class);
+            q.disableValidation().field("questions._id").exists().field("questions.created").doesNotExist();
+            UpdateOperations<ReportVO> uo = Singletons.rawDs().createUpdateOperations(ReportVO.class);
+            uo.disableValidation().set("questions.$.created", now).enableValidation();
+            Singletons.rawDs().update(q, uo);            
+            
+            q = Singletons.rawDs().createQuery(ReportVO.class);
+            q.disableValidation().field("questions._id").exists().field("questions.modified").doesNotExist();
+            uo = Singletons.rawDs().createUpdateOperations(ReportVO.class);
+            uo.disableValidation().set("questions.$.modified", now).enableValidation();
+            Singletons.rawDs().update(q, uo);                        
+            
+            Query<ReportVO> qr = Singletons.rawDs().createQuery(ReportVO.class);
+            qr.disableValidation().field("publication.additionalQuestions.checkValue").exists();
+            UpdateOperations<ReportVO> uor = Singletons.rawDs().createUpdateOperations(ReportVO.class);
+            uor.disableValidation().set("publication.additionalQuestions.$.answerType", AnswerTypeEnum.key).enableValidation();            
+            Singletons.rawDs().update(qr, uor);
+            
+            qr = Singletons.rawDs().createQuery(ReportVO.class);
+            qr.disableValidation().field("publication.additionalQuestions._id").exists().field("publication.additionalQuestions.checkValue").doesNotExist();
+            uor = Singletons.rawDs().createUpdateOperations(ReportVO.class);
+            uor.disableValidation().set("publication.additionalQuestions.$.answerType", AnswerTypeEnum.text).enableValidation();            
+            Singletons.rawDs().update(qr, uor);
         }
 
         if (version.getVersion() < DB_VERSION) {

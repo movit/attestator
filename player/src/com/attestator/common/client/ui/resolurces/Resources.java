@@ -41,6 +41,10 @@ public class Resources {
         ImageResource clear16x16();
         ImageResource next16x16();
         ImageResource checkMark16x16();
+        ImageResource file16x16();
+        ImageResource addFile16x16();
+        ImageResource edit16x16();
+        ImageResource copy16x16();
         
         ImageResource checkBoxUnchecked16x16();
         ImageResource checkBoxChecked16x16();

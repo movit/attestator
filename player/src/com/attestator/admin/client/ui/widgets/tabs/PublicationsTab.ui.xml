@@ -21,19 +21,8 @@
 		<ui:attributes width="1" height="1" />
 	</ui:with>
 
-	<!-- <ui:with -->
-	<!-- type="com.sencha.gxt.widget.core.client.grid.CheckBoxSelectionModel" -->
-	<!-- field="gridSm"></ui:with> -->
-	<ui:with type="com.sencha.gxt.widget.core.client.grid.ColumnModel"
-		field="gridCm"></ui:with>
-	<ui:with type="com.sencha.gxt.data.shared.ListStore" field="gridStore"></ui:with>
-	<ui:with type="com.attestator.admin.client.ui.widgets.GroupingViewExt"
-		field="gridView">
-	</ui:with>
-
-	<ui:with
-		type="com.attestator.admin.client.ui.widgets.ButtonFileUpload.FileUploadFieldMessages"
-		field="uploadQusetionsMessages" />
+	<ui:with field="gridCm" type="com.sencha.gxt.widget.core.client.grid.ColumnModel"/>
+	<ui:with field="gridStore" type="com.sencha.gxt.data.shared.TreeStore"/>
 
 	<row:VerticalLayoutContainer ui:field="top">
 		<!-- <row:child layoutData="{maxWidthMinHeightVLData}"> -->
@@ -46,7 +35,7 @@
 		<!-- </toolbar:ToolBar> -->
 		<!-- </row:child> -->
 		<row:child layoutData="{maxWidthMaxHeightVLData}">
-			<grid:Grid ui:field="grid" view="{gridView}" loadMask="true"
+			<grid:Grid ui:field="grid" loadMask="true"
 				columnReordering="true" borders="false">
 			</grid:Grid>
 		</row:child>

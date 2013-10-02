@@ -6,7 +6,9 @@ import org.apache.log4j.Logger;
 
 import com.attestator.admin.client.rpc.AdminService;
 import com.attestator.common.shared.vo.GroupVO;
+import com.attestator.common.shared.vo.MetaTestVO;
 import com.attestator.common.shared.vo.PublicationVO;
+import com.attestator.common.shared.vo.PublicationsTreeItem;
 import com.attestator.common.shared.vo.QuestionVO;
 import com.attestator.common.shared.vo.ReportVO;
 import com.attestator.common.shared.vo.UserVO;
@@ -14,6 +16,7 @@ import com.attestator.player.server.Singletons;
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 import com.sencha.gxt.data.shared.loader.FilterPagingLoadConfig;
 import com.sencha.gxt.data.shared.loader.ListLoadResult;
+import com.sencha.gxt.data.shared.loader.ListLoadResultBean;
 import com.sencha.gxt.data.shared.loader.PagingLoadResult;
 
 /**
@@ -184,7 +187,25 @@ public class AdminServiceImpl extends RemoteServiceServlet implements
     @Override
     public ListLoadResult<PublicationVO> loadPublications() {
         try {
-            return Singletons.al().getAllPublications();
+            return new ListLoadResultBean<PublicationVO>(Singletons.al().getAllPublications());
+        }
+        catch (Throwable e) {
+            logger.error("Error: ", e);
+            throw new IllegalStateException(DEFAULT_ERROR_MESSAGE, e);
+        }
+    }
+    
+    @SuppressWarnings("unchecked")
+    @Override
+    public List<PublicationsTreeItem> loadPublicationsTree(PublicationsTreeItem root) {
+        try {
+            if (root == null) {
+                return (List<PublicationsTreeItem>)((List<?>)Singletons.al().getAllMetaTests()); 
+            }
+            else if (root instanceof MetaTestVO) {
+                return (List<PublicationsTreeItem>)((List<?>)Singletons.al().loadPublicationsByMetatestId(((MetaTestVO) root).getId()));
+            }
+            return null;
         }
         catch (Throwable e) {
             logger.error("Error: ", e);

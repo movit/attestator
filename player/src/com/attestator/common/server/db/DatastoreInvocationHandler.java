@@ -2,11 +2,13 @@ package com.attestator.common.server.db;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
+import java.util.Date;
 
 import org.apache.log4j.Logger;
 
 import com.attestator.admin.server.LoginManager;
 import com.attestator.common.shared.helper.StringHelper;
+import com.attestator.common.shared.vo.ModificationDateAwareVO;
 import com.attestator.common.shared.vo.TenantableVO;
 import com.google.code.morphia.Datastore;
 import com.google.code.morphia.query.Query;
@@ -45,7 +47,12 @@ public class DatastoreInvocationHandler implements InvocationHandler {
             return result;
         }
         else if (CREATE_UPDATE_OPERATIONS.equals(method)) {
-            return method.invoke(ds, args);
+            UpdateOperations<?> result = (UpdateOperations<?>)method.invoke(ds, args);
+            Class<?> clazz = (Class<?>)args[0];
+            if (ModificationDateAwareVO.class.isAssignableFrom(clazz)) {
+                result.set("modified", new Date());
+            }
+            return result;
         }
         else if (UPDATE.equals(method)) {
             return method.invoke(ds, args);
@@ -54,6 +61,13 @@ public class DatastoreInvocationHandler implements InvocationHandler {
             Object obj = args[0];
             if (obj instanceof TenantableVO) {
                 ((TenantableVO) obj).setTenantId(LoginManager.getThreadLocalTenatId());
+            }
+            if (obj instanceof ModificationDateAwareVO) {
+                Date now = new Date();
+                if (((ModificationDateAwareVO) obj).getCreated() == null) {
+                    ((ModificationDateAwareVO) obj).setCreated(now);
+                }
+                ((ModificationDateAwareVO) obj).setModified(now);
             }
             return method.invoke(ds, obj);
         }

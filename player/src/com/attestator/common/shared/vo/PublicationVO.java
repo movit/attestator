@@ -12,7 +12,7 @@ import com.google.code.morphia.annotations.PostLoad;
 import com.google.code.morphia.annotations.Transient;
 
 @Entity("publication")
-public class PublicationVO extends TenantableVO {
+public class PublicationVO extends ModificationDateAwareVO implements PublicationsTreeItem {
     private static final long serialVersionUID = -8206061763678113027L;    
     
     private String          metatestId;
@@ -30,9 +30,9 @@ public class PublicationVO extends TenantableVO {
     
     private String          introduction;
     
-    private Integer         maxAttempts = 0;
+    private Integer         maxAttempts;
 
-    private Double			minScore = 0d;    
+    private Double			minScore;    
     private Boolean 		interruptOnFalure;
     
     private Long            maxTakeTestTime;

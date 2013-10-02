@@ -7,35 +7,24 @@ import java.util.Date;
 import java.util.List;
 
 import com.attestator.admin.client.Admin;
-import com.attestator.admin.client.props.PublicationVOPropertyAccess;
+import com.attestator.admin.client.props.PublicationsTreePropertyAccess;
 import com.attestator.admin.client.rpc.AdminAsyncCallback;
 import com.attestator.admin.client.ui.PublicationWindow;
-import com.attestator.admin.client.ui.event.GridGroupClickEvent;
-import com.attestator.admin.client.ui.event.GridGroupClickEvent.GridGroupClickHandler;
 import com.attestator.admin.client.ui.event.MultyLinikSelectEvent;
 import com.attestator.admin.client.ui.event.MultyLinikSelectEvent.MultyLinikSelectHandler;
 import com.attestator.admin.client.ui.event.SaveEvent;
 import com.attestator.admin.client.ui.event.SaveEvent.SaveHandler;
-import com.attestator.admin.client.ui.widgets.ClicableGroupingViewDefaultApperance;
-import com.attestator.admin.client.ui.widgets.GroupingViewExt;
 import com.attestator.admin.client.ui.widgets.MultylinkCell;
-import com.attestator.common.shared.helper.DateHelper;
-import com.attestator.common.shared.helper.NullHelper;
+import com.attestator.common.client.ui.resolurces.Resources;
 import com.attestator.common.shared.helper.ReportHelper;
-import com.attestator.common.shared.vo.AdditionalQuestionVO;
 import com.attestator.common.shared.vo.BaseVO;
 import com.attestator.common.shared.vo.MetaTestVO;
+import com.attestator.common.shared.vo.ModificationDateAwareVO;
 import com.attestator.common.shared.vo.PublicationVO;
-import com.google.common.base.Predicate;
-import com.google.common.collect.Iterables;
-import com.google.gwt.cell.client.AbstractCell;
-import com.google.gwt.cell.client.DateCell;
+import com.attestator.common.shared.vo.PublicationsTreeItem;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.core.client.Scheduler;
 import com.google.gwt.core.client.Scheduler.ScheduledCommand;
-import com.google.gwt.i18n.client.DateTimeFormat;
-import com.google.gwt.i18n.client.DateTimeFormat.PredefinedFormat;
-import com.google.gwt.safehtml.shared.SafeHtml;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
@@ -43,27 +32,22 @@ import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Widget;
 import com.sencha.gxt.cell.core.client.ResizeCell;
 import com.sencha.gxt.core.client.IdentityValueProvider;
-import com.sencha.gxt.core.client.ValueProvider;
-import com.sencha.gxt.core.client.dom.XElement;
+import com.sencha.gxt.core.client.Style.SelectionMode;
 import com.sencha.gxt.data.client.loader.RpcProxy;
-import com.sencha.gxt.data.shared.ListStore;
-import com.sencha.gxt.data.shared.loader.ListLoadConfig;
-import com.sencha.gxt.data.shared.loader.ListLoadResult;
-import com.sencha.gxt.data.shared.loader.ListLoader;
-import com.sencha.gxt.data.shared.loader.LoadResultListStoreBinding;
+import com.sencha.gxt.data.shared.TreeStore;
+import com.sencha.gxt.data.shared.loader.ChildTreeStoreBinding;
+import com.sencha.gxt.data.shared.loader.TreeLoader;
 import com.sencha.gxt.widget.core.client.Composite;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
 import com.sencha.gxt.widget.core.client.grid.ColumnConfig;
 import com.sencha.gxt.widget.core.client.grid.ColumnModel;
-import com.sencha.gxt.widget.core.client.grid.Grid;
-import com.sencha.gxt.widget.core.client.grid.GroupingView.GroupingData;
-import com.sencha.gxt.widget.core.client.info.Info;
+import com.sencha.gxt.widget.core.client.treegrid.TreeGrid;
 
 public class PublicationsTab extends Composite {
     private static final String NEW_PUBLICATION_LINK_ID = "newPublication";
-//    private static final String EDIT_TEST_LINK_ID = "editTest";
-//    private static final String DELETE_TEST_LINK_ID = "deleteTest";
-//    private static final String COPY_TEST_LINK_ID = "copyTest";
+    private static final String EDIT_TEST_LINK_ID = "editTest";
+    private static final String DELETE_TEST_LINK_ID = "deleteTest";
+    private static final String COPY_TEST_LINK_ID = "copyTest";
 
     private static final String EDIT_PUBLICATION_LINK_ID = "editPublication";
     private static final String COPY_PUBLICATION_LINK_ID = "copyPublication";
@@ -72,329 +56,187 @@ public class PublicationsTab extends Composite {
     interface UiBinderImpl extends UiBinder<Widget, PublicationsTab> {
     }
     private static UiBinderImpl uiBinder = GWT.create(UiBinderImpl.class);
-    private static PublicationVOPropertyAccess publicationProperties = GWT.create(PublicationVOPropertyAccess.class);
-
-    @UiField(provided = true)
-    GroupingViewExt<PublicationVO> gridView;
-    GroupingViewExt<PublicationVO> createGridView() {
-        ClicableGroupingViewDefaultApperance apperance = new ClicableGroupingViewDefaultApperance() {
-            @Override
-            public SafeHtml renderGroupHeader(GroupingData<?> groupInfo) {
-                SafeHtmlBuilder sb = new SafeHtmlBuilder();
-                if (groupInfo.getValue() instanceof MetaTestVO) {
-                    MetaTestVO metatest = (MetaTestVO)groupInfo.getValue();
-                    
-                    sb.appendEscaped("Тест ");
-                    sb.appendHtmlConstant("&laquo;").appendEscaped(metatest.getName()).appendHtmlConstant("&raquo;");
-                    sb.appendEscaped(" (" + ReportHelper.formatNumberOfQuestions(metatest.getNumberOfQuestions()) + ") ");                    
-                    
-                    sb.append(createClickableElement(NEW_PUBLICATION_LINK_ID, metatest.getId(), "создать публикацию"));
-//                    sb.append(createClicableElement(EDIT_TEST_LINK_ID, metatest.getId(), "изменить тест"));
-//                    sb.append(createClicableElement(COPY_TEST_LINK_ID, metatest.getId(), "копировать"));
-//                    sb.append(createClicableElement(DELETE_TEST_LINK_ID, metatest.getId(), "удалить"));
-                }
-                else if (groupInfo.getValue() != null) {
-                    sb.appendEscaped(groupInfo.getValue().toString());
-                }
-                else {
-                    sb.appendEscaped(" ");
-                }
-                return sb.toSafeHtml();
-            }
-        }; 
-        
-        GroupingViewExt<PublicationVO> result = new GroupingViewExt<PublicationVO>(apperance);
-        
-        result.setStripeRows(true);
-        result.setAutoFill(true);
-        result.setForceFit(true);
-        result.setShowGroupedColumn(false);
-        result.setEnableGroupingMenu(false);
-        
-        result.addGridGroupClickHandler(new GridGroupClickHandler<XElement>() {
-            @Override
-            public void onClick(GridGroupClickEvent<XElement> event) {
-                if (NEW_PUBLICATION_LINK_ID.equals(event.getLinkType())) {
-                    final String metatestId = event.getId();
-                    PublicationVO existingPublication = Iterables.find(grid.getStore().getAll(), new Predicate<PublicationVO>() {
-                        @Override
-                        public boolean apply(PublicationVO pub) {                            
-                            return metatestId.equals(pub.getMetatestId()); 
-                        }
-                    });                    
-                    
-                    PublicationVO publication = new PublicationVO();
-                    publication.setMetatestId(existingPublication.getMetatestId());
-                    publication.setMetatest(existingPublication.getMetatest());
-                    
-                    showPublicationWindow(publication);
-                    
-                }
-            }
-        });
-        
-        return result;
-    }
+    private static PublicationsTreePropertyAccess publicationProperties = new PublicationsTreePropertyAccess();
     
-    ListLoader<ListLoadConfig, ListLoadResult<PublicationVO>> gridLoader;
+    TreeLoader<PublicationsTreeItem> gridLoader;
 
-    ListLoader<ListLoadConfig, ListLoadResult<PublicationVO>> createLoader(
-            final ListStore<PublicationVO> store) {
+    TreeLoader<PublicationsTreeItem> createLoader(
+            final TreeStore<PublicationsTreeItem> store) {
       
-        RpcProxy<ListLoadConfig, ListLoadResult<PublicationVO>> rpcProxy = new RpcProxy<ListLoadConfig, ListLoadResult<PublicationVO>>() {
+        RpcProxy<PublicationsTreeItem, List<PublicationsTreeItem>> rpcProxy = new RpcProxy<PublicationsTreeItem, List<PublicationsTreeItem>>() {
             @Override
-            public void load(ListLoadConfig loadConfig,
-                    AsyncCallback<ListLoadResult<PublicationVO>> callback) {
-                Admin.RPC.loadPublications(callback);                
+            public void load(PublicationsTreeItem root,
+                    AsyncCallback<List<PublicationsTreeItem>> callback) {
+                Admin.RPC.loadPublicationsTree(root, callback);                
             }
         };
         
-        ListLoader<ListLoadConfig, ListLoadResult<PublicationVO>> result = 
-                new ListLoader<ListLoadConfig, ListLoadResult<PublicationVO>>(rpcProxy);
+        TreeLoader<PublicationsTreeItem> result = 
+                new TreeLoader<PublicationsTreeItem>(rpcProxy) {
+            @Override
+            public boolean hasChildren(PublicationsTreeItem parent) {
+                return parent instanceof MetaTestVO;
+            }            
+        };
+        
         result.addLoadHandler(
-                new LoadResultListStoreBinding<ListLoadConfig, PublicationVO, ListLoadResult<PublicationVO>>(store));
+                new ChildTreeStoreBinding<PublicationsTreeItem>(store));
 
         return result;
     }
     
     @UiField(provided = true)    
-    Grid<PublicationVO> grid;
-    Grid<PublicationVO> createGrid(ListLoader<ListLoadConfig, ListLoadResult<PublicationVO>> loader, ListStore<PublicationVO> store, ColumnModel<PublicationVO> cm) {        
-        Grid<PublicationVO> result = new Grid<PublicationVO>(store, cm);
-        result.setLoader(loader);
+    TreeGrid<PublicationsTreeItem> grid;
+    TreeGrid<PublicationsTreeItem> createGrid(TreeLoader<PublicationsTreeItem> loader, TreeStore<PublicationsTreeItem> store, ColumnModel<PublicationsTreeItem> cm, ColumnConfig<PublicationsTreeItem, ?> cc) {        
+        TreeGrid<PublicationsTreeItem> result = new TreeGrid<PublicationsTreeItem>(store, cm, cc);
+        result.getStyle().setLeafIcon(Resources.ICONS.file16x16());
+        result.getStyle().setNodeOpenIcon(Resources.ICONS.checkBoxChecked16x16());
+        result.getStyle().setNodeCloseIcon(Resources.ICONS.checkBoxChecked16x16());
+        result.getView().setAutoFill(true);
+        result.getView().setForceFit(true);
+        result.getView().setSortingEnabled(false);
+        result.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
+        result.setAutoExpand(true);        
+        result.setAutoLoad(true);        
+        result.setTreeLoader(loader);
         return result;
     }
 
     @UiField(provided = true)
-    ListStore<PublicationVO> gridStore;
+    TreeStore<PublicationsTreeItem> gridStore;
 
-    ListStore<PublicationVO> createGridStore() {
-        ListStore<PublicationVO> result = new ListStore<PublicationVO>(publicationProperties.id());        
+    TreeStore<PublicationsTreeItem> createGridStore() {
+        TreeStore<PublicationsTreeItem> result = new TreeStore<PublicationsTreeItem>(publicationProperties.id);        
         return result;
     }
 
     @UiField(provided = true)
-    ColumnModel<PublicationVO> gridCm;
+    ColumnModel<PublicationsTreeItem> gridCm;
 
-    private ColumnConfig<PublicationVO, Date> createDateColumnConfig(ValueProvider<PublicationVO, Date> valueProvider, int width, String header) {
-        ColumnConfig<PublicationVO, Date> result = new ColumnConfig<PublicationVO, Date>(valueProvider, width, header);
-        result.setCell(new DateCell(DateTimeFormat.getFormat(PredefinedFormat.DATE_TIME_SHORT)){
+    private ColumnConfig<PublicationsTreeItem, PublicationsTreeItem> createHeaderColumnConfig(IdentityValueProvider<PublicationsTreeItem> valueProvider, int width, String header) {
+        ColumnConfig<PublicationsTreeItem, PublicationsTreeItem> result = new ColumnConfig<PublicationsTreeItem, PublicationsTreeItem>(valueProvider, width, header);
+        
+        result.setCell(new ResizeCell<PublicationsTreeItem>() {
             @Override
-            public void render(com.google.gwt.cell.client.Cell.Context context,
-                    Date value, SafeHtmlBuilder sb) {
-                if (value != null) {
-                    super.render(context, value, sb);
+            public void render(Context context,
+                    PublicationsTreeItem value, SafeHtmlBuilder sb) {
+                
+                if (value instanceof PublicationVO) {
+                    PublicationVO publication = (PublicationVO) value;
+                    sb.appendEscaped("Публикация ");
+                    
+                    Date now = new Date();
+                    
+                    if (publication.getStart() != null && publication.getStart().after(now)) {
+                        sb.appendEscaped("неактивна (еще не началась)");
+                        return;
+                    }                    
+                    if (publication.getEnd() != null && publication.getEnd().before(now)) {
+                        sb.appendEscaped("неактивна (уже закончилась)");
+                        return;
+                    }                    
+                    sb.appendEscaped("активна");                    
+                    sb.appendHtmlConstant(" <a target='_blank' href='/player/#test?t=" + Admin.getLoggedUser().getTenantId() + "&publicationId=" + publication.getId() +"'>посмотреть</a>");
+                }
+                else if (value instanceof MetaTestVO) {
+                    MetaTestVO metatest = (MetaTestVO) value;
+                    sb.appendHtmlConstant("<b>Тест &laquo;" + metatest.getName() + "&raquo;</b> (" + ReportHelper.formatNumberOfQuestions(metatest.getNumberOfQuestions()) + ")");
+                }
+            }
+        });        
+        result.setComparator(new Comparator<PublicationsTreeItem>() {
+            @Override
+            public int compare(PublicationsTreeItem o1, PublicationsTreeItem o2) {                
+                return ((ModificationDateAwareVO) o1).getCreated().compareTo(((ModificationDateAwareVO) o2).getCreated());
+            }
+        });
+        result.setSortable(false);
+        result.setHideable(false);
+        return result;
+    }
+    
+    
+    private ColumnConfig<PublicationsTreeItem, PublicationsTreeItem> createPublicationActionsColumnConfig(IdentityValueProvider<PublicationsTreeItem> valueProvider) {
+        ColumnConfig<PublicationsTreeItem, PublicationsTreeItem> result = new ColumnConfig<PublicationsTreeItem, PublicationsTreeItem>(valueProvider);
+        
+        MultylinkCell<PublicationsTreeItem> cell = new MultylinkCell<PublicationsTreeItem>() {
+            @Override
+            public void render(Context context,
+                    PublicationsTreeItem value, SafeHtmlBuilder sb) {
+                sb.appendHtmlConstant("<div style='text-align: right;'>");
+                if (value instanceof PublicationVO) {
+                    sb.append(createClickableElement(EDIT_PUBLICATION_LINK_ID, "изменить публикацию", Resources.ICONS.edit16x16()));
+                    sb.append(createClickableElement(COPY_PUBLICATION_LINK_ID, "копировать публикацию", Resources.ICONS.copy16x16()));
+                    sb.append(createClickableElement(DELETE_PUBLICATION_LINK_ID, "удалить публикацию", Resources.ICONS.delete16x16()));
                 }
                 else {
-                    sb.appendEscaped("не указано");
+                    sb.append(createClickableElement(EDIT_TEST_LINK_ID, "изменить тест", Resources.ICONS.edit16x16()));
+                    sb.append(createClickableElement(NEW_PUBLICATION_LINK_ID, "добавить публикацию", Resources.ICONS.addFile16x16()));
+                    sb.append(createClickableElement(COPY_TEST_LINK_ID, "копировать тест", Resources.ICONS.copy16x16()));
+                    sb.append(createClickableElement(DELETE_TEST_LINK_ID, "удалить тест", Resources.ICONS.delete16x16()));
                 }
-            }
-        });
-        return result;
-    }
-    
-    private ColumnConfig<PublicationVO, Integer> createAttemptsColumnConfig(ValueProvider<PublicationVO, Integer> valueProvider, int width, String header) {
-        ColumnConfig<PublicationVO, Integer> result = new ColumnConfig<PublicationVO, Integer>(valueProvider, width, header);
-        result.setCell(new ResizeCell<Integer>() {
-            @Override
-            public void render(Context context,
-                    Integer value, SafeHtmlBuilder sb) {
-                if (NullHelper.nullSafeIntegerOrZerro(value) > 0) {
-                    sb.appendEscaped(value.toString());
-                }
-                else {
-                    sb.appendEscaped("неограничено");
-                }
-            }
-        });
-        return result;
-    }
-    
-    private ColumnConfig<PublicationVO, Long> createTestTimeColumnConfig(ValueProvider<PublicationVO, Long> valueProvider, int width, String header) {
-        ColumnConfig<PublicationVO, Long> result = new ColumnConfig<PublicationVO, Long>(valueProvider, width, header);
-        result.setCell(new ResizeCell<Long>() {
-            @Override
-            public void render(Context context,
-                    Long value, SafeHtmlBuilder sb) {
-                if (NullHelper.nullSafeIntegerOrZerro(value) > 0) {                    
-                    sb.appendEscaped(DateHelper.formatTimeValue(value / 1000));
-                }
-                else {
-                    sb.appendEscaped("неограничено");
-                }
-            }
-        });
-        return result;
-    }
-
-    private ColumnConfig<PublicationVO, PublicationVO> createIsActiveColumnConfig(IdentityValueProvider<PublicationVO> valueProvider, int width, String header) {
-        ColumnConfig<PublicationVO, PublicationVO> result = new ColumnConfig<PublicationVO, PublicationVO>(valueProvider, width, header);
-        
-        result.setCell(new ResizeCell<PublicationVO>() {
-            @Override
-            public void render(Context context,
-                    PublicationVO value, SafeHtmlBuilder sb) {
-                
-                sb.appendEscaped("Публикация ");
-                
-                Date now = new Date();
-                
-                if (value.getStart() != null && value.getStart().after(now)) {
-                    sb.appendEscaped("неактивна (еще не началась)");
-                    return;
-                }
-                
-                if (value.getEnd() != null && value.getEnd().before(now)) {
-                    sb.appendEscaped("неактивна (уже закончилась)");
-                    return;
-                }
-                
-                sb.appendEscaped("активна");
-                
-                sb.appendHtmlConstant(" <a target='_blank' href='/player/#test?t=" + Admin.getLoggedUser().getTenantId() + "&publicationId=" + value.getId() +"'>посмотреть</a>");
-            }
-        });
-        
-        return result;
-    }
-    
-    private ColumnConfig<PublicationVO, PublicationVO> createAdditionalQuestionsColumnConfig(IdentityValueProvider<PublicationVO> valueProvider, int width, String header) {
-        ColumnConfig<PublicationVO, PublicationVO> result = new ColumnConfig<PublicationVO, PublicationVO>(valueProvider, width, header);
-        
-        result.setCell(new ResizeCell<PublicationVO>() {
-            @Override
-            public void render(Context context,
-                    PublicationVO value, SafeHtmlBuilder sb) {
-                boolean someQuestions = false;
-                if (value.isThisAskLastName()) {
-                    sb.appendEscaped("Фамилию");
-                    if (value.isThisAskLastNameRequired()) {
-                        sb.appendHtmlConstant("*");
-                    }
-                    someQuestions = true;
-                }
-                
-                if (value.isThisAskFirstName()) {
-                    if (someQuestions) {
-                        sb.appendEscaped(", ");
-                    }
-                    sb.appendEscaped("Имя");
-                    if (value.isThisAskFirstNameRequired()) {
-                        sb.appendHtmlConstant("*");
-                    }
-                    someQuestions = true;
-                }
-                
-                if (value.isThisAskMiddleName()) {
-                    if (someQuestions) {
-                        sb.appendEscaped(", ");
-                    }
-                    sb.appendEscaped("Отчество");
-                    if (value.isThisAskMiddleNameRequired()) {
-                        sb.appendHtmlConstant("*");
-                    }                
-                    someQuestions = true;
-                }
-                
-                for (AdditionalQuestionVO aq : value.getAdditionalQuestions()) {
-                    if (someQuestions) {
-                        sb.appendEscaped(", ");
-                    }
-                    sb.appendEscaped(aq.getText());
-                    if (aq.isThisRequired()) {
-                        sb.appendHtmlConstant("*");
-                    }                
-                    someQuestions = true;
-                }
-                
-                if (!someQuestions) {
-                    sb.appendEscaped("ничего не нужно");
-                }
-            }
-        });
-        
-        return result;
-    }
-    
-    
-    private ColumnConfig<PublicationVO, PublicationVO> createPublicationActionsColumnConfig(IdentityValueProvider<PublicationVO> valueProvider, int width, String header) {
-        ColumnConfig<PublicationVO, PublicationVO> result = new ColumnConfig<PublicationVO, PublicationVO>(valueProvider, width, header);
-        
-        MultylinkCell<PublicationVO> cell = new MultylinkCell<PublicationVO>() {
-            @Override
-            public void render(Context context,
-                    PublicationVO value, SafeHtmlBuilder sb) {
-                sb.append(createClickableElement(EDIT_PUBLICATION_LINK_ID, "изменить"));
-                sb.append(createClickableElement(COPY_PUBLICATION_LINK_ID, "копировать"));
-                sb.append(createClickableElement(DELETE_PUBLICATION_LINK_ID, "удалить"));
+                sb.appendHtmlConstant("</div>");
             }
         };
-        cell.addMultyLinikSelectHandler(new MultyLinikSelectHandler<PublicationVO>() {
+        cell.addMultyLinikSelectHandler(new MultyLinikSelectHandler<PublicationsTreeItem>() {
             @Override
-            public void onSelect(MultyLinikSelectEvent<PublicationVO> event) {
+            public void onSelect(MultyLinikSelectEvent<PublicationsTreeItem> event) {
+                
                 if (EDIT_PUBLICATION_LINK_ID.equals(event.getLinkType())) {
-                    showPublicationWindow(event.getValue());
+                    PublicationVO publication = (PublicationVO)event.getValue();
+                    showPublicationWindow(publication);
                 }
                 else if (COPY_PUBLICATION_LINK_ID.equals(event.getLinkType())) {
-                    PublicationVO publication = event.getValue();
+                    PublicationVO publication = (PublicationVO)event.getValue();
                     publication.setId(BaseVO.idString());
                     showPublicationWindow(publication);
                 }
                 else if (DELETE_PUBLICATION_LINK_ID.equals(event.getLinkType())) {
-                    Admin.RPC.deletePublications(Arrays.asList(event.getValue().getId()), new AdminAsyncCallback<Void>() {
+                    final PublicationVO publication = (PublicationVO)event.getValue();
+                    Admin.RPC.deletePublications(Arrays.asList(publication.getId()), new AdminAsyncCallback<Void>() {
                         @Override
                         public void onSuccess(Void result) {
-                            refreshGrid();                            
+                            gridStore.remove(publication);                            
                         }
                     });
+                }
+                else if (NEW_PUBLICATION_LINK_ID.equals(event.getLinkType())) { 
+                    final MetaTestVO metatest = (MetaTestVO) event.getValue();
+                    PublicationVO publication = new PublicationVO();
+                    publication.setMetatestId(metatest.getId());
+                    publication.setMetatest(metatest);
+                    showPublicationWindow(publication);
                 }
             }
         });
         result.setCell(cell);
-        
+        result.setSortable(false);
+        result.setHideable(false);
+        result.setResizable(false);
+        result.setWidth(120);
+        result.setFixed(true);
+        result.setMenuDisabled(true);        
         return result;
     }
     
-    private ColumnConfig<PublicationVO, MetaTestVO> createMetatestColumnConfig(ValueProvider<PublicationVO, MetaTestVO> valueProvider, int width, String header) {
-        ColumnConfig<PublicationVO, MetaTestVO> result = new ColumnConfig<PublicationVO, MetaTestVO>(valueProvider, width, header);
-        result.setCell(new AbstractCell<MetaTestVO>() {
-            @Override
-            public void render(Context context,
-                    MetaTestVO value, SafeHtmlBuilder sb) {
-                sb.appendEscaped(value.getName());                
-            }
-        });
-        result.setComparator(new Comparator<MetaTestVO>() {
-            
-            @Override
-            public int compare(MetaTestVO o1, MetaTestVO o2) {
-                if (o1.getId() != null && o2.getId() != null ) {
-                    return o1.getId().compareTo(o2.getId()); 
-                }                
-                return o1.hashCode() - o2.hashCode(); 
-            }
-        });
-        return result;
-    }
-    
-    ColumnModel<PublicationVO> createGridCm() {
+    private ColumnModel<PublicationsTreeItem> createGridCm() {
         
-        List<ColumnConfig<PublicationVO, ?>> l = new ArrayList<ColumnConfig<PublicationVO, ?>>();
+        List<ColumnConfig<PublicationsTreeItem, ?>> l = new ArrayList<ColumnConfig<PublicationsTreeItem, ?>>();
         
-        l.add(createMetatestColumnConfig(publicationProperties.metatest(), 20, "Тест"));
-        l.add(createIsActiveColumnConfig(new IdentityValueProvider<PublicationVO>(), 40, "Активна"));
-        l.add(new ColumnConfig<PublicationVO, Long>(publicationProperties.reportsCount() , 20, "Отчетов"));
-        l.add(createDateColumnConfig(publicationProperties.start(), 20, "Начало"));
-        l.add(createDateColumnConfig(publicationProperties.end(), 20, "Конец"));
+        l.add(createHeaderColumnConfig(new IdentityValueProvider<PublicationsTreeItem>(), 100, "Тест / Публикация"));
+        l.add(new ColumnConfig<PublicationsTreeItem, Long>(publicationProperties.reportsCount, 14, "Отчетов"));
         
-        l.add(createAdditionalQuestionsColumnConfig(new IdentityValueProvider<PublicationVO>(), 40, "Заполнять перед тестом"));
-        l.add(createAttemptsColumnConfig(publicationProperties.maxAttempts() , 20, "Макс. попыток"));
-        l.add(new ColumnConfig<PublicationVO, Double>(publicationProperties.minScore(), 20, "Нужно баллов"));
+        l.add(new ColumnConfig<PublicationsTreeItem, String>(publicationProperties.start, 20, "Начало"));
+        l.add(new ColumnConfig<PublicationsTreeItem, String>(publicationProperties.end, 20, "Конец"));
         
-        l.add(createTestTimeColumnConfig(publicationProperties.maxTakeTestTime(), 20, "Времени на тест"));
-        l.add(createPublicationActionsColumnConfig(new IdentityValueProvider<PublicationVO>(), 35, ""));
+        l.add(new ColumnConfig<PublicationsTreeItem, String>(publicationProperties.fillBeforeTest, 40, "Заполнять перед тестом"));
+        l.add(new ColumnConfig<PublicationsTreeItem, String>(publicationProperties.maxAttempts , 20, "Макс. попыток"));
+        l.add(new ColumnConfig<PublicationsTreeItem, String>(publicationProperties.minScore, 15, "Мин. баллов"));
         
-        ColumnModel<PublicationVO> result = new ColumnModel<PublicationVO>(l);
+        l.add(new ColumnConfig<PublicationsTreeItem, String>(publicationProperties.maxTakeTestTime, 20, "Времени на тест"));
+        l.add(createPublicationActionsColumnConfig(new IdentityValueProvider<PublicationsTreeItem>()));
+        
+        ColumnModel<PublicationsTreeItem> result = new ColumnModel<PublicationsTreeItem>(l);
 
         return result;
     }
@@ -422,16 +264,13 @@ public class PublicationsTab extends Composite {
         // Prepare fields for UiBuilder
         top = createTop();
         
-        gridView = createGridView();
         gridCm = createGridCm();
         gridStore = createGridStore();
         gridLoader = createLoader(gridStore);
-        grid = createGrid(gridLoader, gridStore, gridCm);
-
+        grid = createGrid(gridLoader, gridStore, gridCm, gridCm.getColumn(0));
         
         // Create UI
         initWidget(uiBinder.createAndBindUi(this));
-        gridView.groupBy(gridCm.getColumn(0));
     }
     
     private void refresh() {
@@ -442,7 +281,7 @@ public class PublicationsTab extends Composite {
         gridLoader.load();
     }
     
-    private void showPublicationWindow(PublicationVO publication) {
+    private void showPublicationWindow(final PublicationVO publication) {
         PublicationWindow window = new PublicationWindow(publication);
         window.addSaveHandler(new SaveHandler<PublicationVO>() {
             @Override
