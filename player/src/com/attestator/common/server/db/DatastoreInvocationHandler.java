@@ -17,7 +17,7 @@ import com.google.code.morphia.query.UpdateOperations;
 public class DatastoreInvocationHandler implements InvocationHandler {
     @SuppressWarnings("unused")
     private static Logger logger = Logger.getLogger(DatastoreInvocationHandler.class);    
-    private Datastore ds;
+    private Datastore rawDs;
     
     private static final Method CREATE_QUERY = getMethod("createQuery", Class.class);
     private static final Method CREATE_UPDATE_OPERATIONS = getMethod("createUpdateOperations", Class.class);
@@ -27,7 +27,7 @@ public class DatastoreInvocationHandler implements InvocationHandler {
     private static final Method DELETE_OBJECT = getMethod("delete", Object.class);
     
     public DatastoreInvocationHandler(Datastore ds) {
-        this.ds = ds;
+        this.rawDs = ds;
     }
     
     @Override
@@ -39,7 +39,7 @@ public class DatastoreInvocationHandler implements InvocationHandler {
         }
         
         if (CREATE_QUERY.equals(method) ) {
-            Query<?> result = (Query<?>)method.invoke(ds, args);
+            Query<?> result = (Query<?>)method.invoke(rawDs, args);
             Class<?> clazz = (Class<?>)args[0];
             if (TenantableVO.class.isAssignableFrom(clazz)) {
                 result.field("tenantId").equal(LoginManager.getThreadLocalTenatId());
@@ -47,7 +47,7 @@ public class DatastoreInvocationHandler implements InvocationHandler {
             return result;
         }
         else if (CREATE_UPDATE_OPERATIONS.equals(method)) {
-            UpdateOperations<?> result = (UpdateOperations<?>)method.invoke(ds, args);
+            UpdateOperations<?> result = (UpdateOperations<?>)method.invoke(rawDs, args);
             Class<?> clazz = (Class<?>)args[0];
             if (ModificationDateAwareVO.class.isAssignableFrom(clazz)) {
                 result.set("modified", new Date());
@@ -55,7 +55,7 @@ public class DatastoreInvocationHandler implements InvocationHandler {
             return result;
         }
         else if (UPDATE.equals(method)) {
-            return method.invoke(ds, args);
+            return method.invoke(rawDs, args);
         }
         else if (SAVE.equals(method)) {
             Object obj = args[0];
@@ -69,17 +69,17 @@ public class DatastoreInvocationHandler implements InvocationHandler {
                 }
                 ((ModificationDateAwareVO) obj).setModified(now);
             }
-            return method.invoke(ds, obj);
+            return method.invoke(rawDs, obj);
         }
         else if (DELETE_QUERY.equals(method)) {
-            return method.invoke(ds, args);
+            return method.invoke(rawDs, args);
         }
         else if (DELETE_OBJECT.equals(method)) {
             Object obj = args[0];
             if (obj instanceof TenantableVO) {
                 ((TenantableVO) obj).setTenantId(LoginManager.getThreadLocalTenatId());
             }
-            return method.invoke(ds, obj);
+            return method.invoke(rawDs, obj);
         }        
         else {
             throw new UnsupportedOperationException("Method: " + method + " not supported");

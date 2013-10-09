@@ -21,6 +21,7 @@ import com.attestator.common.shared.vo.MTEQuestionVO;
 import com.attestator.common.shared.vo.MetaTestVO;
 import com.attestator.common.shared.vo.ModificationDateAwareVO;
 import com.attestator.common.shared.vo.PublicationVO;
+import com.attestator.common.shared.vo.QuestionVO;
 import com.attestator.common.shared.vo.ReportVO;
 import com.attestator.common.shared.vo.SingleChoiceQuestionVO;
 import com.attestator.common.shared.vo.UserVO;
@@ -33,7 +34,7 @@ import com.metapossum.utils.scanner.reflect.ClassesInPackageScanner;
 public class DatabaseUpdater {
     private static Logger logger = Logger.getLogger(DatabaseUpdater.class);
     
-    public static final int DB_VERSION = 14;
+    public static final int DB_VERSION = 22;
     
     @SuppressWarnings({"unchecked", "rawtypes"})
     public static void updateDatabase() {
@@ -75,7 +76,7 @@ public class DatabaseUpdater {
             Singletons.rawDs().ensureIndexes();
         }
         
-        if (version.getVersion() < 12) {
+        if (version.getVersion() < 21) {
             Date now = new Date();
             try {
                 Set<Class<? extends ModificationDateAwareVO>> modificationAwareClasses = 
@@ -98,38 +99,54 @@ public class DatabaseUpdater {
                 }
             } catch (IOException e) {
             }
-            
+
             Query<ReportVO> q = Singletons.rawDs().createQuery(ReportVO.class);
-            q.disableValidation().field("questions._id").exists().field("questions.created").doesNotExist();
             UpdateOperations<ReportVO> uo = Singletons.rawDs().createUpdateOperations(ReportVO.class);
-            uo.disableValidation().set("questions.$.created", now).enableValidation();
+            uo.set("publication.created", now);
             Singletons.rawDs().update(q, uo);            
             
             q = Singletons.rawDs().createQuery(ReportVO.class);
-            q.disableValidation().field("questions._id").exists().field("questions.modified").doesNotExist();
             uo = Singletons.rawDs().createUpdateOperations(ReportVO.class);
-            uo.disableValidation().set("questions.$.modified", now).enableValidation();
+            uo.set("publication.modified", now);
             Singletons.rawDs().update(q, uo);                        
-            
+
             Query<ReportVO> qr = Singletons.rawDs().createQuery(ReportVO.class);
-            qr.disableValidation().field("publication.additionalQuestions.checkValue").exists();
-            UpdateOperations<ReportVO> uor = Singletons.rawDs().createUpdateOperations(ReportVO.class);
-            uor.disableValidation().set("publication.additionalQuestions.$.answerType", AnswerTypeEnum.key).enableValidation();            
-            Singletons.rawDs().update(qr, uor);
-            
-            qr = Singletons.rawDs().createQuery(ReportVO.class);
-            qr.disableValidation().field("publication.additionalQuestions._id").exists().field("publication.additionalQuestions.checkValue").doesNotExist();
-            uor = Singletons.rawDs().createUpdateOperations(ReportVO.class);
-            uor.disableValidation().set("publication.additionalQuestions.$.answerType", AnswerTypeEnum.text).enableValidation();            
-            Singletons.rawDs().update(qr, uor);
+            for (ReportVO report: qr.asList()) {
+                for (QuestionVO question: report.getQuestions()) {
+                    question.setCreated(now);
+                    question.setModified(now);
+                }
+                
+                for (AdditionalQuestionVO additionalQuestion: report.getPublication().getAdditionalQuestions()) {
+                    if (additionalQuestion.getCheckValue() == null) {
+                        additionalQuestion.setAnswerType(AnswerTypeEnum.text);
+                    }
+                    else {
+                        additionalQuestion.setAnswerType(AnswerTypeEnum.key);
+                    }
+                }
+                
+                Singletons.rawDs().save(report);
+            }
         }
 
+        if (version.getVersion() < 22) {
+            loadAndSave(MetaTestVO.class);
+        }
+        
         if (version.getVersion() < DB_VERSION) {
             version.setVersion(DB_VERSION);
             Singletons.rawDs().save(version);
         }
         
         logger.info("Database is up to date");
+    }
+    
+    private static <T> void loadAndSave(Class<T> clazz) {
+        Query<T> q = Singletons.rawDs().createQuery(clazz);
+        for (T obj: q.asList()) {
+            Singletons.rawDs().save(obj);
+        }
     }
     
     private static void addTestData() {

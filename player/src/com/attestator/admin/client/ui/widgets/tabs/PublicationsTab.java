@@ -25,9 +25,11 @@ import com.attestator.common.shared.vo.PublicationsTreeItem;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.core.client.Scheduler;
 import com.google.gwt.core.client.Scheduler.ScheduledCommand;
+import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
+import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Widget;
 import com.sencha.gxt.cell.core.client.ResizeCell;
@@ -35,10 +37,17 @@ import com.sencha.gxt.core.client.IdentityValueProvider;
 import com.sencha.gxt.core.client.Style.SelectionMode;
 import com.sencha.gxt.data.client.loader.RpcProxy;
 import com.sencha.gxt.data.shared.TreeStore;
+import com.sencha.gxt.data.shared.loader.BeforeLoadEvent;
 import com.sencha.gxt.data.shared.loader.ChildTreeStoreBinding;
+import com.sencha.gxt.data.shared.loader.LoadEvent;
+import com.sencha.gxt.data.shared.loader.LoadExceptionEvent;
+import com.sencha.gxt.data.shared.loader.LoaderHandler;
 import com.sencha.gxt.data.shared.loader.TreeLoader;
 import com.sencha.gxt.widget.core.client.Composite;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
+import com.sencha.gxt.widget.core.client.event.RowDoubleClickEvent;
+import com.sencha.gxt.widget.core.client.event.SelectEvent;
+import com.sencha.gxt.widget.core.client.event.RowDoubleClickEvent.RowDoubleClickHandler;
 import com.sencha.gxt.widget.core.client.grid.ColumnConfig;
 import com.sencha.gxt.widget.core.client.grid.ColumnModel;
 import com.sencha.gxt.widget.core.client.treegrid.TreeGrid;
@@ -87,7 +96,7 @@ public class PublicationsTab extends Composite {
     
     @UiField(provided = true)    
     TreeGrid<PublicationsTreeItem> grid;
-    TreeGrid<PublicationsTreeItem> createGrid(TreeLoader<PublicationsTreeItem> loader, TreeStore<PublicationsTreeItem> store, ColumnModel<PublicationsTreeItem> cm, ColumnConfig<PublicationsTreeItem, ?> cc) {        
+    TreeGrid<PublicationsTreeItem> createGrid(TreeLoader<PublicationsTreeItem> loader, final TreeStore<PublicationsTreeItem> store, ColumnModel<PublicationsTreeItem> cm, ColumnConfig<PublicationsTreeItem, ?> cc) {        
         TreeGrid<PublicationsTreeItem> result = new TreeGrid<PublicationsTreeItem>(store, cm, cc);
         result.getStyle().setLeafIcon(Resources.ICONS.file16x16());
         result.getStyle().setNodeOpenIcon(Resources.ICONS.checkBoxChecked16x16());
@@ -99,6 +108,15 @@ public class PublicationsTab extends Composite {
         result.setAutoExpand(true);        
         result.setAutoLoad(true);        
         result.setTreeLoader(loader);
+        result.addRowDoubleClickHandler(new RowDoubleClickHandler() {
+            @Override
+            public void onRowDoubleClick(RowDoubleClickEvent event) {
+                PublicationsTreeItem item = store.getAll().get(event.getRowIndex());
+                if (item instanceof PublicationVO) {
+                    showPublicationWindow((PublicationVO)item);
+                }        
+            }
+        });
         return result;
     }
 
@@ -274,10 +292,41 @@ public class PublicationsTab extends Composite {
     }
     
     private void refresh() {
-        refreshGrid(); //TODO enableButtons() called after grid refresh is finished to reflect new selected state
+        refreshGrid(null, null); //TODO enableButtons() called after grid refresh is finished to reflect new selected state
     }
     
-    private void refreshGrid() {
+    private HandlerRegistration selectAfterLoadRegistration;
+    private void refreshGrid(final String metaTestId, final String publicationId) {
+        if (metaTestId != null) {
+            selectAfterLoadRegistration = gridLoader.addLoaderHandler(new LoaderHandler<PublicationsTreeItem, List<PublicationsTreeItem>>() {
+                private void unregister() {
+                    if (selectAfterLoadRegistration != null) {
+                        selectAfterLoadRegistration.removeHandler();
+                    } 
+                }
+                
+                @Override
+                public void onLoad(
+                        LoadEvent<PublicationsTreeItem, List<PublicationsTreeItem>> event) {
+                    if (publicationId != null && event.getLoadConfig() != null) {
+                        if (metaTestId.equals(((MetaTestVO)event.getLoadConfig()).getId())) {
+                            PublicationVO publication = (PublicationVO)gridStore.findModelWithKey(publicationId);
+                            grid.getSelectionModel().select(false, publication);
+                            unregister();
+                        }
+                    }                    
+                }
+                
+                @Override
+                public void onLoadException(LoadExceptionEvent<PublicationsTreeItem> event) {
+                    unregister();
+                }
+                
+                @Override
+                public void onBeforeLoad(BeforeLoadEvent<PublicationsTreeItem> event) {
+                }
+            });
+        } 
         gridLoader.load();
     }
     
@@ -286,10 +335,14 @@ public class PublicationsTab extends Composite {
         window.addSaveHandler(new SaveHandler<PublicationVO>() {
             @Override
             public void onSave(SaveEvent<PublicationVO> event) {
-                refreshGrid();
+                refreshGrid(publication.getMetatest().getId(), publication.getId());
             }
         });
         window.asWidget().show();
     }
     
+    @UiHandler("refreshButton") 
+    public void refreshButtonClick(SelectEvent event) {
+        refreshGrid(null, null);
+    }
 }

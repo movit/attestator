@@ -23,7 +23,8 @@
 
 	<ui:with field="gridCm" type="com.sencha.gxt.widget.core.client.grid.ColumnModel"/>
 	<ui:with field="gridStore" type="com.sencha.gxt.data.shared.TreeStore"/>
-
+    <ui:with type="com.sencha.gxt.theme.gray.client.toolbar.GrayPagingToolBarAppearance.GrayPagingToolBarResources"
+        field="grayIcons" />
 	<row:VerticalLayoutContainer ui:field="top">
 		<!-- <row:child layoutData="{maxWidthMinHeightVLData}"> -->
 		<!-- <toolbar:ToolBar> -->
@@ -40,8 +41,9 @@
 			</grid:Grid>
 		</row:child>
 		<row:child layoutData="{maxWidthMinHeightVLData}">
-			<!-- <toolbar:PagingToolBar ui:field="gridPager" -->
-			<!-- pageSize="50" reuseConfig="false"></toolbar:PagingToolBar> -->
+			<toolbar:ToolBar>
+                <button:TextButton ui:field="refreshButton" icon="{grayIcons.refresh}"/>
+			</toolbar:ToolBar>
 		</row:child>
 	</row:VerticalLayoutContainer>
 </ui:UiBinder>	
