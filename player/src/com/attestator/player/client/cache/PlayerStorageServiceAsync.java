@@ -623,27 +623,33 @@ public class PlayerStorageServiceAsync implements PlayerServiceAsync {
                                         }
                                     }
 
+                                    // Remove obsolete startTest cache items
+                                    String startTestMarker = psc.marker(
+                                            CacheKind.cache, CacheType.startTest,
+                                            "tenantId", marker.getTenantId());
                                     if (testsToLeave.size() > 0) {
-                                        String checkMarker = psc.marker(
-                                                CacheKind.cache, CacheType.startTest,
-                                                "tenantId", marker.getTenantId());
-
                                         String leaveRegex = psc
                                                 .marker("publicationId",
                                                         testsToLeave.toArray(new String[0]));
 
-                                        psc.leaveOnlyThisItemsByRegex(checkMarker, leaveRegex);
+                                        psc.leaveOnlyThisItemsByRegex(startTestMarker, leaveRegex);
+                                    }
+                                    else {
+                                        psc.removeThisItemsByRegex(startTestMarker, ".*");
                                     }
 
+                                    // Remove obsolete getReport cache items
+                                    String getReportMarker = psc.marker(
+                                            CacheKind.cache, CacheType.getReport,
+                                            "tenantId", marker.getTenantId());
                                     if (reportsToLeave.size() > 0) {
-                                        String checkMarker = psc.marker(
-                                                CacheKind.cache, CacheType.getReport,
-                                                "tenantId", marker.getTenantId());
-                                        
                                         String leaveRegex = psc.marker("reportId", 
                                                 reportsToLeave.toArray(new String[0]));
                                         
-                                        psc.leaveOnlyThisItemsByRegex(checkMarker, leaveRegex);
+                                        psc.leaveOnlyThisItemsByRegex(getReportMarker, leaveRegex);
+                                    }
+                                    else {
+                                        psc.removeThisItemsByRegex(getReportMarker, ".*");
                                     }
 
                                     // Cache all what not cached
