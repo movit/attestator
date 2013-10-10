@@ -143,7 +143,7 @@ public class AdminServiceImpl extends RemoteServiceServlet implements
     public PagingLoadResult<ReportVO> loadReports(
             FilterPagingLoadConfig loadConfig) {
         try {
-            return Singletons.al().loadReports(loadConfig);
+            return Singletons.al().loadReports(loadConfig, "questions", "answers");
         }
         catch (Throwable e) {
             logger.error("Error: ", e);

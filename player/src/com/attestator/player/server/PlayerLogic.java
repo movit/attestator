@@ -119,7 +119,7 @@ public class PlayerLogic extends CommonLogic{
         
         Query<ChangeMarkerVO> q = Singletons.ds().createQuery(ChangeMarkerVO.class);
         if (time != null) { 
-            q.field("time").greaterThan(time);
+            q.field("created").greaterThan(time);
         }
         
         // Look for changes
@@ -127,7 +127,7 @@ public class PlayerLogic extends CommonLogic{
             q.criteria("clientId").doesNotExist(),
             q.criteria("clientId").equal(clientId)
         );     
-        q.order("time");
+        q.order("created");
         
         List<ChangeMarkerVO> allChanges = q.asList();
         
@@ -144,10 +144,11 @@ public class PlayerLogic extends CommonLogic{
         }
         
         // Is some publications expired or became active since last query
+        Date now = new Date();
         Query<PublicationVO> qp = Singletons.ds().createQuery(PublicationVO.class);
         qp.or(
-            qp.criteria("start").greaterThan(time),
-            qp.criteria("end").greaterThan(time)
+            qp.criteria("start").greaterThan(time).criteria("start").lessThanOrEq(now),
+            qp.criteria("end").greaterThan(time).criteria("end").lessThanOrEq(now)
         );
         
         if (qp.countAll() > 0) {

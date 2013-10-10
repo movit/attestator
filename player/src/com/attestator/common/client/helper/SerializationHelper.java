@@ -9,7 +9,8 @@ import com.kfuntak.gwt.json.serialization.client.Serializer;
 
 
 public class SerializationHelper {
-
+    private static final String NULL_CONSTANT = "null";
+    
     public static <T> byte[] serializeCompressed(T obj) {
         String uncompressed = serializeJSON(obj);
         LZMAByteArrayCompressor compressor = new LZMAByteArrayCompressor(UTF8.encode(uncompressed));
@@ -44,7 +45,10 @@ public class SerializationHelper {
         return result;
     }
     
-    public static <T> String serializeJSON(T obj) {        
+    public static <T> String serializeJSON(T obj) { 
+        if (obj == null) {
+            return NULL_CONSTANT;
+        }
         Serializer serializer = GWT.create(Serializer.class);
         String result = serializer.serialize(obj);
         return result;
@@ -52,6 +56,9 @@ public class SerializationHelper {
 
     @SuppressWarnings("unchecked")
     public static <T> T deserializeJSON(Class<T> clazz, String str) {
+        if (NULL_CONSTANT.equals(str)) {
+            return null;
+        }
         Serializer serializer = GWT.create(Serializer.class);
         T result = (T)serializer.deSerialize(str, clazz.getName());
         return result;

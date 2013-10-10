@@ -1,8 +1,5 @@
 package com.attestator.common.shared.vo;
 
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Pattern;
-
 import com.attestator.common.server.db.annotation.SetOnSave;
 import com.attestator.common.shared.helper.NullHelper;
 import com.google.code.morphia.annotations.Entity;
@@ -10,9 +7,7 @@ import com.google.code.morphia.annotations.Entity;
 @Entity("question")
 public abstract class QuestionVO extends ModificationDateAwareVO {
     private static final long serialVersionUID = -2683964459602620222L;
-    @Pattern(regexp = ".*[^\\s].*", message = "Текст вопроса не может быть пустым")
     private String            text;
-    @NotNull
     private String            groupId;
     @SetOnSave(refField = "groupId", targetClass = GroupVO.class, targetValueField = "name")
     private String            groupName;

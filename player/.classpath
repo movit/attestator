@@ -22,5 +22,6 @@
 	<classpathentry kind="lib" path="war/WEB-INF/lib/guava-gwt-14.0.1.jar"/>
 	<classpathentry kind="lib" path="war/WEB-INF/lib/guava-14.0.1.jar"/>
 	<classpathentry kind="lib" path="war/WEB-INF/lib/gwtprojsonserializer-1.0.5.SNAPSHOT.jar"/>
+	<classpathentry kind="lib" path="war/WEB-INF/lib/commons-lang-2.6.jar"/>
 	<classpathentry kind="output" path="war/WEB-INF/classes"/>
 </classpath>

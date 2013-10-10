@@ -34,7 +34,7 @@ import com.metapossum.utils.scanner.reflect.ClassesInPackageScanner;
 public class DatabaseUpdater {
     private static Logger logger = Logger.getLogger(DatabaseUpdater.class);
     
-    public static final int DB_VERSION = 22;
+    public static final int DB_VERSION = 23;
     
     @SuppressWarnings({"unchecked", "rawtypes"})
     public static void updateDatabase() {
@@ -135,11 +135,24 @@ public class DatabaseUpdater {
         }
         
         if (version.getVersion() < DB_VERSION) {
+            resetChangeMarkers();
+            
             version.setVersion(DB_VERSION);
             Singletons.rawDs().save(version);
         }
         
         logger.info("Database is up to date");
+    }
+    
+    private static void resetChangeMarkers() {
+        Query<ChangeMarkerVO> q = Singletons.rawDs().createQuery(ChangeMarkerVO.class);            
+        Singletons.rawDs().delete(q);
+        
+        Query<UserVO> qu = Singletons.rawDs().createQuery(UserVO.class);        
+        for (UserVO user: qu.asList()) {
+            ChangeMarkerVO cm = new ChangeMarkerVO(null, user.getTenantId(), null);
+            Singletons.rawDs().save(cm);
+        }
     }
     
     private static <T> void loadAndSave(Class<T> clazz) {

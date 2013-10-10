@@ -128,11 +128,15 @@ public class AdminLogic extends CommonLogic {
         }
     }
 
-    public PagingLoadResult<ReportVO> loadReports(FilterPagingLoadConfig loadConfig) {
+    public PagingLoadResult<ReportVO> loadReports(FilterPagingLoadConfig loadConfig, String ... excludFields) {
         CheckHelper.throwIfNull(loadConfig, "loadConfig");
         // Create query
         Query<ReportVO> q = Singletons.ds().createQuery(ReportVO.class);
-
+        
+        if (excludFields != null) {
+            q.retrievedFields(false, excludFields);
+        }
+        
         // Add order
         if (!NullHelper.nullSafeIsEmpty(loadConfig.getSortInfo())) {
         	List<? extends SortInfo> sortInfo = prepareReportSortInfo(loadConfig.getSortInfo());
@@ -140,8 +144,7 @@ public class AdminLogic extends CommonLogic {
         }
         else {
             q.order("-start, _id");
-        }
-        
+        }        
         
         // Get total count (without offset and limit)
         long count = q.countAll();        

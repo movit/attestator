@@ -1,13 +1,10 @@
 package com.attestator.common.shared.vo;
 
-import javax.validation.constraints.Pattern;
-
 import com.attestator.common.shared.helper.NullHelper;
 import com.google.code.morphia.annotations.Transient;
 
 public class ChoiceVO extends BaseVO {
     private static final long serialVersionUID = 8324774439485268133L;
-    @Pattern(regexp=".*[^\\s].*", message="Вариант ответа не может быть пустым")
     private String  text;
     private Boolean right;
     @Transient

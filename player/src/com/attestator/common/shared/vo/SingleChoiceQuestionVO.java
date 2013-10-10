@@ -3,8 +3,6 @@ package com.attestator.common.shared.vo;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.validation.constraints.Size;
-
 import com.attestator.common.shared.helper.NullHelper;
 import com.google.code.morphia.annotations.Entity;
 import com.google.code.morphia.annotations.PostLoad;
@@ -14,7 +12,6 @@ public class SingleChoiceQuestionVO extends QuestionVO {
     private static final long serialVersionUID = -3128704433193435364L;
     
     private Boolean        randomChoiceOrder = false;
-    @Size(min=1, message="Нужен хотя бы один вариант ответа")
     private List<ChoiceVO> choices  = new ArrayList<ChoiceVO>();
    
     public List<ChoiceVO> getChoices() {

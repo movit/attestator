@@ -1,6 +1,5 @@
 package com.attestator.common.shared.vo;
 
-import java.util.Date;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -12,7 +11,6 @@ public class ChangeMarkerVO extends ModificationDateAwareVO {
     private static final long serialVersionUID = -6155856555799173610L;
     private String clientId;
     
-    private Date time = new Date();
     private CacheType type;
     
     private Map<String, String> key = new TreeMap<String, String>();
@@ -38,12 +36,6 @@ public class ChangeMarkerVO extends ModificationDateAwareVO {
     }
     public void setType(CacheType type) {
         this.type = type;
-    }
-    public Date getTime() {
-        return time;
-    }
-    public void setTime(Date time) {
-        this.time = time;
     }
     public String getClientId() {
         return clientId;
