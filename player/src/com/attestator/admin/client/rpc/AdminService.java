@@ -19,28 +19,27 @@ import com.sencha.gxt.data.shared.loader.PagingLoadResult;
  */
 @RemoteServiceRelativePath("adminservice")
 public interface AdminService extends RemoteService {
-    PagingLoadResult<QuestionVO> loadQuestions(FilterPagingLoadConfig loadConfig);
-    PagingLoadResult<ReportVO> loadReports(FilterPagingLoadConfig loadConfig);
-    ReportVO loadReport(String reportId);
+    PagingLoadResult<QuestionVO> loadQuestions(FilterPagingLoadConfig loadConfig) throws IllegalStateException;
+    PagingLoadResult<ReportVO> loadReports(FilterPagingLoadConfig loadConfig) throws IllegalStateException;
+    ReportVO loadReport(String reportId) throws IllegalStateException;
     
-    ListLoadResult<PublicationVO> loadPublications();
-    List<PublicationsTreeItem> loadPublicationsTree(PublicationsTreeItem root);
+    ListLoadResult<PublicationVO> loadPublications() throws IllegalStateException;
+    List<PublicationsTreeItem> loadPublicationsTree(PublicationsTreeItem root) throws IllegalStateException;
 
-    List<GroupVO> loadGroups();
+    List<GroupVO> loadGroups() throws IllegalStateException;
     
-    void saveGroup(GroupVO group);
-    void savePublication(PublicationVO publication);
-    void saveGroups(List<GroupVO> groups);
-    void saveQuestion(QuestionVO question);
+    void saveGroup(GroupVO group) throws IllegalStateException;
+    void savePublication(PublicationVO publication) throws IllegalStateException;
+    void saveGroups(List<GroupVO> groups) throws IllegalStateException;
+    void saveQuestion(QuestionVO question) throws IllegalStateException;
     
-    void deleteQuestions(List<String> questionIds);
-    void deleteReports(List<String> reportIds);
-    void deletePublications(List<String> publicationIds);
+    void deleteQuestions(List<String> questionIds) throws IllegalStateException;
+    void deleteReports(List<String> reportIds) throws IllegalStateException;
+    void deletePublications(List<String> publicationIds) throws IllegalStateException;
     
-    void setQuestionsGroup(List<String> questionIds, String groupId);
+    void setQuestionsGroup(List<String> questionIds, String groupId) throws IllegalStateException;
     
-    UserVO getLoggedUser();
-    UserVO login(String login, String password);
-    void logout();
-    
+    UserVO getLoggedUser() throws IllegalStateException;
+    UserVO login(String login, String password) throws IllegalStateException;
+    void logout() throws IllegalStateException;
 }

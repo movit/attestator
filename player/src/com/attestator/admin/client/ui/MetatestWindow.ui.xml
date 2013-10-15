@@ -1,0 +1,92 @@
+<!DOCTYPE ui:UiBinder SYSTEM "http://dl.google.com/gwt/DTD/xhtml.ent">
+<ui:UiBinder xmlns:ui='urn:ui:com.google.gwt.uibinder'
+	xmlns:g="urn:import:com.google.gwt.user.client.ui" 
+	xmlns:gxt="urn:import:com.sencha.gxt.widget.core.client"
+	xmlns:row="urn:import:com.sencha.gxt.widget.core.client.container"
+	xmlns:menu="urn:import:com.sencha.gxt.widget.core.client.menu"
+	xmlns:button="urn:import:com.sencha.gxt.widget.core.client.button"
+	xmlns:form="urn:import:com.sencha.gxt.widget.core.client.form"
+	xmlns:toolbar="urn:import:com.sencha.gxt.widget.core.client.toolbar"
+	xmlns:grid="urn:import:com.sencha.gxt.widget.core.client.grid"
+	xmlns:att="urn:import:com.attestator.admin.client.ui.widgets">
+    
+    <ui:with field="maxWidthMinHeightVLData"
+        type="com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData">
+        <ui:attributes width="1" height="-1" />
+    </ui:with>
+    
+    <ui:with field="maxWidthMaxHeightVLData"
+        type="com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData">
+        <ui:attributes width="1" height="1" />
+    </ui:with>
+    
+    <ui:with
+        type="com.sencha.gxt.widget.core.client.container.HorizontalLayoutContainer.HorizontalLayoutData"
+        field="maxWidthMaxHeightHLData">
+        <ui:attributes width="1" height="1" />
+    </ui:with>
+    
+    <ui:with type="com.sencha.gxt.widget.core.client.grid.GridView"
+        field="questionsGridView">
+        <ui:attributes stripeRows="true" forceFit="true" autoFill="true"/>
+    </ui:with>    
+    <ui:with type="com.sencha.gxt.widget.core.client.grid.GridView"
+        field="groupsGridView">
+        <ui:attributes stripeRows="true" forceFit="true" autoFill="true"/>
+    </ui:with>    
+    <ui:with type="com.sencha.gxt.widget.core.client.grid.GridView"
+        field="entriesGridView">
+        <ui:attributes stripeRows="true" forceFit="true" autoFill="true"/>
+    </ui:with>
+    
+<!--     <ui:with type="com.sencha.gxt.widget.core.client.grid.ColumnModel" -->
+<!--         field="questionsCm"/> -->
+<!--     <ui:with type="com.sencha.gxt.widget.core.client.grid.ColumnModel" -->
+<!--         field="groupsCm"/> -->
+<!--     <ui:with type="com.sencha.gxt.widget.core.client.grid.ColumnModel" -->
+<!--         field="entriesCm"/> -->
+    
+	<gxt:Window ui:field="window" pixelSize="900, 600" modal="true"
+		maximizable="false" resizable="true" blinkModal="true" headingText="Тест"
+		focusWidget="{cancelButton}">
+        <row:VerticalLayoutContainer ui:field="top">
+	        <row:child layoutData="{maxWidthMinHeightVLData}">
+	            <form:FieldLabel labelAlign="TOP" text="Название" >
+	                <form:widget>
+	                    <form:TextField ui:field="name"	                        
+	                        width="1" allowBlank="true" emptyText="неограничено" />
+	                </form:widget>
+	            </form:FieldLabel>
+	        </row:child>
+	        <row:child layoutData="{maxWidthMaxHeightVLData}">
+	           <row:HorizontalLayoutContainer>
+	               <row:child layoutData="{maxWidthMaxHeightHLData}">
+	                   <row:VerticalLayoutContainer>
+	                       <row:child layoutData="{maxWidthMaxHeightVLData}">
+<!-- 		                       <grid:Grid ui:field="questionsGrid" view="{questionsGridView}"> -->
+<!-- 		                       </grid:Grid> -->
+	                       </row:child>
+                           <row:child layoutData="{maxWidthMaxHeightVLData}">
+<!--                                <grid:Grid ui:field="groupsGrid"> -->
+<!--                                </grid:Grid> -->
+                           </row:child>
+	                   </row:VerticalLayoutContainer>
+	               </row:child>
+                   <row:child layoutData="{maxWidthMaxHeightHLData}">
+<!--                        <grid:Grid ui:field="entriesGrid"> -->
+<!--                        </grid:Grid> -->
+                   </row:child>
+	           </row:HorizontalLayoutContainer>
+	        </row:child>
+        </row:VerticalLayoutContainer>
+        <gxt:button>
+            <button:TextButton ui:field="saveButton" text="Сохранить" />
+        </gxt:button>
+
+		<gxt:button>
+			<button:TextButton ui:field="cancelButton" text="Отмена" />
+		</gxt:button>
+
+	</gxt:Window>
+
+</ui:UiBinder>

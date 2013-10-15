@@ -158,8 +158,7 @@ public class PublicationWindow implements IsWidget, Editor<PublicationVO>, HasSa
         publicationParamsFieldSet.addExpandHandler(new ExpandHandler() {            
             @Override
             public void onExpand(ExpandEvent event) {
-                top.getScrollSupport().ensureVisible(publicationParamsFieldSet);
-                
+                top.getScrollSupport().ensureVisible(publicationParamsFieldSet);                
             }
         });
         driver.initialize(this);

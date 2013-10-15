@@ -9,6 +9,7 @@ import java.util.List;
 import com.attestator.admin.client.Admin;
 import com.attestator.admin.client.props.PublicationsTreePropertyAccess;
 import com.attestator.admin.client.rpc.AdminAsyncCallback;
+import com.attestator.admin.client.ui.MetatestWindow;
 import com.attestator.admin.client.ui.PublicationWindow;
 import com.attestator.admin.client.ui.event.MultyLinikSelectEvent;
 import com.attestator.admin.client.ui.event.MultyLinikSelectEvent.MultyLinikSelectHandler;
@@ -46,8 +47,8 @@ import com.sencha.gxt.data.shared.loader.TreeLoader;
 import com.sencha.gxt.widget.core.client.Composite;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
 import com.sencha.gxt.widget.core.client.event.RowDoubleClickEvent;
-import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.event.RowDoubleClickEvent.RowDoubleClickHandler;
+import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.grid.ColumnConfig;
 import com.sencha.gxt.widget.core.client.grid.ColumnModel;
 import com.sencha.gxt.widget.core.client.treegrid.TreeGrid;
@@ -225,6 +226,10 @@ public class PublicationsTab extends Composite {
                     publication.setMetatest(metatest);
                     showPublicationWindow(publication);
                 }
+                else if (EDIT_TEST_LINK_ID.equals(event.getLinkType())) {
+                    final MetaTestVO metatest = (MetaTestVO) event.getValue();
+                    showMetatestWindow(metatest);
+                }                
             }
         });
         result.setCell(cell);
@@ -328,6 +333,17 @@ public class PublicationsTab extends Composite {
             });
         } 
         gridLoader.load();
+    }
+    
+    private void showMetatestWindow(final MetaTestVO metatest) {
+        MetatestWindow window = new MetatestWindow(metatest);
+        window.addSaveHandler(new SaveHandler<MetaTestVO>() {
+            @Override
+            public void onSave(SaveEvent<MetaTestVO> event) {
+                refreshGrid(metatest.getId(), null);
+            }
+        });
+        window.asWidget().show();
     }
     
     private void showPublicationWindow(final PublicationVO publication) {

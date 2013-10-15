@@ -30,7 +30,7 @@ public class AdminServiceImpl extends RemoteServiceServlet implements
     private static final Logger logger = Logger.getLogger(AdminServiceImpl.class);
     
     @Override
-    public PagingLoadResult<QuestionVO> loadQuestions(FilterPagingLoadConfig loadConfig) {
+    public PagingLoadResult<QuestionVO> loadQuestions(FilterPagingLoadConfig loadConfig) throws IllegalStateException {
         try {
             return Singletons.al().loadQuestions(loadConfig);
         }
@@ -41,7 +41,7 @@ public class AdminServiceImpl extends RemoteServiceServlet implements
     }
 
     @Override
-    public List<GroupVO> loadGroups() {
+    public List<GroupVO> loadGroups() throws IllegalStateException {
         try {
             return Singletons.al().getAllGroups();
         }
@@ -52,7 +52,7 @@ public class AdminServiceImpl extends RemoteServiceServlet implements
     }
 
     @Override
-    public void saveQuestion(QuestionVO question) {
+    public void saveQuestion(QuestionVO question) throws IllegalStateException {
         try {
             Singletons.al().saveQuestion(question);
         }
@@ -63,7 +63,7 @@ public class AdminServiceImpl extends RemoteServiceServlet implements
     }
 
     @Override
-    public void saveGroup(GroupVO group) {
+    public void saveGroup(GroupVO group) throws IllegalStateException {
         try {
             Singletons.al().saveGroup(group);
         }
@@ -74,7 +74,7 @@ public class AdminServiceImpl extends RemoteServiceServlet implements
     }
 
     @Override
-    public void saveGroups(List<GroupVO> groups) {
+    public void saveGroups(List<GroupVO> groups) throws IllegalStateException {
         try {
             Singletons.al().setGroups(groups);
         }
@@ -85,7 +85,7 @@ public class AdminServiceImpl extends RemoteServiceServlet implements
     }
 
     @Override
-    public void deleteQuestions(List<String> questionIds) {
+    public void deleteQuestions(List<String> questionIds) throws IllegalStateException {
         try {
             Singletons.al().deleteQuestions(questionIds);
         }
@@ -96,7 +96,7 @@ public class AdminServiceImpl extends RemoteServiceServlet implements
     }
 
     @Override
-    public void setQuestionsGroup(List<String> questionIds, String groupId) {
+    public void setQuestionsGroup(List<String> questionIds, String groupId) throws IllegalStateException  {
         try {
             Singletons.al().setQuestionsGroup(questionIds, groupId);
         }
@@ -107,7 +107,7 @@ public class AdminServiceImpl extends RemoteServiceServlet implements
     }
 
     @Override
-    public UserVO login(String login, String password) {
+    public UserVO login(String login, String password) throws IllegalStateException {
         try {
             return LoginManager.login(getThreadLocalRequest().getSession(), login, password);
         }
@@ -118,7 +118,7 @@ public class AdminServiceImpl extends RemoteServiceServlet implements
     }
 
     @Override
-    public void logout() {
+    public void logout() throws IllegalStateException {
         try {
             LoginManager.logout(getThreadLocalRequest().getSession());        
         }
@@ -129,7 +129,7 @@ public class AdminServiceImpl extends RemoteServiceServlet implements
     }
 
     @Override
-    public UserVO getLoggedUser() {        
+    public UserVO getLoggedUser() throws IllegalStateException {        
         try {
             return LoginManager.getThreadLocalLoggedUser();
         }
@@ -141,7 +141,7 @@ public class AdminServiceImpl extends RemoteServiceServlet implements
 
     @Override
     public PagingLoadResult<ReportVO> loadReports(
-            FilterPagingLoadConfig loadConfig) {
+            FilterPagingLoadConfig loadConfig) throws IllegalStateException  {
         try {
             return Singletons.al().loadReports(loadConfig, "questions", "answers");
         }
@@ -152,7 +152,7 @@ public class AdminServiceImpl extends RemoteServiceServlet implements
     }
 
     @Override
-    public void deleteReports(List<String> reportIds) {
+    public void deleteReports(List<String> reportIds) throws IllegalStateException {
         try {
             Singletons.al().deleteReports(reportIds);
         }
@@ -163,7 +163,7 @@ public class AdminServiceImpl extends RemoteServiceServlet implements
     }
 
     @Override
-    public void deletePublications(List<String> publicationIds) {
+    public void deletePublications(List<String> publicationIds) throws IllegalStateException {
         try {
             Singletons.al().deletePublications(publicationIds);
         }
@@ -174,7 +174,7 @@ public class AdminServiceImpl extends RemoteServiceServlet implements
     }
 
     @Override
-    public ReportVO loadReport(String reportId) {
+    public ReportVO loadReport(String reportId) throws IllegalStateException {
         try {
             return Singletons.al().getReport(reportId);
         }
@@ -185,7 +185,7 @@ public class AdminServiceImpl extends RemoteServiceServlet implements
     }
 
     @Override
-    public ListLoadResult<PublicationVO> loadPublications() {
+    public ListLoadResult<PublicationVO> loadPublications() throws IllegalStateException {
         try {
             return new ListLoadResultBean<PublicationVO>(Singletons.al().getAllPublications());
         }
@@ -197,7 +197,7 @@ public class AdminServiceImpl extends RemoteServiceServlet implements
     
     @SuppressWarnings("unchecked")
     @Override
-    public List<PublicationsTreeItem> loadPublicationsTree(PublicationsTreeItem root) {
+    public List<PublicationsTreeItem> loadPublicationsTree(PublicationsTreeItem root) throws IllegalStateException {
         try {
             if (root == null) {
                 return (List<PublicationsTreeItem>)((List<?>)Singletons.al().getAllMetaTests()); 
@@ -214,7 +214,7 @@ public class AdminServiceImpl extends RemoteServiceServlet implements
     }
 
     @Override
-    public void savePublication(PublicationVO publication) {
+    public void savePublication(PublicationVO publication) throws IllegalStateException {
         try {
             Singletons.al().savePublication(publication);
         }
