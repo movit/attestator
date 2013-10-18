@@ -381,5 +381,5 @@ public class PublicationsTreePropertyAccess {
         public String getKey(PublicationsTreeItem item) {
             return ((BaseVO)item).getId();
         }
-     };
+     };     
 }

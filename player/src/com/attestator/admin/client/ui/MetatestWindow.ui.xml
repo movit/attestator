@@ -168,15 +168,15 @@
 					<row:west layoutData="{westData}">
 						<gxt:ContentPanel appearance="{contentPanelAppearance}"
 							headingText="Элементы которые можно добавить в тест">
-							<row:AccordionLayoutContainer borders="false"
+							<row:AccordionLayoutContainer ui:field="elementsSourceLayout" borders="false"
 								expandMode="SINGLE_FILL">
 
-								<gxt:ContentPanel appearance="{accordionLayoutAppearance}" borders="false"
-									headingText="Группы" animCollapse="false" bodyStyleName="pad-text">
+								<gxt:ContentPanel ui:field="groupsPanel" appearance="{accordionLayoutAppearance}" borders="false"
+									headingText="Группы" animCollapse="false">
 									<row:VerticalLayoutContainer>
 										<row:child layoutData="{minWidthMinHeightVLData}">
 											<toolbar:ToolBar visible="true">
-												<button:TextButton ui:field="addGroup"
+												<button:TextButton ui:field="addGroupButton"
 													icon="{icons.next16x16}" iconAlign="RIGHT" text="Добавить в тест" />
 												<toolbar:FillToolItem />
 												<att:SearchField ui:field="groupsSearchField"
@@ -193,12 +193,12 @@
 									</row:VerticalLayoutContainer>
 								</gxt:ContentPanel>
 
-                                <gxt:ContentPanel appearance="{accordionLayoutAppearance}" borders="false"
-                                    headingText="Вопросы" animCollapse="false" bodyStyleName="pad-text">
+                                <gxt:ContentPanel ui:field="questionsPanel" appearance="{accordionLayoutAppearance}" borders="false"
+                                    headingText="Вопросы" animCollapse="false">
                                     <row:VerticalLayoutContainer>
                                         <row:child layoutData="{maxWidthMinHeightVLData}">
                                             <toolbar:ToolBar visible="true">
-                                                <button:TextButton ui:field="addQuestion"
+                                                <button:TextButton ui:field="addQuestionButton"
                                                     icon="{icons.next16x16}" iconAlign="RIGHT" text="Добавить в тест" />
                                                 <toolbar:FillToolItem />
                                                 <att:SearchField ui:field="questionsSearchField"
@@ -225,7 +225,7 @@
 								<row:child layoutData="{maxWidthMinHeightVLData}">
 									<toolbar:ToolBar visible="true">
 										<toolbar:FillToolItem />
-										<button:TextButton ui:field="removeEntry"
+										<button:TextButton ui:field="removeEntryButton"
 											icon="{icons.prev16x16}" iconAlign="LEFT" text="Убрать из теста" />
 									</toolbar:ToolBar>
 								</row:child>

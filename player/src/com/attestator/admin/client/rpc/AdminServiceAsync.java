@@ -10,6 +10,7 @@ import com.attestator.common.shared.vo.ReportVO;
 import com.attestator.common.shared.vo.UserVO;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.sencha.gxt.data.shared.loader.FilterPagingLoadConfig;
+import com.sencha.gxt.data.shared.loader.ListLoadConfig;
 import com.sencha.gxt.data.shared.loader.ListLoadResult;
 import com.sencha.gxt.data.shared.loader.PagingLoadResult;
 
@@ -42,4 +43,5 @@ public interface AdminServiceAsync {
     
     void loadPublications(AsyncCallback<ListLoadResult<PublicationVO>> callback);
     void loadPublicationsTree(PublicationsTreeItem root, AsyncCallback<List<PublicationsTreeItem>> callback);
+    void loadPublicationsByMetatestId(String metatestId, ListLoadConfig config, AsyncCallback<ListLoadResult<PublicationVO>> callback);
 }

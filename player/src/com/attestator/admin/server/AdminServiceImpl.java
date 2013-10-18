@@ -15,6 +15,7 @@ import com.attestator.common.shared.vo.UserVO;
 import com.attestator.player.server.Singletons;
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 import com.sencha.gxt.data.shared.loader.FilterPagingLoadConfig;
+import com.sencha.gxt.data.shared.loader.ListLoadConfig;
 import com.sencha.gxt.data.shared.loader.ListLoadResult;
 import com.sencha.gxt.data.shared.loader.ListLoadResultBean;
 import com.sencha.gxt.data.shared.loader.PagingLoadResult;
@@ -55,6 +56,72 @@ public class AdminServiceImpl extends RemoteServiceServlet implements
     public List<GroupVO> loadGroups() throws IllegalStateException {
         try {
             return Singletons.al().getAllGroups();
+        }
+        catch (Throwable e) {
+            logger.error("Error: ", e);
+            throw new IllegalStateException(DEFAULT_ERROR_MESSAGE, e);
+        }
+    }
+
+    @Override
+    public PagingLoadResult<ReportVO> loadReports(
+            FilterPagingLoadConfig loadConfig) throws IllegalStateException  {
+        try {
+            return Singletons.al().loadReports(loadConfig, "questions", "answers");
+        }
+        catch (Throwable e) {
+            logger.error("Error: ", e);
+            throw new IllegalStateException(DEFAULT_ERROR_MESSAGE, e);
+        }
+    }
+
+    @Override
+    public ReportVO loadReport(String reportId) throws IllegalStateException {
+        try {
+            return Singletons.al().getReport(reportId);
+        }
+        catch (Throwable e) {
+            logger.error("Error: ", e);
+            throw new IllegalStateException(DEFAULT_ERROR_MESSAGE, e);
+        }
+    }
+
+    @Override
+    public ListLoadResult<PublicationVO> loadPublications() throws IllegalStateException {
+        try {
+            return new ListLoadResultBean<PublicationVO>(Singletons.al().getAllPublications());
+        }
+        catch (Throwable e) {
+            logger.error("Error: ", e);
+            throw new IllegalStateException(DEFAULT_ERROR_MESSAGE, e);
+        }
+    }
+
+    @Override
+    public ListLoadResult<PublicationVO> loadPublicationsByMetatestId(
+            String metatestId, ListLoadConfig config)
+            throws IllegalStateException {
+        try {            
+            List<PublicationVO> data = Singletons.al().loadPublicationsByMetatestId(metatestId, config);
+            return new ListLoadResultBean<PublicationVO>(data);
+        }
+        catch (Throwable e) {
+            logger.error("Error: ", e);
+            throw new IllegalStateException(DEFAULT_ERROR_MESSAGE, e);
+        }
+     }
+    
+    @SuppressWarnings("unchecked")
+    @Override
+    public List<PublicationsTreeItem> loadPublicationsTree(PublicationsTreeItem root) throws IllegalStateException {
+        try {
+            if (root == null) {
+                return (List<PublicationsTreeItem>)((List<?>)Singletons.al().getAllMetaTests()); 
+            }
+            else if (root instanceof MetaTestVO) {
+                return (List<PublicationsTreeItem>)((List<?>)Singletons.al().loadPublicationsByMetatestId(((MetaTestVO) root).getId(), null));
+            }
+            return null;
         }
         catch (Throwable e) {
             logger.error("Error: ", e);
@@ -151,18 +218,6 @@ public class AdminServiceImpl extends RemoteServiceServlet implements
     }
 
     @Override
-    public PagingLoadResult<ReportVO> loadReports(
-            FilterPagingLoadConfig loadConfig) throws IllegalStateException  {
-        try {
-            return Singletons.al().loadReports(loadConfig, "questions", "answers");
-        }
-        catch (Throwable e) {
-            logger.error("Error: ", e);
-            throw new IllegalStateException(DEFAULT_ERROR_MESSAGE, e);
-        }
-    }
-
-    @Override
     public void deleteReports(List<String> reportIds) throws IllegalStateException {
         try {
             Singletons.al().deleteReports(reportIds);
@@ -185,46 +240,6 @@ public class AdminServiceImpl extends RemoteServiceServlet implements
     }
 
     @Override
-    public ReportVO loadReport(String reportId) throws IllegalStateException {
-        try {
-            return Singletons.al().getReport(reportId);
-        }
-        catch (Throwable e) {
-            logger.error("Error: ", e);
-            throw new IllegalStateException(DEFAULT_ERROR_MESSAGE, e);
-        }
-    }
-
-    @Override
-    public ListLoadResult<PublicationVO> loadPublications() throws IllegalStateException {
-        try {
-            return new ListLoadResultBean<PublicationVO>(Singletons.al().getAllPublications());
-        }
-        catch (Throwable e) {
-            logger.error("Error: ", e);
-            throw new IllegalStateException(DEFAULT_ERROR_MESSAGE, e);
-        }
-    }
-    
-    @SuppressWarnings("unchecked")
-    @Override
-    public List<PublicationsTreeItem> loadPublicationsTree(PublicationsTreeItem root) throws IllegalStateException {
-        try {
-            if (root == null) {
-                return (List<PublicationsTreeItem>)((List<?>)Singletons.al().getAllMetaTests()); 
-            }
-            else if (root instanceof MetaTestVO) {
-                return (List<PublicationsTreeItem>)((List<?>)Singletons.al().loadPublicationsByMetatestId(((MetaTestVO) root).getId()));
-            }
-            return null;
-        }
-        catch (Throwable e) {
-            logger.error("Error: ", e);
-            throw new IllegalStateException(DEFAULT_ERROR_MESSAGE, e);
-        }
-    }
-
-    @Override
     public void savePublication(PublicationVO publication) throws IllegalStateException {
         try {
             Singletons.al().savePublication(publication);
@@ -234,4 +249,5 @@ public class AdminServiceImpl extends RemoteServiceServlet implements
             throw new IllegalStateException(DEFAULT_ERROR_MESSAGE, e);
         }
     }
+
 }

@@ -28,6 +28,7 @@ import com.sencha.gxt.data.shared.SortInfo;
 import com.sencha.gxt.data.shared.SortInfoBean;
 import com.sencha.gxt.data.shared.loader.FilterConfig;
 import com.sencha.gxt.data.shared.loader.FilterPagingLoadConfig;
+import com.sencha.gxt.data.shared.loader.ListLoadConfig;
 import com.sencha.gxt.data.shared.loader.PagingLoadResult;
 import com.sencha.gxt.data.shared.loader.PagingLoadResultBean;
 
@@ -79,6 +80,7 @@ public class AdminLogic extends CommonLogic {
         for (SortInfo order: orders) {
             if (StringHelper.isEmptyOrNull(order.getSortField())) {
                 logger.warn("Incorrect SortInfo");
+                continue;
             }
             if (i > 0) {
                 sb.append(",");
@@ -202,12 +204,17 @@ public class AdminLogic extends CommonLogic {
         return result;
     }
 
-    public List<PublicationVO> loadPublicationsByMetatestId(String metatestId) {
-        CheckHelper.throwIfNullOrEmpty(metatestId, "metatestId");        
+    public List<PublicationVO> loadPublicationsByMetatestId(String metatestId, ListLoadConfig config) {
+        CheckHelper.throwIfNullOrEmpty(metatestId, "metatestId");
 
         Query<PublicationVO> q = Singletons.ds().createQuery(PublicationVO.class);
         q.field("metatestId").equal(metatestId);
-        List<PublicationVO> result = q.asList();
+        
+        if (config != null && config.getSortInfo() != null) {
+            addOrders(q, config.getSortInfo());
+        }
+        
+        List<PublicationVO> result = q.asList();        
         
         return result;
     }

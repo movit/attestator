@@ -11,6 +11,7 @@ import com.attestator.common.shared.vo.UserVO;
 import com.google.gwt.user.client.rpc.RemoteService;
 import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
 import com.sencha.gxt.data.shared.loader.FilterPagingLoadConfig;
+import com.sencha.gxt.data.shared.loader.ListLoadConfig;
 import com.sencha.gxt.data.shared.loader.ListLoadResult;
 import com.sencha.gxt.data.shared.loader.PagingLoadResult;
 
@@ -26,6 +27,7 @@ public interface AdminService extends RemoteService {
     ReportVO loadReport(String reportId) throws IllegalStateException;
     
     ListLoadResult<PublicationVO> loadPublications() throws IllegalStateException;
+    ListLoadResult<PublicationVO> loadPublicationsByMetatestId(String metatestId, ListLoadConfig config) throws IllegalStateException;
     List<PublicationsTreeItem> loadPublicationsTree(PublicationsTreeItem root) throws IllegalStateException;
 
     List<GroupVO> loadGroups() throws IllegalStateException;

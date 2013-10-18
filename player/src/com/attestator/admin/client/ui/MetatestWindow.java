@@ -7,6 +7,7 @@ import java.util.List;
 import com.attestator.admin.client.Admin;
 import com.attestator.admin.client.props.GroupVOPropertyAccess;
 import com.attestator.admin.client.props.MetatestEntryVOPropertyAccess;
+import com.attestator.admin.client.props.PublicationVOPropertyAccess;
 import com.attestator.admin.client.props.PublicationsTreePropertyAccess;
 import com.attestator.admin.client.props.QuestionVOPropertyAccess;
 import com.attestator.admin.client.rpc.AdminAsyncCallback;
@@ -35,6 +36,7 @@ import com.google.gwt.core.client.Scheduler;
 import com.google.gwt.core.client.Scheduler.ScheduledCommand;
 import com.google.gwt.editor.client.Editor;
 import com.google.gwt.editor.client.SimpleBeanEditorDriver;
+import com.google.gwt.editor.client.adapters.SimpleEditor;
 import com.google.gwt.event.shared.GwtEvent;
 import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
@@ -63,6 +65,8 @@ import com.sencha.gxt.data.shared.loader.PagingLoader;
 import com.sencha.gxt.widget.core.client.ContentPanel;
 import com.sencha.gxt.widget.core.client.ContentPanel.ContentPanelAppearance;
 import com.sencha.gxt.widget.core.client.Window;
+import com.sencha.gxt.widget.core.client.button.TextButton;
+import com.sencha.gxt.widget.core.client.container.AccordionLayoutContainer;
 import com.sencha.gxt.widget.core.client.event.HideEvent.HasHideHandlers;
 import com.sencha.gxt.widget.core.client.event.HideEvent.HideHandler;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
@@ -72,6 +76,8 @@ import com.sencha.gxt.widget.core.client.grid.ColumnConfig;
 import com.sencha.gxt.widget.core.client.grid.ColumnModel;
 import com.sencha.gxt.widget.core.client.grid.Grid;
 import com.sencha.gxt.widget.core.client.grid.GridSelectionModel;
+import com.sencha.gxt.widget.core.client.selection.SelectionChangedEvent;
+import com.sencha.gxt.widget.core.client.selection.SelectionChangedEvent.SelectionChangedHandler;
 import com.sencha.gxt.widget.core.client.toolbar.PagingToolBar;
 
 public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEventHandlers<MetaTestVO>,  HasHideHandlers{
@@ -93,8 +99,11 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
     private static GroupVOPropertyAccess groupPropertyAccess = GWT
             .create(GroupVOPropertyAccess.class);
     
-    private static PublicationsTreePropertyAccess publicationProperties = 
+    private static PublicationsTreePropertyAccess publicationsTreeProperties = 
             new PublicationsTreePropertyAccess();
+    
+    private static PublicationVOPropertyAccess publicationProperties = GWT
+            .create(PublicationVOPropertyAccess.class);
     
     private DriverImpl driver = GWT.create(DriverImpl.class);    
     private static UiBinderImpl uiBinder = GWT.create(UiBinderImpl.class);
@@ -104,6 +113,8 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
       return new ContentPanel(appearance);
     }
     
+    SimpleEditor<String> id = SimpleEditor.of();
+    
     @UiField
     TextField name;
     
@@ -111,6 +122,30 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
     @UiField
     Window window;
     
+    @UiField
+    @Ignore
+    AccordionLayoutContainer elementsSourceLayout;
+    
+    @UiField
+    @Ignore
+    ContentPanel questionsPanel;
+    
+    @UiField
+    @Ignore
+    ContentPanel groupsPanel;
+    
+    @UiField
+    @Ignore
+    TextButton addQuestionButton;
+
+    @UiField
+    @Ignore
+    TextButton addGroupButton;
+    
+    @UiField
+    @Ignore
+    TextButton removeEntryButton;
+        
     @Ignore
     @UiField(provided = true)
     SearchField questionsSearchField;
@@ -182,7 +217,7 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
     @Ignore
     ListStore<GroupVO> groupsStore;
     @Ignore
-    ListStore<GroupVO> publicationsStore;
+    ListStore<PublicationVO> publicationsStore;
     
     <T> ListStore<T> createStore(ModelKeyProvider<T> keyProvider) {
         ListStore<T> result = new ListStore<T>(keyProvider);
@@ -219,8 +254,8 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
         return new RpcProxy<ListLoadConfig, ListLoadResult<PublicationVO>>() {
              @Override
              public void load(ListLoadConfig loadConfig,
-                     AsyncCallback<ListLoadResult<PublicationVO>> callback) {
-//                 Admin.RPC.loadPublications(loadConfig, callback);
+                     AsyncCallback<ListLoadResult<PublicationVO>> callback) {                 
+                 Admin.RPC.loadPublicationsByMetatestId(id.getValue(), loadConfig, callback);
              }
         };
     }
@@ -229,6 +264,16 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
     PagingLoader<FilterPagingLoadConfig, PagingLoadResult<GroupVO>> groupsLoader;
     @Ignore
     PagingLoader<FilterPagingLoadConfig, PagingLoadResult<QuestionVO>> questionsLoader;
+    @Ignore
+    ListLoader<ListLoadConfig, ListLoadResult<PublicationVO>> publicationsLoader;
+    
+    <T> ListLoader<ListLoadConfig, ListLoadResult<T>> createListLoader(
+            final ListStore<T> store, RpcProxy<ListLoadConfig, ListLoadResult<T>> rpcProxy) {        
+        ListLoader<ListLoadConfig, ListLoadResult<T>> result = new ListLoader<ListLoadConfig, ListLoadResult<T>>(
+                rpcProxy);        
+        result.addLoadHandler(new LoadResultListStoreBinding<ListLoadConfig, T, ListLoadResult<T>>(store));
+        return result;
+    }
 
     <T> PagingLoader<FilterPagingLoadConfig, PagingLoadResult<T>> createPagingLoader(
             final ListStore<T> store, RpcProxy<FilterPagingLoadConfig, PagingLoadResult<T>> rpcProxy, final SearchField searchField) {
@@ -269,10 +314,45 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
     CheckBoxSelectionModel<QuestionVO> questionsSm;
     @Ignore
     CheckBoxSelectionModel<MetaTestEntryVO> entriesSm;
+
+    @Ignore
+    CheckBoxSelectionModel<PublicationVO> publicationsSm;
     
-    <T> CheckBoxSelectionModel<T> createSm() {
+    @SuppressWarnings("rawtypes")
+    @Ignore 
+    SelectionChangedHandler dualListSelectionHandler = new SelectionChangedHandler() {
+        private boolean ignore = false;
+        @Override
+        public void onSelectionChanged(SelectionChangedEvent event) {
+            if (ignore) {
+                return;
+            }
+            try {
+                ignore = true;                
+                if (event.getSource() != questionsSm) {
+                    questionsSm.deselectAll();
+                }                
+                if (event.getSource() != groupsSm) {
+                    groupsSm.deselectAll();
+                }                
+                if (event.getSource() != entriesSm) {
+                    entriesSm.deselectAll();
+                }                
+                enableDualListButtons();                
+            }
+            finally {
+                ignore = false;
+            }
+        }
+    }; 
+    
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    <T> CheckBoxSelectionModel<T> createSm(SelectionChangedHandler selectionCahngeHandler) {
         IdentityValueProvider<T> identity = new IdentityValueProvider<T>();
         CheckBoxSelectionModel<T> result = new CheckBoxSelectionModel<T>(identity);
+        if (selectionCahngeHandler != null) {
+            result.addSelectionChangedHandler(selectionCahngeHandler);
+        }
         return result;
     }
     
@@ -360,16 +440,16 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
     ColumnModel<PublicationVO> createPublicationsCm(CheckBoxSelectionModel<PublicationVO> sm){
         List<ColumnConfig<PublicationVO, ?>> l = new ArrayList<ColumnConfig<PublicationVO, ?>>();
         
-        l.add(new ColumnConfig<PublicationVO, Long>(publicationProperties.reportsCount, 14, "Отчетов"));
+        l.add(new ColumnConfig<PublicationVO, Long>(publicationsTreeProperties.reportsCount, 14, "Отчетов"));
         
-        l.add(new ColumnConfig<PublicationVO, String>(publicationProperties.start, 20, "Начало"));
-        l.add(new ColumnConfig<PublicationVO, String>(publicationProperties.end, 20, "Конец"));
+        l.add(new ColumnConfig<PublicationVO, String>(publicationsTreeProperties.start, 20, "Начало"));
+        l.add(new ColumnConfig<PublicationVO, String>(publicationsTreeProperties.end, 20, "Конец"));
         
-        l.add(new ColumnConfig<PublicationVO, String>(publicationProperties.fillBeforeTest, 40, "Заполнять перед тестом"));
-        l.add(new ColumnConfig<PublicationVO, String>(publicationProperties.maxAttempts , 20, "Макс. попыток"));
-        l.add(new ColumnConfig<PublicationVO, String>(publicationProperties.minScore, 15, "Мин. баллов"));
+        l.add(new ColumnConfig<PublicationVO, String>(publicationsTreeProperties.fillBeforeTest, 40, "Заполнять перед тестом"));
+        l.add(new ColumnConfig<PublicationVO, String>(publicationsTreeProperties.maxAttempts , 20, "Макс. попыток"));
+        l.add(new ColumnConfig<PublicationVO, String>(publicationsTreeProperties.minScore, 15, "Мин. баллов"));
         
-        l.add(new ColumnConfig<PublicationVO, String>(publicationProperties.maxTakeTestTime, 20, "Времени на тест"));
+        l.add(new ColumnConfig<PublicationVO, String>(publicationsTreeProperties.maxTakeTestTime, 20, "Времени на тест"));
         l.add(createPublicationActionsColumnConfig(new IdentityValueProvider<PublicationVO>()));
         
         ColumnModel<PublicationVO> result = new ColumnModel<PublicationVO>(l);
@@ -470,7 +550,8 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
     }
     
     public MetatestWindow(MetaTestVO metatest) {
-        questionsSm = createSm();
+                
+        questionsSm = createSm(dualListSelectionHandler);
         questionsCm = createQuestionsCm(questionsSm);
         questionsStore = createStore(questionPropertyAccess.id());
         questionsRpcProxy = createQuestionsRpcProxy();
@@ -478,7 +559,7 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
         questionsLoader = createPagingLoader(questionsStore, questionsRpcProxy, questionsSearchField);
         questionsGrid = createGrid(questionsLoader, questionsStore, questionsCm, questionsSm);
 
-        groupsSm = createSm();
+        groupsSm = createSm(dualListSelectionHandler);
         groupsCm = createGroupsCm(groupsSm);
         groupsStore = createStore(groupPropertyAccess.id());
         groupsRpcProxy = createGroupsRpcProxy();
@@ -486,13 +567,23 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
         groupsLoader = createPagingLoader(groupsStore, groupsRpcProxy, groupsSearchField);
         groupsGrid = createGrid(groupsLoader, groupsStore, groupsCm, groupsSm);
         
-        entriesSm = createSm();
+        entriesSm = createSm(dualListSelectionHandler);
         entriesCm = createEntriesCm(entriesSm);
         entriesStore = createStore(entryPropertyAccess.id());
         entries = createEntriesStoreEditor(entriesStore);
         entriesGrid = createGrid(entriesStore, entriesCm, entriesSm);
         
-        uiBinder.createAndBindUi(this);
+        publicationsSm = createSm(null);
+        publicationsCm = createPublicationsCm(publicationsSm);
+        publicationsStore = createStore(publicationProperties.id());
+        publicationsRpcProxy = createPublicationsRpcProxy();
+        publicationsLoader = createListLoader(publicationsStore, publicationsRpcProxy);
+        publicationsGrid = createGrid(publicationsStore, publicationsCm, publicationsSm);
+        
+        // Create UI
+        uiBinder.createAndBindUi(this);        
+        
+        elementsSourceLayout.setActiveWidget(questionsPanel);
         
         questionsPager.bind(questionsLoader);
         bindPagerAndSearchField(questionsSearchField, questionsPager);
@@ -505,13 +596,14 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
             public void execute() {
                 questionsPager.first();
                 groupsPager.first();
+                publicationsLoader.load();
             }
         });
         
+        enableDualListButtons();
+        
         driver.initialize(this);
         driver.edit(metatest);
-        
-        
     }
     
     private void showPublicationWindow(final PublicationVO publication) {
@@ -548,5 +640,14 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
     @Override
     public HandlerRegistration addHideHandler(HideHandler handler) {
         return window.addHideHandler(handler);
+    }
+    
+    private void enableDualListButtons() {
+        boolean isSomeQuestionSelected = questionsSm.getSelectedItems().size() > 0;
+        boolean isSomeGroupSelected = groupsSm.getSelectedItems().size() > 0;
+        boolean isSomeEntrySelected = entriesSm.getSelectedItems().size() > 0;
+        addQuestionButton.setEnabled(isSomeQuestionSelected);
+        addGroupButton.setEnabled(isSomeGroupSelected);
+        removeEntryButton.setEnabled(isSomeEntrySelected);        
     }
 }
