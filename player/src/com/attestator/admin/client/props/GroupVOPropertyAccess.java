@@ -7,7 +7,8 @@ import com.sencha.gxt.data.shared.LabelProvider;
 import com.sencha.gxt.data.shared.ModelKeyProvider;
 import com.sencha.gxt.data.shared.PropertyAccess;
 
-public interface GroupVOProperties extends PropertyAccess<GroupVO> {
+public interface GroupVOPropertyAccess extends PropertyAccess<GroupVO> {
+    ValueProvider<GroupVO, Long> questionsCount();
     ValueProvider<GroupVO, String> name();
     @Path("name")
     LabelProvider<GroupVO> nameLabel();

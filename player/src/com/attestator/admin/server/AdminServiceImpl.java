@@ -30,9 +30,20 @@ public class AdminServiceImpl extends RemoteServiceServlet implements
     private static final Logger logger = Logger.getLogger(AdminServiceImpl.class);
     
     @Override
+    public PagingLoadResult<GroupVO> loadGroupsPage(FilterPagingLoadConfig loadConfig) throws IllegalStateException {
+        try {
+            return Singletons.al().loadPage(GroupVO.class, loadConfig);
+        }
+        catch (Throwable e) {
+            logger.error("Error: ", e);
+            throw new IllegalStateException(DEFAULT_ERROR_MESSAGE, e);
+        }
+    }
+
+    @Override
     public PagingLoadResult<QuestionVO> loadQuestions(FilterPagingLoadConfig loadConfig) throws IllegalStateException {
         try {
-            return Singletons.al().loadQuestions(loadConfig);
+            return Singletons.al().loadPage(QuestionVO.class, loadConfig);
         }
         catch (Throwable e) {
             logger.error("Error: ", e);

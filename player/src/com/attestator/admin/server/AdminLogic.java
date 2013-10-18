@@ -128,6 +128,46 @@ public class AdminLogic extends CommonLogic {
         }
     }
 
+    public <T> PagingLoadResult<T> loadPage(Class<T> clazz, FilterPagingLoadConfig loadConfig, String ... excludFields) {
+        CheckHelper.throwIfNull(loadConfig, "loadConfig");
+        
+        // Create query
+        Query<T> q = Singletons.ds().createQuery(clazz);
+        
+        // Exclude fields if any
+        if (excludFields != null) {
+            q.retrievedFields(false, excludFields);
+        }
+    
+        // Add filters
+        if (!NullHelper.nullSafeIsEmpty(loadConfig.getFilters())) {
+            addFilters(q, loadConfig.getFilters());
+        }
+        
+        // Add order
+        if (!NullHelper.nullSafeIsEmpty(loadConfig.getSortInfo())) {
+            addOrders(q, loadConfig.getSortInfo());
+        }
+        else {
+            q.order("_id");
+        }
+
+        // Get total count (without offset and limit)
+        long count = q.countAll();        
+                
+        q.offset(loadConfig.getOffset());
+        q.limit(loadConfig.getLimit());
+        
+        List<T> qRes = q.asList();
+        
+        PagingLoadResultBean<T> result = new PagingLoadResultBean<T>();
+        result.setData(qRes);
+        result.setOffset(loadConfig.getOffset());
+        result.setTotalLength((int)count);
+        
+        return result;
+    }        
+
     public PagingLoadResult<ReportVO> loadReports(FilterPagingLoadConfig loadConfig, String ... excludFields) {
         CheckHelper.throwIfNull(loadConfig, "loadConfig");
         // Create query
@@ -155,41 +195,6 @@ public class AdminLogic extends CommonLogic {
         List<ReportVO> qRes = q.asList();
         
         PagingLoadResultBean<ReportVO> result = new PagingLoadResultBean<ReportVO>();
-        result.setData(qRes);
-        result.setOffset(loadConfig.getOffset());
-        result.setTotalLength((int)count);
-        
-        return result;
-    }
-
-    public PagingLoadResult<QuestionVO> loadQuestions(FilterPagingLoadConfig loadConfig) {
-        CheckHelper.throwIfNull(loadConfig, "loadConfig");
-        
-        // Create query
-        Query<QuestionVO> q = Singletons.ds().createQuery(QuestionVO.class);
-        
-        // Add filters
-        if (!NullHelper.nullSafeIsEmpty(loadConfig.getFilters())) {
-            addFilters(q, loadConfig.getFilters());
-        }
-        
-        // Add order
-        if (!NullHelper.nullSafeIsEmpty(loadConfig.getSortInfo())) {
-            addOrders(q, loadConfig.getSortInfo());
-        }
-        else {
-            q.order("_id");
-        }
-
-        // Get total count (without offset and limit)
-        long count = q.countAll();        
-                
-        q.offset(loadConfig.getOffset());
-        q.limit(loadConfig.getLimit());
-        
-        List<QuestionVO> qRes = q.asList();
-        
-        PagingLoadResultBean<QuestionVO> result = new PagingLoadResultBean<QuestionVO>();
         result.setData(qRes);
         result.setOffset(loadConfig.getOffset());
         result.setTotalLength((int)count);

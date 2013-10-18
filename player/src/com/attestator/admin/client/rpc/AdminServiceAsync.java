@@ -19,6 +19,8 @@ import com.sencha.gxt.data.shared.loader.PagingLoadResult;
 public interface AdminServiceAsync {
     void loadQuestions(FilterPagingLoadConfig loadConfig, AsyncCallback<PagingLoadResult<QuestionVO>> callback);
     void loadReports(FilterPagingLoadConfig loadConfig, AsyncCallback<PagingLoadResult<ReportVO>> callback);
+    void loadGroupsPage(FilterPagingLoadConfig loadConfig, AsyncCallback<PagingLoadResult<GroupVO>> callback);
+    
     void deleteQuestions(List<String> questionIds, AsyncCallback<Void> callback);
     void deleteReports(List<String> reportIds, AsyncCallback<Void> callback);
     void deletePublications(List<String> publicationIds, AsyncCallback<Void> callback);

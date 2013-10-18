@@ -212,7 +212,7 @@ public class ReportHelper {
         return hb.toString();
     }
     
-    private static String formatAnswer(QuestionVO question, AnswerVO answer) {
+    public static String formatAnswer(QuestionVO question, AnswerVO answer) {
         HtmlBuilder hb = new HtmlBuilder();
         if (question instanceof SingleChoiceQuestionVO) {
             int i = 1;            
@@ -232,10 +232,19 @@ public class ReportHelper {
         return hb.toString();
     }
     
-    private static String formatQuestion(QuestionVO question) {
+    public static String formatQuestion(QuestionVO question) {
+        return formatQuestion(question, null);
+    }
+    
+    public static String formatQuestion(QuestionVO question, String questionPrefix) {
         HtmlBuilder hb = new HtmlBuilder();
         hb.startTag("div", "reportTask");            
-        hb.startTag("div", "reportTaskText").appendText(question.getText()).endTag("div");
+        hb.startTag("div", "reportTaskText");
+        if (!StringHelper.isEmptyOrNull(questionPrefix)) {
+            hb.appendText(questionPrefix);
+        }
+        hb.appendText(question.getText());
+        hb.endTag("div");
         hb.startTag("div", "reportTaskDescription").appendText(question.getTaskDescription()).endTag("div");
         hb.startTag("div", "reportVariants");
         hb.startTable(0, 0, null, "0", "100%");

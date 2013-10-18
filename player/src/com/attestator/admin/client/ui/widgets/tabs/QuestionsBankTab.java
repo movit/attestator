@@ -129,15 +129,6 @@ public class QuestionsBankTab extends Composite {
                 super.onSelectChange(model, select);
                 enableButtons();
             }
-            // @Override
-            // protected void onRefresh(RefreshEvent event) {
-            // // this code selects all rows when paging if the header checkbox
-            // is selected
-            // if (isSelectAllChecked()) {
-            // selectAll();
-            // }
-            // super.onRefresh(event);
-            // }
         };
 
         return result;

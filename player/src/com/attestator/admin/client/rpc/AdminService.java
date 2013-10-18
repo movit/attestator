@@ -21,6 +21,8 @@ import com.sencha.gxt.data.shared.loader.PagingLoadResult;
 public interface AdminService extends RemoteService {
     PagingLoadResult<QuestionVO> loadQuestions(FilterPagingLoadConfig loadConfig) throws IllegalStateException;
     PagingLoadResult<ReportVO> loadReports(FilterPagingLoadConfig loadConfig) throws IllegalStateException;
+    PagingLoadResult<GroupVO> loadGroupsPage(FilterPagingLoadConfig loadConfig) throws IllegalStateException;
+    
     ReportVO loadReport(String reportId) throws IllegalStateException;
     
     ListLoadResult<PublicationVO> loadPublications() throws IllegalStateException;

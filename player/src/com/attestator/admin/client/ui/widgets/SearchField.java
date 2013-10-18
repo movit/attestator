@@ -6,6 +6,7 @@ import com.attestator.admin.client.ui.event.FilterEvent.HasFilterEventHandlers;
 import com.attestator.common.shared.helper.NullHelper;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.shared.HandlerRegistration;
+import com.google.gwt.uibinder.client.UiConstructor;
 import com.sencha.gxt.cell.core.client.form.TriggerFieldCell;
 import com.sencha.gxt.data.shared.Store;
 import com.sencha.gxt.theme.base.client.field.StoreFilterFieldDefaultAppearance;
@@ -21,12 +22,14 @@ public class SearchField extends TriggerField<String> implements HasFilterEventH
         }
     }
 
-    private String oldFilterValue;
+    private String oldFilterValue = null;
+    private String newFilterValue = null;
     
     /**
      * Creates a store filter field. Use {@link #bind(Store)} to bind the filter
      * to a store.
      */
+    @UiConstructor
     public SearchField() {
         super(new SearchFieldCell());
         setAutoValidate(true);
@@ -44,6 +47,7 @@ public class SearchField extends TriggerField<String> implements HasFilterEventH
 
     protected void onFilter(String value) {
         if (!NullHelper.nullSafeEquals(oldFilterValue, value)) {
+            newFilterValue = value;
             fireEvent(new FilterEvent<String>(value));
             oldFilterValue = value;
         }
@@ -68,5 +72,9 @@ public class SearchField extends TriggerField<String> implements HasFilterEventH
     public HandlerRegistration addFilterChangeHandler(
             FilterHandler<String> handler) {
         return addHandler(handler, FilterEvent.getType());
+    }
+
+    public String getNewFilterValue() {
+        return newFilterValue;
     }
 }

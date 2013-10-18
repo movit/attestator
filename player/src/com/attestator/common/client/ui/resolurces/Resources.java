@@ -40,6 +40,7 @@ public class Resources {
         ImageResource delete16x16();
         ImageResource clear16x16();
         ImageResource next16x16();
+        ImageResource prev16x16();
         ImageResource checkMark16x16();
         ImageResource file16x16();
         ImageResource addFile16x16();
