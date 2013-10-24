@@ -188,7 +188,7 @@
 										</row:child>
 										<row:child layoutData="{maxWidthMinHeightVLData}">
 											<toolbar:PagingToolBar ui:field="groupsPager"
-												pageSize="50" reuseConfig="false" visible="false" />
+												pageSize="50" reuseConfig="false" visible="true" />
 										</row:child>
 									</row:VerticalLayoutContainer>
 								</gxt:ContentPanel>
@@ -227,6 +227,10 @@
 										<toolbar:FillToolItem />
 										<button:TextButton ui:field="removeEntryButton"
 											icon="{icons.prev16x16}" iconAlign="LEFT" text="Убрать из теста" />
+                                        <button:TextButton ui:field="moveEntryUpButton"
+                                            icon="{icons.up16x16}" iconAlign="LEFT" toolTip="Переместить элементы к началу теста"  />
+                                        <button:TextButton ui:field="moveEntryDownButton"
+                                            icon="{icons.down16x16}" iconAlign="LEFT" toolTip="Переместить элементы к концу теста" />											
 									</toolbar:ToolBar>
 								</row:child>
 								<row:child layoutData="{maxWidthMaxHeightVLData}">

@@ -3,9 +3,11 @@ package com.attestator.admin.client.ui;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 import com.attestator.admin.client.Admin;
 import com.attestator.admin.client.props.GroupVOPropertyAccess;
+import com.attestator.admin.client.props.IntegerGreaterZerroPropertyEditor;
 import com.attestator.admin.client.props.MetatestEntryVOPropertyAccess;
 import com.attestator.admin.client.props.PublicationVOPropertyAccess;
 import com.attestator.admin.client.props.PublicationsTreePropertyAccess;
@@ -20,8 +22,12 @@ import com.attestator.admin.client.ui.event.SaveEvent.HasSaveEventHandlers;
 import com.attestator.admin.client.ui.event.SaveEvent.SaveHandler;
 import com.attestator.admin.client.ui.widgets.MultylinkCell;
 import com.attestator.admin.client.ui.widgets.SearchField;
+import com.attestator.admin.client.ui.widgets.SpinnerFieldCellExt;
 import com.attestator.common.client.ui.resolurces.Resources;
+import com.attestator.common.shared.helper.NullHelper;
+import com.attestator.common.shared.helper.ReportHelper;
 import com.attestator.common.shared.helper.StringHelper;
+import com.attestator.common.shared.helper.VOHelper;
 import com.attestator.common.shared.vo.BaseVO;
 import com.attestator.common.shared.vo.GroupVO;
 import com.attestator.common.shared.vo.MTEGroupVO;
@@ -35,11 +41,17 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.core.client.Scheduler;
 import com.google.gwt.core.client.Scheduler.ScheduledCommand;
 import com.google.gwt.editor.client.Editor;
+import com.google.gwt.editor.client.EditorError;
 import com.google.gwt.editor.client.SimpleBeanEditorDriver;
 import com.google.gwt.editor.client.adapters.SimpleEditor;
+import com.google.gwt.event.logical.shared.ValueChangeEvent;
+import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.event.shared.GwtEvent;
 import com.google.gwt.event.shared.HandlerRegistration;
+import com.google.gwt.i18n.client.NumberFormat;
+import com.google.gwt.safehtml.shared.SafeHtml;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
+import com.google.gwt.safehtml.shared.SafeUri;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiFactory;
 import com.google.gwt.uibinder.client.UiField;
@@ -48,6 +60,8 @@ import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.sencha.gxt.cell.core.client.ResizeCell;
 import com.sencha.gxt.core.client.IdentityValueProvider;
+import com.sencha.gxt.core.client.ValueProvider;
+import com.sencha.gxt.core.client.XTemplates;
 import com.sencha.gxt.data.client.editor.ListStoreEditor;
 import com.sencha.gxt.data.client.loader.RpcProxy;
 import com.sencha.gxt.data.shared.ListStore;
@@ -59,6 +73,8 @@ import com.sencha.gxt.data.shared.loader.FilterPagingLoadConfigBean;
 import com.sencha.gxt.data.shared.loader.ListLoadConfig;
 import com.sencha.gxt.data.shared.loader.ListLoadResult;
 import com.sencha.gxt.data.shared.loader.ListLoader;
+import com.sencha.gxt.data.shared.loader.LoadEvent;
+import com.sencha.gxt.data.shared.loader.LoadHandler;
 import com.sencha.gxt.data.shared.loader.LoadResultListStoreBinding;
 import com.sencha.gxt.data.shared.loader.PagingLoadResult;
 import com.sencha.gxt.data.shared.loader.PagingLoader;
@@ -67,15 +83,25 @@ import com.sencha.gxt.widget.core.client.ContentPanel.ContentPanelAppearance;
 import com.sencha.gxt.widget.core.client.Window;
 import com.sencha.gxt.widget.core.client.button.TextButton;
 import com.sencha.gxt.widget.core.client.container.AccordionLayoutContainer;
+import com.sencha.gxt.widget.core.client.event.BeforeStartEditEvent;
+import com.sencha.gxt.widget.core.client.event.BeforeStartEditEvent.BeforeStartEditHandler;
 import com.sencha.gxt.widget.core.client.event.HideEvent.HasHideHandlers;
 import com.sencha.gxt.widget.core.client.event.HideEvent.HideHandler;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
+import com.sencha.gxt.widget.core.client.form.SpinnerField;
 import com.sencha.gxt.widget.core.client.form.TextField;
+import com.sencha.gxt.widget.core.client.form.Validator;
+import com.sencha.gxt.widget.core.client.grid.AggregationNumberSummaryRenderer;
+import com.sencha.gxt.widget.core.client.grid.AggregationRowConfig;
+import com.sencha.gxt.widget.core.client.grid.AggregationSafeHtmlRenderer;
 import com.sencha.gxt.widget.core.client.grid.CheckBoxSelectionModel;
 import com.sencha.gxt.widget.core.client.grid.ColumnConfig;
 import com.sencha.gxt.widget.core.client.grid.ColumnModel;
 import com.sencha.gxt.widget.core.client.grid.Grid;
 import com.sencha.gxt.widget.core.client.grid.GridSelectionModel;
+import com.sencha.gxt.widget.core.client.grid.SummaryType.SumSummaryType;
+import com.sencha.gxt.widget.core.client.grid.editing.GridEditing;
+import com.sencha.gxt.widget.core.client.grid.editing.GridInlineEditing;
 import com.sencha.gxt.widget.core.client.selection.SelectionChangedEvent;
 import com.sencha.gxt.widget.core.client.selection.SelectionChangedEvent.SelectionChangedHandler;
 import com.sencha.gxt.widget.core.client.toolbar.PagingToolBar;
@@ -89,6 +115,16 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
     }
     interface UiBinderImpl extends UiBinder<Window, MetatestWindow> {
     }
+    
+    public static interface Templates extends XTemplates {
+        @XTemplate("<span class='{anchorClassName}'><img src='{imgUrl}'/></span>")
+        public SafeHtml imageAction(String anchorClassName, SafeUri imgUrl);        
+        @XTemplate("<span class='{anchorClassName}'><a href='#'>{text}</a></span>")
+        public SafeHtml textLinkAction(String anchorClassName, String text);        
+        @XTemplate("<span class='{anchorClassName}'>{text}</span>")
+        public SafeHtml textAction(String anchorClassName, String text);        
+    }
+    public static final Templates TEMPLATES = GWT.create(Templates.class);
     
     private static MetatestEntryVOPropertyAccess entryPropertyAccess = GWT
             .create(MetatestEntryVOPropertyAccess.class);
@@ -145,6 +181,14 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
     @UiField
     @Ignore
     TextButton removeEntryButton;
+    
+    @UiField
+    @Ignore
+    TextButton moveEntryUpButton;
+    
+    @UiField
+    @Ignore
+    TextButton moveEntryDownButton;
         
     @Ignore
     @UiField(provided = true)
@@ -196,6 +240,42 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
         result.setLoadMask(true);
         return result;
     }
+    
+    @Ignore
+    GridEditing<MetaTestEntryVO> entriesEditing;
+    GridEditing<MetaTestEntryVO> createEntriesEditing(final Grid<MetaTestEntryVO> grid, ColumnConfig<MetaTestEntryVO, Integer> questionsCountColumn) {
+        final GridInlineEditing<MetaTestEntryVO> result = new GridInlineEditing<MetaTestEntryVO>(grid);
+        
+        result.addBeforeStartEditHandler(new BeforeStartEditHandler<MetaTestEntryVO>() {
+            @Override
+            public void onBeforeStartEdit(
+                    BeforeStartEditEvent<MetaTestEntryVO> event) {
+                int row = event.getEditCell().getRow();
+                MetaTestEntryVO entry = grid.getStore().get(row);
+                if (entry instanceof MTEQuestionVO) {
+                    event.setCancelled(true);
+                }
+            }
+        });
+        
+        SpinnerField<Integer> questionNoEditor = new SpinnerField<Integer>(new IntegerGreaterZerroPropertyEditor());
+        questionNoEditor.addValueChangeHandler(new ValueChangeHandler<Integer>() {            
+            @Override
+            public void onValueChange(ValueChangeEvent<Integer> event) {
+                Scheduler.get().scheduleDeferred(new ScheduledCommand() {
+                    @Override
+                    public void execute() {
+                        grid.getStore().commitChanges();
+                    }
+                });
+            }
+        });
+        
+        result.addEditor(questionsCountColumn, questionNoEditor);
+        
+        return result; 
+    }
+    
     
     @Ignore
     @UiField
@@ -275,10 +355,10 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
         return result;
     }
 
-    <T> PagingLoader<FilterPagingLoadConfig, PagingLoadResult<T>> createPagingLoader(
-            final ListStore<T> store, RpcProxy<FilterPagingLoadConfig, PagingLoadResult<T>> rpcProxy, final SearchField searchField) {
+    PagingLoader<FilterPagingLoadConfig, PagingLoadResult<QuestionVO>> createQuestionsPagingLoader(
+            final ListStore<QuestionVO> store, RpcProxy<FilterPagingLoadConfig, PagingLoadResult<QuestionVO>> rpcProxy, final SearchField searchField) {
 
-        PagingLoader<FilterPagingLoadConfig, PagingLoadResult<T>> result = new PagingLoader<FilterPagingLoadConfig, PagingLoadResult<T>>(
+        PagingLoader<FilterPagingLoadConfig, PagingLoadResult<QuestionVO>> result = new PagingLoader<FilterPagingLoadConfig, PagingLoadResult<QuestionVO>>(
                 rpcProxy) {
             @Override
             protected FilterPagingLoadConfig newLoadConfig() {
@@ -290,21 +370,90 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
                     filterValue = filterValue.toLowerCase();
                     filterValue = filterValue.replaceAll("\\s+", " ");
 
-                    FilterConfig textFilter = new FilterConfigBean();
-                    textFilter.setComparison("contains");
-                    textFilter.setField("text");
-                    textFilter.setType("string");
-                    textFilter.setValue(filterValue);
+                    FilterConfig filter = new FilterConfigBean();
+                    filter.setComparison("contains");
+                    filter.setField("text");
+                    filter.setType("string");
+                    filter.setValue(filterValue);
 
-                    result.getFilters().add(textFilter);
+                    result.getFilters().add(filter);
+                }
+                
+                Set<String> entriesQuestionIds = VOHelper.getQuestionsIds(entriesStore.getAll());
+                if (!NullHelper.isEmptyOrNull(entriesQuestionIds)) {
+                    FilterConfig filter = new FilterConfigBean();
+                    filter.setComparison("notIn");
+                    filter.setField("_id");
+                    filter.setType("list");
+                    filter.setValue(StringHelper.combine(entriesQuestionIds.toArray(new String[0]), ", "));
+                    
+                    result.getFilters().add(filter);
                 }
 
                 return result;
             }
         };
         result.setRemoteSort(true);
-        result.addLoadHandler(new LoadResultListStoreBinding<FilterPagingLoadConfig, T, PagingLoadResult<T>>(store));
+        result.addLoadHandler(new LoadResultListStoreBinding<FilterPagingLoadConfig, QuestionVO, PagingLoadResult<QuestionVO>>(store));
+        result.addLoadHandler(new LoadHandler<FilterPagingLoadConfig, PagingLoadResult<QuestionVO>>(){
+            @Override
+            public void onLoad(
+                    LoadEvent<FilterPagingLoadConfig, PagingLoadResult<QuestionVO>> event) {
+                questionsPager.setVisible(event.getLoadResult().getTotalLength() > questionsPager.getPageSize());              
+            }
+        });
 
+        return result;
+    }
+    
+    PagingLoader<FilterPagingLoadConfig, PagingLoadResult<GroupVO>> createGroupsPagingLoader(
+            final ListStore<GroupVO> store, RpcProxy<FilterPagingLoadConfig, PagingLoadResult<GroupVO>> rpcProxy, final SearchField searchField) {
+
+        PagingLoader<FilterPagingLoadConfig, PagingLoadResult<GroupVO>> result = new PagingLoader<FilterPagingLoadConfig, PagingLoadResult<GroupVO>>(
+                rpcProxy) {
+            @Override
+            protected FilterPagingLoadConfig newLoadConfig() {
+                FilterPagingLoadConfig result = new FilterPagingLoadConfigBean();
+
+                if (StringHelper.isNotEmptyOrNull(searchField.getNewFilterValue())) {
+                    String filterValue = searchField.getNewFilterValue();
+                    filterValue = filterValue.trim();
+                    filterValue = filterValue.toLowerCase();
+                    filterValue = filterValue.replaceAll("\\s+", " ");
+
+                    FilterConfig filter = new FilterConfigBean();
+                    filter.setComparison("contains");
+                    filter.setField("name");
+                    filter.setType("string");
+                    filter.setValue(filterValue);
+
+                    result.getFilters().add(filter);
+                }
+                
+                Set<String> entriesGroupIds = VOHelper.getGroupsIds(entriesStore.getAll());
+                if (!NullHelper.isEmptyOrNull(entriesGroupIds)) {
+                    FilterConfig filter = new FilterConfigBean();
+                    filter.setComparison("notIn");
+                    filter.setField("_id");
+                    filter.setType("list");
+                    filter.setValue(StringHelper.combine(entriesGroupIds.toArray(new String[0]), ", "));
+                    
+                    result.getFilters().add(filter);
+                }
+
+                return result;
+            }
+        };
+        result.setRemoteSort(true);
+        result.addLoadHandler(new LoadResultListStoreBinding<FilterPagingLoadConfig, GroupVO, PagingLoadResult<GroupVO>>(store));
+        result.addLoadHandler(new LoadHandler<FilterPagingLoadConfig, PagingLoadResult<GroupVO>>(){
+            @Override
+            public void onLoad(
+                    LoadEvent<FilterPagingLoadConfig, PagingLoadResult<GroupVO>> event) {
+                groupsPager.setVisible(event.getLoadResult().getTotalLength() > groupsPager.getPageSize());              
+            }
+        });
+        
         return result;
     }
     
@@ -356,6 +505,31 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
         return result;
     }
     
+    private ColumnConfig<MetaTestEntryVO, Integer> createQuestonsCountColumnConfig(ValueProvider<MetaTestEntryVO, Integer> valueProvider, int width, String header) {
+        ColumnConfig<MetaTestEntryVO, Integer> result = new ColumnConfig<MetaTestEntryVO, Integer>(
+                valueProvider, width, header);
+        
+        ResizeCell<Integer> questionsCountCell = new ResizeCell<Integer>() {
+            @Override
+            public void render(Context context,
+                    Integer value, SafeHtmlBuilder sb) {
+                sb.append(value);
+                MetaTestEntryVO entry = entriesStore.findModelWithKey((String)context.getKey());
+                if (entry instanceof MTEGroupVO) {
+//                    sb.append(
+//                            TEMPLATES.imageAction(MultylinkCell.RESOURCES.multyLinkCellCss().multyLink(), 
+//                                    Resources.ICONS.edit16x16().getSafeUri()));
+                    sb.append(
+                            TEMPLATES.textLinkAction(MultylinkCell.RESOURCES.multyLinkCellCss().multyLink(), 
+                                    "изменить"));
+                }
+            }
+        };
+        
+        result.setCell(questionsCountCell);
+        
+        return result;        
+    }
     
     private ColumnConfig<MetaTestEntryVO, MetaTestEntryVO> createEntryDescriptionColumnConfig(IdentityValueProvider<MetaTestEntryVO> valueProvider, int width, String header) {
         ColumnConfig<MetaTestEntryVO, MetaTestEntryVO> result = new ColumnConfig<MetaTestEntryVO, MetaTestEntryVO>(valueProvider, width, header);
@@ -367,14 +541,18 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
                 if (value instanceof MTEQuestionVO) {
                     QuestionVO question = ((MTEQuestionVO) value).getQuestion();
                     if (question != null) {
-//                        sb.appendHtmlConstant(ReportHelper.formatQuestion(question, "<b>Вопрос: </b>"));
-                        sb.appendHtmlConstant("<b>Вопрос: </b>" + question.getText());
+//                        sb.appendHtmlConstant(
+//                                "<b>Вопрос: </b>(" + question.getGroupName() + ", " + 
+//                                        ReportHelper.formatScore(question.getScore()) + ")<br/>" + question.getText());
+                        sb.appendHtmlConstant(
+                                "<b>Вопрос: </b> из группы &laquo;" + question.getGroupName() + "&raquo;<br/>" + question.getText());
                     }
                 }
                 else if (value instanceof MTEGroupVO) {
                     GroupVO group = ((MTEGroupVO) value).getGroup();
                     if (group != null) {
-                        sb.appendHtmlConstant("<b>Группа: </b>" + group.getName());
+                        sb.appendHtmlConstant("<b>Группа: </b> &laquo;"  + group.getName() + "&raquo;, всего " + 
+                                ReportHelper.formatQuestionsCount(group.getQuestionsCount().intValue()));
                     }
                 }
                 sb.appendHtmlConstant("</div>");
@@ -459,18 +637,33 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
     
     @Ignore
     ColumnModel<MetaTestEntryVO> entriesCm;
+    
+    @Ignore
+    ColumnConfig<MetaTestEntryVO, Integer> entriesQuestionsCountColumn;    
+    
     ColumnModel<MetaTestEntryVO> createEntriesCm(
-            CheckBoxSelectionModel<MetaTestEntryVO> sm) {
+            CheckBoxSelectionModel<MetaTestEntryVO> sm, ColumnConfig<MetaTestEntryVO, Integer> questionsCountColumn) {
 
         List<ColumnConfig<MetaTestEntryVO, ?>> l = new ArrayList<ColumnConfig<MetaTestEntryVO, ?>>();
-        l.add(sm.getColumn());        
-        l.add(createEntryDescriptionColumnConfig(new IdentityValueProvider<MetaTestEntryVO>(),
-                300, "Элемент теста"));
-        l.add(new ColumnConfig<MetaTestEntryVO, Integer>(
-                  entryPropertyAccess.numberOfQuestions(), 5, "Вопрсов"));
+        l.add(sm.getColumn());
+        
+        ColumnConfig<MetaTestEntryVO, MetaTestEntryVO> entryColumn = createEntryDescriptionColumnConfig(new IdentityValueProvider<MetaTestEntryVO>(),
+                300, "Элемент теста"); 
+        l.add(entryColumn);
+        
+//        ColumnConfig<MetaTestEntryVO, Integer> questionsCountColumn = createQuestonsCountColumnConfig(entryPropertyAccess.numberOfQuestions(), 60, "Вопросов");
+        l.add(questionsCountColumn);
         
         ColumnModel<MetaTestEntryVO> result = new ColumnModel<MetaTestEntryVO>(l);
-
+        
+        AggregationRowConfig<MetaTestEntryVO> totalQuestionsCount = new AggregationRowConfig<MetaTestEntryVO>();
+        totalQuestionsCount.setRenderer(entryColumn, new AggregationSafeHtmlRenderer<MetaTestEntryVO>("Всего вопросов в тесте"));        
+        totalQuestionsCount.setRenderer(questionsCountColumn, 
+                new AggregationNumberSummaryRenderer<MetaTestEntryVO, Integer>(
+                        NumberFormat.getDecimalFormat(),
+                new SumSummaryType<Integer>()));
+        result.addAggregationRow(totalQuestionsCount);
+        
         return result;
     }
     
@@ -498,10 +691,6 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
     ColumnModel<QuestionVO> questionsCm;
     ColumnModel<QuestionVO> createQuestionsCm(
             CheckBoxSelectionModel<QuestionVO> sm) {
-//ContentPanel
-//ToolButton
-//AccordionLayoutContainer
-//BorderLayoutContainer        
         ColumnConfig<QuestionVO, String> textColumn = new ColumnConfig<QuestionVO, String>(
                 questionPropertyAccess.text(), 100, "Вопрос");
         textColumn.setCell(new AbstractCell<String>() {
@@ -556,7 +745,7 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
         questionsStore = createStore(questionPropertyAccess.id());
         questionsRpcProxy = createQuestionsRpcProxy();
         questionsSearchField = createSearchField();
-        questionsLoader = createPagingLoader(questionsStore, questionsRpcProxy, questionsSearchField);
+        questionsLoader = createQuestionsPagingLoader(questionsStore, questionsRpcProxy, questionsSearchField);
         questionsGrid = createGrid(questionsLoader, questionsStore, questionsCm, questionsSm);
 
         groupsSm = createSm(dualListSelectionHandler);
@@ -564,14 +753,16 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
         groupsStore = createStore(groupPropertyAccess.id());
         groupsRpcProxy = createGroupsRpcProxy();
         groupsSearchField = createSearchField();
-        groupsLoader = createPagingLoader(groupsStore, groupsRpcProxy, groupsSearchField);
+        groupsLoader = createGroupsPagingLoader(groupsStore, groupsRpcProxy, groupsSearchField);
         groupsGrid = createGrid(groupsLoader, groupsStore, groupsCm, groupsSm);
         
         entriesSm = createSm(dualListSelectionHandler);
-        entriesCm = createEntriesCm(entriesSm);
+        entriesQuestionsCountColumn = createQuestonsCountColumnConfig(entryPropertyAccess.numberOfQuestions(), 60, "Вопросов в тесте");
+        entriesCm = createEntriesCm(entriesSm, entriesQuestionsCountColumn);
         entriesStore = createStore(entryPropertyAccess.id());
         entries = createEntriesStoreEditor(entriesStore);
         entriesGrid = createGrid(entriesStore, entriesCm, entriesSm);
+        entriesEditing = createEntriesEditing(entriesGrid, entriesQuestionsCountColumn);
         
         publicationsSm = createSm(null);
         publicationsCm = createPublicationsCm(publicationsSm);
@@ -605,6 +796,87 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
         driver.initialize(this);
         driver.edit(metatest);
     }
+
+    @UiHandler("addQuestionButton")
+    void addQuestionButtonClick(SelectEvent event) {
+        List<MetaTestEntryVO> entriesToAdd = new ArrayList<MetaTestEntryVO>();
+        
+        for (QuestionVO question: questionsSm.getSelectedItems()) {
+            MTEQuestionVO entry = new MTEQuestionVO();
+            entry.setQuestionId(question.getId());
+            entry.setQuestion(question);
+            entriesToAdd.add(entry);
+        }
+        
+        int rowToMakeVisible = entriesStore.size();
+        entriesStore.addAll(entriesToAdd);
+        entriesSm.select(entriesToAdd, false);
+        entriesGrid.getView().ensureVisible(rowToMakeVisible, 0, true);
+        
+        questionsPager.refresh();
+    }
+    
+    @UiHandler("addGroupButton")
+    void addGroupButtonClick(SelectEvent event) {
+        List<MetaTestEntryVO> entriesToAdd = new ArrayList<MetaTestEntryVO>();
+        
+        for (GroupVO group: groupsSm.getSelectedItems()) {
+            MTEGroupVO entry = new MTEGroupVO();
+            entry.setGroupId(group.getId());
+            entry.setGroup(group);
+            entry.setNumberOfQuestions(group.getQuestionsCount().intValue());
+            entriesToAdd.add(entry);
+        }
+        
+        int rowToMakeVisible = entriesStore.size();
+        entriesStore.addAll(entriesToAdd);
+        entriesSm.select(entriesToAdd, false);
+        entriesGrid.getView().ensureVisible(rowToMakeVisible, 0, true);
+        
+        groupsPager.refresh();
+    }
+    
+    @UiHandler("removeEntryButton")
+    void removeEntryButtonClick(SelectEvent event) {
+        for(MetaTestEntryVO entry: entriesSm.getSelectedItems()) {
+            entriesStore.remove(entry);
+        }
+        groupsPager.refresh();
+        questionsPager.refresh();
+    }
+    
+    @UiHandler("moveEntryUpButton")
+    void moveEntryUpButtonClick(SelectEvent event) {
+        List<MetaTestEntryVO> entries = entriesSm.getSelectedItems();
+        
+        int index = entriesStore.indexOf(entries.get(0));
+        index = index > 0 ? index - 1 : 0;
+        
+        for(MetaTestEntryVO entry: entries) {
+            entriesStore.remove(entry);
+        }
+        
+        entriesStore.addAll(index, entries);
+        entriesSm.select(entries, false);
+        entriesGrid.getView().ensureVisible(index, 0, true);        
+    }
+    
+    @UiHandler("moveEntryDownButton")
+    void moveEntryDownButtonClick(SelectEvent event) {
+        List<MetaTestEntryVO> entries = entriesSm.getSelectedItems();
+        
+        int index = entriesStore.indexOf(entries.get(0));
+        
+        for(MetaTestEntryVO entry: entries) {
+            entriesStore.remove(entry);
+        }
+        
+        index = index < entriesStore.size() ? index + 1 : entriesStore.size();
+        
+        entriesStore.addAll(index, entries);
+        entriesSm.select(entries, false);
+        entriesGrid.getView().ensureVisible(index, 0, true);        
+    }    
     
     private void showPublicationWindow(final PublicationVO publication) {
         PublicationWindow window = new PublicationWindow(publication);
@@ -618,7 +890,7 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
     }
     
     @UiHandler("cancelButton")
-    protected void cancelButtonClick(SelectEvent event) {
+    void cancelButtonClick(SelectEvent event) {
         window.hide();
     }
     
@@ -648,6 +920,8 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
         boolean isSomeEntrySelected = entriesSm.getSelectedItems().size() > 0;
         addQuestionButton.setEnabled(isSomeQuestionSelected);
         addGroupButton.setEnabled(isSomeGroupSelected);
-        removeEntryButton.setEnabled(isSomeEntrySelected);        
+        removeEntryButton.setEnabled(isSomeEntrySelected);
+        moveEntryUpButton.setEnabled(isSomeEntrySelected);
+        moveEntryDownButton.setEnabled(isSomeEntrySelected);
     }
 }

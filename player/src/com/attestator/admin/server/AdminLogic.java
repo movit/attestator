@@ -116,7 +116,7 @@ public class AdminLogic extends CommonLogic {
                 continue;
             }
             
-            if ("string".equals(filter.getType())) {
+            if ("contains".equals(filter.getComparison())) {
                 List<Pattern> keywordPatterns = new ArrayList<Pattern>();
                 String[] keywords = filter.getValue().split("\\s+");
                 for (String keyword: keywords) {
@@ -126,6 +126,9 @@ public class AdminLogic extends CommonLogic {
                     keywordPatterns.add(Pattern.compile(keyword, Pattern.CASE_INSENSITIVE));                    
                 }
                 q.field(filter.getField()).hasAllOf(keywordPatterns);
+            }
+            else if ("notIn".equals(filter.getComparison())) {
+                q.field(filter.getField()).notIn(StringHelper.splitBySeparatorToList(filter.getValue(), ", "));
             }
         }
     }

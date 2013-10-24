@@ -159,7 +159,7 @@ public class PublicationsTab extends Composite {
                 }
                 else if (value instanceof MetaTestVO) {
                     MetaTestVO metatest = (MetaTestVO) value;
-                    sb.appendHtmlConstant("<b>Тест &laquo;" + metatest.getName() + "&raquo;</b> (" + ReportHelper.formatNumberOfQuestions(metatest.getNumberOfQuestions()) + ")");
+                    sb.appendHtmlConstant("<b>Тест &laquo;" + metatest.getName() + "&raquo;</b> (" + ReportHelper.formatQuestionsCount(metatest.getNumberOfQuestions()) + ")");
                 }
             }
         });        

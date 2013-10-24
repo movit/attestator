@@ -266,7 +266,7 @@ public class ReportHelper {
         return hb.toString();
     }
     
-    public static String formatNumberOfQuestions(int number) {
+    public static String formatQuestionsCount(int number) {
         if ((number - ((int)number)) != 0) {
             return number + " вопроса";
         }
