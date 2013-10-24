@@ -12,5 +12,7 @@ public interface GroupVOPropertyAccess extends PropertyAccess<GroupVO> {
     ValueProvider<GroupVO, String> name();
     @Path("name")
     LabelProvider<GroupVO> nameLabel();
+    @Path("id")
+    ValueProvider<GroupVO, String> goupId();
     ModelKeyProvider<GroupVO> id();
 }

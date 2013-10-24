@@ -6,8 +6,8 @@ import java.util.List;
 import java.util.Set;
 
 import com.attestator.admin.client.Admin;
+import com.attestator.admin.client.props.BoundedConverter;
 import com.attestator.admin.client.props.GroupVOPropertyAccess;
-import com.attestator.admin.client.props.IntegerGreaterZerroPropertyEditor;
 import com.attestator.admin.client.props.MetatestEntryVOPropertyAccess;
 import com.attestator.admin.client.props.PublicationVOPropertyAccess;
 import com.attestator.admin.client.props.PublicationsTreePropertyAccess;
@@ -62,7 +62,6 @@ import com.sencha.gxt.core.client.ValueProvider;
 import com.sencha.gxt.core.client.XTemplates;
 import com.sencha.gxt.data.client.editor.ListStoreEditor;
 import com.sencha.gxt.data.client.loader.RpcProxy;
-import com.sencha.gxt.data.shared.Converter;
 import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.data.shared.ModelKeyProvider;
 import com.sencha.gxt.data.shared.loader.FilterConfig;
@@ -84,11 +83,10 @@ import com.sencha.gxt.widget.core.client.button.TextButton;
 import com.sencha.gxt.widget.core.client.container.AccordionLayoutContainer;
 import com.sencha.gxt.widget.core.client.event.BeforeStartEditEvent;
 import com.sencha.gxt.widget.core.client.event.BeforeStartEditEvent.BeforeStartEditHandler;
-import com.sencha.gxt.widget.core.client.event.CompleteEditEvent;
-import com.sencha.gxt.widget.core.client.event.CompleteEditEvent.CompleteEditHandler;
 import com.sencha.gxt.widget.core.client.event.HideEvent.HasHideHandlers;
 import com.sencha.gxt.widget.core.client.event.HideEvent.HideHandler;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
+import com.sencha.gxt.widget.core.client.form.NumberPropertyEditor.IntegerPropertyEditor;
 import com.sencha.gxt.widget.core.client.form.SpinnerField;
 import com.sencha.gxt.widget.core.client.form.TextField;
 import com.sencha.gxt.widget.core.client.grid.AggregationNumberSummaryRenderer;
@@ -99,7 +97,7 @@ import com.sencha.gxt.widget.core.client.grid.ColumnConfig;
 import com.sencha.gxt.widget.core.client.grid.ColumnModel;
 import com.sencha.gxt.widget.core.client.grid.Grid;
 import com.sencha.gxt.widget.core.client.grid.GridSelectionModel;
-import com.sencha.gxt.widget.core.client.grid.SummaryType;
+import com.sencha.gxt.widget.core.client.grid.SummaryType.SumSummaryType;
 import com.sencha.gxt.widget.core.client.grid.editing.GridEditing;
 import com.sencha.gxt.widget.core.client.grid.editing.GridInlineEditing;
 import com.sencha.gxt.widget.core.client.selection.SelectionChangedEvent;
@@ -243,23 +241,11 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
     
     @Ignore
     GridEditing<MetaTestEntryVO> entriesEditing;
-    GridEditing<MetaTestEntryVO> createEntriesEditing(final Grid<MetaTestEntryVO> grid, ColumnConfig<MetaTestEntryVO, MetaTestEntryVO> questionsCountColumn) {
+    GridEditing<MetaTestEntryVO> createEntriesEditing(final Grid<MetaTestEntryVO> grid, ColumnConfig<MetaTestEntryVO, Integer> questionsCountColumn) {
         final GridInlineEditing<MetaTestEntryVO> result = new GridInlineEditing<MetaTestEntryVO>(grid);
-        
-        result.addBeforeStartEditHandler(new BeforeStartEditHandler<MetaTestEntryVO>() {
-            @Override
-            public void onBeforeStartEdit(
-                    BeforeStartEditEvent<MetaTestEntryVO> event) {
-                int row = event.getEditCell().getRow();
-                MetaTestEntryVO entry = grid.getStore().get(row);
-                if (entry instanceof MTEQuestionVO) {
-                    event.setCancelled(true);
-                }
-            }
-        });
-        
-        SpinnerField<Integer> questionNoEditor = new SpinnerField<Integer>(new IntegerGreaterZerroPropertyEditor());
-        questionNoEditor.addValueChangeHandler(new ValueChangeHandler<Integer>() {            
+
+        final SpinnerField<Integer> questionsCountEditor = new SpinnerField<Integer>(new IntegerPropertyEditor());
+        questionsCountEditor.addValueChangeHandler(new ValueChangeHandler<Integer>() {            
             @Override
             public void onValueChange(ValueChangeEvent<Integer> event) {
                 Scheduler.get().scheduleDeferred(new ScheduledCommand() {
@@ -270,27 +256,31 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
                 });
             }
         });
-//        questionNoEditor.setM
         
+        final BoundedConverter<Integer> questionsCountConverter = 
+                new BoundedConverter<Integer>();            
         
-        Converter<MetaTestEntryVO, Integer> questionNoConverter = new Converter<MetaTestEntryVO, Integer>() {
-
+        result.addBeforeStartEditHandler(new BeforeStartEditHandler<MetaTestEntryVO>() {
             @Override
-            public MetaTestEntryVO convertFieldValue(Integer object) {
-                // TODO Auto-generated method stub
-                return null;
+            public void onBeforeStartEdit(
+                    BeforeStartEditEvent<MetaTestEntryVO> event) {
+                int row = event.getEditCell().getRow();
+                MetaTestEntryVO entry = grid.getStore().get(row);
+                if (entry instanceof MTEQuestionVO) {
+                    event.setCancelled(true);
+                }
+                else {
+                    questionsCountConverter.setPrevValue(entry.getNumberOfQuestions());
+                    questionsCountConverter.setMinValue(1);
+                    questionsCountConverter.setMaxValue(((MTEGroupVO)entry).getGroup().getQuestionsCount().intValue());
+                    
+                    questionsCountEditor.clearInvalid();
+                }
             }
-
-            @Override
-            public Integer convertModelValue(MetaTestEntryVO object) {
-                // TODO Auto-generated method stub
-                return null;
-            }
-        
-        };
+        });
         
         
-        result.addEditor(questionsCountColumn, questionNoEditor);
+        result.addEditor(questionsCountColumn, questionsCountConverter, questionsCountEditor);
         
         return result; 
     }
@@ -524,22 +514,26 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
         return result;
     }
     
-    private ColumnConfig<MetaTestEntryVO, MetaTestEntryVO> createQuestonsCountColumnConfig(IdentityValueProvider<MetaTestEntryVO> valueProvider, int width, String header) {
-        ColumnConfig<MetaTestEntryVO, MetaTestEntryVO> result = new ColumnConfig<MetaTestEntryVO, MetaTestEntryVO>(
+    private ColumnConfig<MetaTestEntryVO, Integer> createQuestonsCountColumnConfig(ValueProvider<MetaTestEntryVO, Integer> valueProvider, int width, String header) {
+        ColumnConfig<MetaTestEntryVO, Integer> result = new ColumnConfig<MetaTestEntryVO, Integer>(
                 valueProvider, width, header);
         
-        result.setCell(new ResizeCell<MetaTestEntryVO>() {
+        ResizeCell<Integer> questionsCountCell = new ResizeCell<Integer>() {
             @Override
             public void render(Context context,
-                    MetaTestEntryVO value, SafeHtmlBuilder sb) {
-                sb.append(value.getNumberOfQuestions());
-                if (value instanceof MTEGroupVO) {
+                    Integer value, SafeHtmlBuilder sb) {
+                sb.append(value);
+                MetaTestEntryVO entry = entriesStore.findModelWithKey((String)context.getKey());
+                if (entry instanceof MTEGroupVO) {
                     sb.append(
                             TEMPLATES.textLinkAction(MultylinkCell.RESOURCES.multyLinkCellCss().multyLink(), 
                                     "изменить"));
                 }
             }
-        });
+        };
+        result.setMenuDisabled(true);
+        result.setSortable(false);
+        result.setCell(questionsCountCell);
         
         return result;        
     }
@@ -554,9 +548,6 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
                 if (value instanceof MTEQuestionVO) {
                     QuestionVO question = ((MTEQuestionVO) value).getQuestion();
                     if (question != null) {
-//                        sb.appendHtmlConstant(
-//                                "<b>Вопрос: </b>(" + question.getGroupName() + ", " + 
-//                                        ReportHelper.formatScore(question.getScore()) + ")<br/>" + question.getText());
                         sb.appendHtmlConstant(
                                 "<b>Вопрос: </b> из группы &laquo;" + question.getGroupName() + "&raquo;<br/>" + question.getText());
                     }
@@ -571,6 +562,8 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
                 sb.appendHtmlConstant("</div>");
             }
         });
+        result.setMenuDisabled(true);
+        result.setSortable(false);
         
         return result;
 
@@ -610,7 +603,7 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
                     Admin.RPC.deletePublications(Arrays.asList(publication.getId()), new AdminAsyncCallback<Void>() {
                         @Override
                         public void onSuccess(Void result) {
-//                            gridStore.remove(publication);                            
+                            publicationsLoader.load();
                         }
                     });
                 }
@@ -652,42 +645,31 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
     ColumnModel<MetaTestEntryVO> entriesCm;
     
     @Ignore
-    ColumnConfig<MetaTestEntryVO, MetaTestEntryVO> entriesQuestionsCountColumn;    
+    ColumnConfig<MetaTestEntryVO, Integer> entriesQuestionsCountColumn;    
     
     ColumnModel<MetaTestEntryVO> createEntriesCm(
-            CheckBoxSelectionModel<MetaTestEntryVO> sm, ColumnConfig<MetaTestEntryVO, MetaTestEntryVO> questionsCountColumn) {
+            CheckBoxSelectionModel<MetaTestEntryVO> sm, ColumnConfig<MetaTestEntryVO, Integer> questionsCountColumn) {
 
         List<ColumnConfig<MetaTestEntryVO, ?>> l = new ArrayList<ColumnConfig<MetaTestEntryVO, ?>>();
         l.add(sm.getColumn());
         
         ColumnConfig<MetaTestEntryVO, MetaTestEntryVO> entryColumn = createEntryDescriptionColumnConfig(new IdentityValueProvider<MetaTestEntryVO>(),
                 300, "Элемент теста"); 
+        
         l.add(entryColumn);
         
+//        ColumnConfig<MetaTestEntryVO, Integer> questionsCountColumn = createQuestonsCountColumnConfig(entryPropertyAccess.numberOfQuestions(), 60, "Вопросов");
         l.add(questionsCountColumn);
         
         ColumnModel<MetaTestEntryVO> result = new ColumnModel<MetaTestEntryVO>(l);
         
-        AggregationRowConfig<MetaTestEntryVO> aggregationQuestionsCount = new AggregationRowConfig<MetaTestEntryVO>();
-        aggregationQuestionsCount.setRenderer(entryColumn, new AggregationSafeHtmlRenderer<MetaTestEntryVO>("Всего вопросов в тесте"));        
-        aggregationQuestionsCount.setRenderer(questionsCountColumn, 
-                new AggregationNumberSummaryRenderer<MetaTestEntryVO, MetaTestEntryVO>(NumberFormat.getDecimalFormat(),
-                        new SummaryType<MetaTestEntryVO, Integer>() {
-                            @Override
-                            public <M> Integer calculate(
-                                    List<? extends M> models,
-                                    ValueProvider<? super M, MetaTestEntryVO> vp) {
-                                int result = 0;
-                                for (M entry: models) {
-                                    if (entry instanceof MetaTestEntryVO) {
-                                        result += ((MetaTestEntryVO) entry).getNumberOfQuestions();
-                                    }
-                                }
-                                return result;
-                            }
-                        })
-                );
-        result.addAggregationRow(aggregationQuestionsCount);
+        AggregationRowConfig<MetaTestEntryVO> totalQuestionsCount = new AggregationRowConfig<MetaTestEntryVO>();
+        totalQuestionsCount.setRenderer(entryColumn, new AggregationSafeHtmlRenderer<MetaTestEntryVO>("Всего вопросов в тесте"));        
+        totalQuestionsCount.setRenderer(questionsCountColumn, 
+                new AggregationNumberSummaryRenderer<MetaTestEntryVO, Integer>(
+                        NumberFormat.getDecimalFormat(),
+                new SumSummaryType<Integer>()));
+        result.addAggregationRow(totalQuestionsCount);
         
         return result;
     }
@@ -700,11 +682,14 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
         List<ColumnConfig<GroupVO, ?>> l = new ArrayList<ColumnConfig<GroupVO, ?>>();
         l.add(sm.getColumn());
         
-        l.add(new ColumnConfig<GroupVO, String>(
-                groupPropertyAccess.name(), 100, "Название"));
+        ColumnConfig<GroupVO, String> nameColumn = new ColumnConfig<GroupVO, String>(
+                groupPropertyAccess.name(), 100, "Название"); 
+        l.add(nameColumn);
         
-        l.add(new ColumnConfig<GroupVO, Long>(
-                groupPropertyAccess.questionsCount(), 20, "Вопросов"));
+        ColumnConfig<GroupVO, Long> questionsCountColumn = new ColumnConfig<GroupVO, Long>(
+                groupPropertyAccess.questionsCount(), 20, "Вопросов"); 
+        questionsCountColumn.setSortable(false);        
+        l.add(questionsCountColumn);
         
         ColumnModel<GroupVO> result = new ColumnModel<GroupVO>(l);
 
@@ -782,7 +767,7 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
         groupsGrid = createGrid(groupsLoader, groupsStore, groupsCm, groupsSm);
         
         entriesSm = createSm(dualListSelectionHandler);
-        entriesQuestionsCountColumn = createQuestonsCountColumnConfig(new IdentityValueProvider<MetaTestEntryVO>(), 60, "Вопросов в тесте");
+        entriesQuestionsCountColumn = createQuestonsCountColumnConfig(entryPropertyAccess.numberOfQuestions(), 60, "Вопросов в тесте");
         entriesCm = createEntriesCm(entriesSm, entriesQuestionsCountColumn);
         entriesStore = createStore(entryPropertyAccess.id());
         entries = createEntriesStoreEditor(entriesStore);
@@ -813,6 +798,8 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
                 questionsPager.first();
                 groupsPager.first();
                 publicationsLoader.load();
+                
+                window.maximize();
             }
         });
         
@@ -908,7 +895,7 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
         window.addSaveHandler(new SaveHandler<PublicationVO>() {
             @Override
             public void onSave(SaveEvent<PublicationVO> event) {
-//TODO                refreshGrid(publication.getMetatest().getId(), publication.getId());
+                publicationsLoader.load();
             }
         });
         window.asWidget().show();
