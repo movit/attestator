@@ -56,7 +56,7 @@ public class ButtonFileUpload extends Component implements IsField<String>, HasC
     String browserText();
   }
 
-  protected class DefaultFileUploadFieldMessages implements FileUploadFieldMessages {
+  protected static class DefaultFileUploadFieldMessages implements FileUploadFieldMessages {
 
     @Override
     public String browserText() {

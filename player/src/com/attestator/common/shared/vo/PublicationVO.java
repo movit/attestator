@@ -54,7 +54,7 @@ public class PublicationVO extends ModificationDateAwareVO implements Publicatio
     private Boolean         askEmail;
     private Boolean         askEmailRequired;
     
-    private List<AdditionalQuestionVO> additionalQuestions = new ArrayList<AdditionalQuestionVO>();    
+    private List<AdditionalQuestionVO> additionalQuestions = new ArrayList<AdditionalQuestionVO>();        
     
     public String getMetatestId() {
         return metatestId;

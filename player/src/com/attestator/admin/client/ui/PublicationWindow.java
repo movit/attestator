@@ -7,7 +7,7 @@ import com.attestator.admin.client.Admin;
 import com.attestator.admin.client.props.DoubleGreaterZerroPropertyEditor;
 import com.attestator.admin.client.props.IntegerGreaterZerroPropertyEditor;
 import com.attestator.admin.client.props.MilisecondsPropertyEditor;
-import com.attestator.admin.client.rpc.AdminAsyncEmptyCallback;
+import com.attestator.admin.client.rpc.AdminAsyncCallback;
 import com.attestator.admin.client.ui.event.SaveEvent;
 import com.attestator.admin.client.ui.event.SaveEvent.HasSaveEventHandlers;
 import com.attestator.admin.client.ui.event.SaveEvent.SaveHandler;
@@ -15,6 +15,7 @@ import com.attestator.admin.client.ui.widgets.AdditionalQuestionItem;
 import com.attestator.admin.client.ui.widgets.AdditionalQuestionsList;
 import com.attestator.admin.client.ui.widgets.DateTimeSelector;
 import com.attestator.common.shared.helper.StringHelper;
+import com.attestator.common.shared.helper.VOHelper;
 import com.attestator.common.shared.vo.AdditionalQuestionVO;
 import com.attestator.common.shared.vo.AdditionalQuestionVO.AnswerTypeEnum;
 import com.attestator.common.shared.vo.PublicationVO;
@@ -55,7 +56,12 @@ public class PublicationWindow implements IsWidget, Editor<PublicationVO>, HasSa
 
     interface UiBinderImpl extends UiBinder<Widget, PublicationWindow> {
     }
-
+    
+    public static enum SaveMode {
+        saveToObject,
+        saveToServer
+    }
+   
     private DriverImpl driver = GWT.create(DriverImpl.class);    
     private static UiBinderImpl uiBinder = GWT.create(UiBinderImpl.class);
     
@@ -147,12 +153,33 @@ public class PublicationWindow implements IsWidget, Editor<PublicationVO>, HasSa
     @UiField
     FieldSet publicationParamsFieldSet;
     
-    public PublicationWindow() {
-        this(null); 
+    @Ignore
+    private PublicationVO originalPublicationInstance;
+    
+    @Ignore SaveMode saveMode;
+    
+    public PublicationWindow(PublicationVO publication, EditMode editMode) {
+        this(publication, editMode, SaveMode.saveToServer);
     }
     
-    public PublicationWindow(PublicationVO publication) {
+    private String getHeader(EditMode editType) {
+        switch (editType) {
+        case etCopy:
+            return "Публикация - копия";
+        case etNew:
+            return "Публикация - новая";
+        case etExisting:
+            return "Публикация - редактирование";
+        default:
+            return "Публикация";
+        }        
+    }
+
+    public PublicationWindow(PublicationVO publication, EditMode editMode, SaveMode saveMode) {
         super();
+        
+        this.saveMode = saveMode;
+        this.originalPublicationInstance = publication;
         
         uiBinder.createAndBindUi(this);
         publicationParamsFieldSet.addExpandHandler(new ExpandHandler() {            
@@ -161,8 +188,12 @@ public class PublicationWindow implements IsWidget, Editor<PublicationVO>, HasSa
                 top.getScrollSupport().ensureVisible(publicationParamsFieldSet);                
             }
         });
+        
+        window.setHeadingText(getHeader(editMode));
+        
+        PublicationVO publicationEditInstance = VOHelper.clonePublicationForEditor(publication);
         driver.initialize(this);
-        driver.edit(publication);
+        driver.edit(publicationEditInstance);
     }
 
     @UiHandler("cancelButton")
@@ -258,7 +289,7 @@ public class PublicationWindow implements IsWidget, Editor<PublicationVO>, HasSa
     
     @UiHandler("saveButton")
     protected void saveButtonClick(SelectEvent event) {
-        PublicationVO publication = driver.flush();
+        final PublicationVO publication = driver.flush();
         
         Collections.sort(publication.getAdditionalQuestions(), new Comparator<AdditionalQuestionVO>() {
             @Override
@@ -267,11 +298,28 @@ public class PublicationWindow implements IsWidget, Editor<PublicationVO>, HasSa
             }
         });
         
-        if (validate(publication)) {
-            Admin.RPC.savePublication(publication, new AdminAsyncEmptyCallback<Void>());
-            fireEvent(new SaveEvent<PublicationVO>(publication));
+        if (!validate(publication)) {
+            return;
+        }
+        
+        switch (saveMode) {
+        case saveToServer:
+            Admin.RPC.savePublication(publication, new AdminAsyncCallback<Void>() {
+                @Override
+                public void onSuccess(Void result) {
+                    VOHelper.copyPublicationForEditor(originalPublicationInstance, publication);
+                    fireEvent(new SaveEvent<PublicationVO>(publication));
+                    window.hide();
+                }
+            });
+            break;
+        case saveToObject:
+            VOHelper.copyPublicationForEditor(originalPublicationInstance, publication);
+            fireEvent(new SaveEvent<PublicationVO>(originalPublicationInstance));
             window.hide();
+            break;
+        default:
+            throw new IllegalStateException("Unknown saveMode: " + saveMode);
         }
     }
-
 }

@@ -217,7 +217,7 @@ public class ReportHelper {
         if (question instanceof SingleChoiceQuestionVO) {
             int i = 1;            
             for (ChoiceVO choice: ((SingleChoiceQuestionVO) question).getChoices()) {
-                if (choice.getId() == ((SCQAnswerVO)answer).getChoiceId()) {
+                if (choice.getId().equals(((SCQAnswerVO)answer).getChoiceId())) {
                     hb.startTable(0, 0, null, "0", "100%");
                     hb.startTag("tr");
                     hb.startTag("th", "reportChoiceNo").appendText(i + ".").endTag("th");
@@ -267,10 +267,7 @@ public class ReportHelper {
     }
     
     public static String formatQuestionsCount(int number) {
-        if ((number - ((int)number)) != 0) {
-            return number + " вопроса";
-        }
-        else if (number < 10 || number > 19) {
+        if (number < 10 || number > 19) {
             int mod = ((int)number) % 10;
             if (mod == 1) {
                 return (int)number + " вопрос";

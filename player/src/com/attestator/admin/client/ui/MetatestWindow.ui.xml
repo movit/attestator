@@ -41,7 +41,7 @@
 	<ui:with
 		type="com.sencha.gxt.widget.core.client.container.BorderLayoutContainer.BorderLayoutData"
 		field="westData">
-		<ui:attributes size="492" margins="{westMargins}"
+		<ui:attributes size="0.5" margins="{westMargins}"
 			collapsible="true" split="true" maxSize="1000" />
 	</ui:with>
 	<ui:with type="com.sencha.gxt.widget.core.client.container.MarginData"
@@ -57,7 +57,7 @@
 	<ui:with
 		type="com.sencha.gxt.widget.core.client.container.BorderLayoutContainer.BorderLayoutData"
 		field="southData">
-		<ui:attributes size="100" margins="{southMargins}"
+		<ui:attributes size="0.20" margins="{southMargins}"
 			collapsible="true" split="true" maxSize="1000" />
 	</ui:with>
 
@@ -242,13 +242,19 @@
 					<row:south layoutData="{southData}">
 						<gxt:ContentPanel appearance="{contentPanelAppearance}" headingText="Публикации">
                             <row:VerticalLayoutContainer>
-<!--                                 <row:child layoutData="{maxWidthMinHeightVLData}"> -->
-<!--                                     <toolbar:ToolBar visible="true"> -->
-<!--                                         <toolbar:FillToolItem /> -->
-<!--                                         <button:TextButton ui:field="removeEntry" -->
-<!--                                             icon="{icons.prev16x16}" iconAlign="LEFT" text="Убрать из теста" /> -->
-<!--                                     </toolbar:ToolBar> -->
-<!--                                 </row:child> -->
+                                <row:child layoutData="{minWidthMinHeightVLData}">
+                                    <toolbar:ToolBar visible="true">
+                                        <button:TextButton ui:field="addPublicationButton"
+                                            icon="{icons.addFile16x16}" iconAlign="LEFT" text="Добавить публикацию" />
+                                        <button:TextButton ui:field="editPublicationButton"
+                                            icon="{icons.edit16x16}" iconAlign="LEFT" text="Редактировать" />
+                                        <button:TextButton ui:field="copyPublicationButton"
+                                            icon="{icons.copy16x16}" iconAlign="LEFT" text="Копировать" />
+                                        <button:TextButton ui:field="removePublicationButton"
+                                            icon="{icons.delete16x16}" iconAlign="LEFT" text="Удалить" />                                        
+                                    </toolbar:ToolBar>
+                                </row:child>
+
                                 <row:child layoutData="{maxWidthMaxHeightVLData}">
                                     <grid:Grid ui:field="publicationsGrid" />
                                 </row:child>

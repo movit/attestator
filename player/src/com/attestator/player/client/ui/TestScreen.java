@@ -512,6 +512,8 @@ public class TestScreen extends MainScreen {
                         }
                     });
             break;
+        default:
+            throw new IllegalArgumentException("Unknown state: " + newState);
         }
 
         mainPanel.forceLayout();
@@ -690,7 +692,7 @@ public class TestScreen extends MainScreen {
             TextButton btn = new TextButton();
             btn.setHeight(22);
             btn.setMinWidth(48);
-            btn.setData("no", new Integer(i));
+            btn.setData("no", Integer.valueOf(i));
             btn.setHTML(navButtonHTML(i, false));
             btn.setToolTip(question.getText());
             if (report.isQuestionAnswered(question.getId())) {

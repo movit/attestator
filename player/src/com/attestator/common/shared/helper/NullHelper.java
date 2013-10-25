@@ -204,7 +204,7 @@ public final class NullHelper {
     }
 
     public static boolean nullSafeTrue(Boolean arg) {
-        return arg == Boolean.TRUE;
+        return Boolean.TRUE.equals(arg);
     }
 
     public static void nullSafeRun(Runnable runnable) {

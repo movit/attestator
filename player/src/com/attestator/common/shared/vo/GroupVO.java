@@ -47,22 +47,4 @@ public class GroupVO extends ModificationDateAwareVO{
                 + ", getTenantId()=" + getTenantId() + ", getId()=" + getId()
                 + "]";
     }
-    
-    @Override 
-    public boolean equals(Object obj) {
-        if (obj == this) {
-            return true;
-        }
-        else if (obj instanceof GroupVO) {
-            String objId    = ((GroupVO) obj).getId();
-            String thisId   = getId();
-            if (objId != null && thisId != null) {
-                return objId.equals(thisId);
-            }
-            else {
-                return false;
-            }
-        }
-        return false;
-    }
 }

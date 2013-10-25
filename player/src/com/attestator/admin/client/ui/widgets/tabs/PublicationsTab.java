@@ -9,6 +9,7 @@ import java.util.List;
 import com.attestator.admin.client.Admin;
 import com.attestator.admin.client.props.PublicationsTreePropertyAccess;
 import com.attestator.admin.client.rpc.AdminAsyncCallback;
+import com.attestator.admin.client.ui.EditMode;
 import com.attestator.admin.client.ui.MetatestWindow;
 import com.attestator.admin.client.ui.PublicationWindow;
 import com.attestator.admin.client.ui.event.MultyLinikSelectEvent;
@@ -18,6 +19,7 @@ import com.attestator.admin.client.ui.event.SaveEvent.SaveHandler;
 import com.attestator.admin.client.ui.widgets.MultylinkCell;
 import com.attestator.common.client.ui.resolurces.Resources;
 import com.attestator.common.shared.helper.ReportHelper;
+import com.attestator.common.shared.helper.VOHelper;
 import com.attestator.common.shared.vo.BaseVO;
 import com.attestator.common.shared.vo.MetaTestVO;
 import com.attestator.common.shared.vo.ModificationDateAwareVO;
@@ -114,7 +116,7 @@ public class PublicationsTab extends Composite {
             public void onRowDoubleClick(RowDoubleClickEvent event) {
                 PublicationsTreeItem item = store.getAll().get(event.getRowIndex());
                 if (item instanceof PublicationVO) {
-                    showPublicationWindow((PublicationVO)item);
+                    showPublicationWindow((PublicationVO)item, EditMode.etExisting);
                 }        
             }
         });
@@ -203,12 +205,12 @@ public class PublicationsTab extends Composite {
                 
                 if (EDIT_PUBLICATION_LINK_ID.equals(event.getLinkType())) {
                     PublicationVO publication = (PublicationVO)event.getValue();
-                    showPublicationWindow(publication);
+                    showPublicationWindow(publication, EditMode.etExisting);
                 }
                 else if (COPY_PUBLICATION_LINK_ID.equals(event.getLinkType())) {
-                    PublicationVO publication = (PublicationVO)event.getValue();
+                    PublicationVO publication = VOHelper.clonePublicationForEditor((PublicationVO)event.getValue());
                     publication.setId(BaseVO.idString());
-                    showPublicationWindow(publication);
+                    showPublicationWindow(publication, EditMode.etCopy);
                 }
                 else if (DELETE_PUBLICATION_LINK_ID.equals(event.getLinkType())) {
                     final PublicationVO publication = (PublicationVO)event.getValue();
@@ -224,11 +226,11 @@ public class PublicationsTab extends Composite {
                     PublicationVO publication = new PublicationVO();
                     publication.setMetatestId(metatest.getId());
                     publication.setMetatest(metatest);
-                    showPublicationWindow(publication);
+                    showPublicationWindow(publication, EditMode.etNew);
                 }
                 else if (EDIT_TEST_LINK_ID.equals(event.getLinkType())) {
                     final MetaTestVO metatest = (MetaTestVO) event.getValue();
-                    showMetatestWindow(metatest);
+                    showMetatestWindow(metatest, EditMode.etExisting);
                 }                
             }
         });
@@ -335,8 +337,8 @@ public class PublicationsTab extends Composite {
         gridLoader.load();
     }
     
-    private void showMetatestWindow(final MetaTestVO metatest) {
-        MetatestWindow window = new MetatestWindow(metatest);
+    private void showMetatestWindow(final MetaTestVO metatest, EditMode editType) {
+        MetatestWindow window = new MetatestWindow(metatest, editType);
         window.addSaveHandler(new SaveHandler<MetaTestVO>() {
             @Override
             public void onSave(SaveEvent<MetaTestVO> event) {
@@ -346,8 +348,8 @@ public class PublicationsTab extends Composite {
         window.asWidget().show();
     }
     
-    private void showPublicationWindow(final PublicationVO publication) {
-        PublicationWindow window = new PublicationWindow(publication);
+    private void showPublicationWindow(final PublicationVO publication, EditMode editMode) {
+        PublicationWindow window = new PublicationWindow(publication, editMode);
         window.addSaveHandler(new SaveHandler<PublicationVO>() {
             @Override
             public void onSave(SaveEvent<PublicationVO> event) {

@@ -473,8 +473,9 @@ public class PlayerStorageServiceAsync implements PlayerServiceAsync {
             }
 
             Map<String, String> keyMap = psc.keyMap(key);
-
-            switch (CacheType.valueOf(keyMap.get("type"))) {
+            CacheType cacheType = CacheType.valueOf(keyMap.get("type"));
+            
+            switch (cacheType) {
 
             case startReport: {
                 StartReportCO p = psc.getItem(StartReportCO.class, key);
@@ -498,6 +499,8 @@ public class PlayerStorageServiceAsync implements PlayerServiceAsync {
             }
 
                 break;
+            default:
+                throw new IllegalArgumentException("Unknown cache type: " + cacheType);                
             }
         }
     }
@@ -606,7 +609,8 @@ public class PlayerStorageServiceAsync implements PlayerServiceAsync {
                                 marker.getTenantId(),
                                 CacheType.getActivePublications), newTenantVersion);
             } else {
-                switch (marker.getType()) {
+                CacheType cacheType = marker.getType(); 
+                switch (cacheType) {
                 case getActivePublications:
                     rpc.getActivePulications(marker.getTenantId(),
                             new CachingCallback<List<ActivePublicationDTO>>(callbacks, newTenantVersion) {
@@ -699,6 +703,8 @@ public class PlayerStorageServiceAsync implements PlayerServiceAsync {
                                 }
                             });                    
                     break;
+                default:
+                    throw new IllegalArgumentException("Unknown cache type: " + cacheType);
                 }
             }
         }

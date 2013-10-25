@@ -20,21 +20,19 @@ public class ServerHelper {
     }
     
     public static byte[] readBytes(InputStream ios) {
-        ByteArrayOutputStream ous = null;
+        ByteArrayOutputStream ous = new ByteArrayOutputStream();
         try {
             byte[] buffer = new byte[4096];
-            ous = new ByteArrayOutputStream();
             int read = 0;
             while ((read = ios.read(buffer)) != -1)
                 ous.write(buffer, 0, read);
         } 
         catch (IOException e) {
-            // swallow, since not that important           
+            return null;         
         } 
         finally {
             try {
-                if (ous != null)
-                    ous.close();
+                ous.close();
             } catch (IOException e) {
                 // swallow, since not that important
             }
@@ -46,12 +44,7 @@ public class ServerHelper {
             }
         }
         
-        if (ous != null) {
-            return ous.toByteArray();
-        }
-        else {
-            return null;
-        }
+        return ous.toByteArray();
     }
     
     public static String getInitParameter(ServletContext sc, String param, String defaultValue) {

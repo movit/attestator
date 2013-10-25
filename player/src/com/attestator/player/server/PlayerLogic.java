@@ -118,9 +118,7 @@ public class PlayerLogic extends CommonLogic{
         }
         
         Query<ChangeMarkerVO> q = Singletons.ds().createQuery(ChangeMarkerVO.class);
-        if (time != null) { 
-            q.field("created").greaterThan(time);
-        }
+        q.field("created").greaterThan(time);
         
         // Look for changes
         q.or(

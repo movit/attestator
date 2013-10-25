@@ -13,6 +13,7 @@ import com.attestator.admin.client.props.PublicationVOPropertyAccess;
 import com.attestator.admin.client.props.PublicationsTreePropertyAccess;
 import com.attestator.admin.client.props.QuestionVOPropertyAccess;
 import com.attestator.admin.client.rpc.AdminAsyncCallback;
+import com.attestator.admin.client.ui.PublicationWindow.SaveMode;
 import com.attestator.admin.client.ui.event.FilterEvent;
 import com.attestator.admin.client.ui.event.FilterEvent.FilterHandler;
 import com.attestator.admin.client.ui.event.MultyLinikSelectEvent;
@@ -85,6 +86,8 @@ import com.sencha.gxt.widget.core.client.event.BeforeStartEditEvent;
 import com.sencha.gxt.widget.core.client.event.BeforeStartEditEvent.BeforeStartEditHandler;
 import com.sencha.gxt.widget.core.client.event.HideEvent.HasHideHandlers;
 import com.sencha.gxt.widget.core.client.event.HideEvent.HideHandler;
+import com.sencha.gxt.widget.core.client.event.RowDoubleClickEvent;
+import com.sencha.gxt.widget.core.client.event.RowDoubleClickEvent.RowDoubleClickHandler;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.form.NumberPropertyEditor.IntegerPropertyEditor;
 import com.sencha.gxt.widget.core.client.form.SpinnerField;
@@ -142,11 +145,6 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
     private DriverImpl driver = GWT.create(DriverImpl.class);    
     private static UiBinderImpl uiBinder = GWT.create(UiBinderImpl.class);
 
-    @UiFactory
-    public ContentPanel createContentPanel(ContentPanelAppearance appearance) {
-      return new ContentPanel(appearance);
-    }
-    
     SimpleEditor<String> id = SimpleEditor.of();
     
     @UiField
@@ -168,6 +166,22 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
     @Ignore
     ContentPanel groupsPanel;
     
+    @UiField
+    @Ignore
+    TextButton addPublicationButton;
+    
+    @UiField
+    @Ignore
+    TextButton removePublicationButton;
+
+    @UiField
+    @Ignore
+    TextButton copyPublicationButton;
+    
+    @UiField
+    @Ignore
+    TextButton editPublicationButton;
+
     @UiField
     @Ignore
     TextButton addQuestionButton;
@@ -197,12 +211,6 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
     SearchField groupsSearchField;
 
     @Ignore
-    SearchField createSearchField() {
-        SearchField result = new SearchField();
-        return result;
-    }
-    
-    @Ignore
     @UiField(provided = true)
     Grid<QuestionVO> questionsGrid;
 
@@ -218,6 +226,135 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
     @UiField(provided = true)
     Grid<PublicationVO> publicationsGrid;
     
+    @Ignore
+    GridEditing<MetaTestEntryVO> entriesEditing;
+    @Ignore
+    @UiField
+    PagingToolBar questionsPager;
+
+    @Ignore
+    @UiField
+    PagingToolBar groupsPager;
+    
+    @Ignore
+    ListStore<MetaTestEntryVO> entriesStore;
+    ListStoreEditor<MetaTestEntryVO> entries;
+    @Ignore
+    ListStore<QuestionVO> questionsStore;
+    @Ignore
+    ListStore<GroupVO> groupsStore;
+    @Ignore
+    ListStore<PublicationVO> publicationsStore;
+    
+    @Ignore
+    RpcProxy<FilterPagingLoadConfig, PagingLoadResult<GroupVO>> groupsRpcProxy; 
+    @Ignore
+    RpcProxy<FilterPagingLoadConfig, PagingLoadResult<QuestionVO>> questionsRpcProxy; 
+    @Ignore
+    RpcProxy<ListLoadConfig, ListLoadResult<PublicationVO>> publicationsRpcProxy; 
+    @Ignore
+    PagingLoader<FilterPagingLoadConfig, PagingLoadResult<GroupVO>> groupsLoader;
+    @Ignore
+    PagingLoader<FilterPagingLoadConfig, PagingLoadResult<QuestionVO>> questionsLoader;
+    @Ignore
+    ListLoader<ListLoadConfig, ListLoadResult<PublicationVO>> publicationsLoader;
+    
+    @Ignore
+    CheckBoxSelectionModel<GroupVO> groupsSm;
+    @Ignore
+    CheckBoxSelectionModel<QuestionVO> questionsSm;
+    @Ignore
+    CheckBoxSelectionModel<MetaTestEntryVO> entriesSm;
+
+    @Ignore
+    CheckBoxSelectionModel<PublicationVO> publicationsSm;
+    
+    @Ignore
+    MetaTestVO originalMetatestInstance;
+    
+    @SuppressWarnings("rawtypes")
+    @Ignore 
+    SelectionChangedHandler dualListSelectionHandler = new SelectionChangedHandler() {
+        private boolean ignore = false;
+        @Override
+        public void onSelectionChanged(SelectionChangedEvent event) {
+            if (ignore) {
+                return;
+            }
+            try {
+                ignore = true;                
+                if (event.getSource() != questionsSm) {
+                    questionsSm.deselectAll();
+                }                
+                if (event.getSource() != groupsSm) {
+                    groupsSm.deselectAll();
+                }                
+                if (event.getSource() != entriesSm) {
+                    entriesSm.deselectAll();
+                }                
+                enableDualListButtons();                
+            }
+            finally {
+                ignore = false;
+            }
+        }
+    }; 
+    
+    @SuppressWarnings("rawtypes")
+    @Ignore 
+    SelectionChangedHandler publicationSelectionHandler = new SelectionChangedHandler() {
+        @Override
+        public void onSelectionChanged(SelectionChangedEvent event) {
+            enablePublicationsButtons();                
+        }
+    }; 
+    
+    @Ignore
+    ColumnModel<PublicationVO> publicationsCm;
+    @Ignore
+    ColumnModel<MetaTestEntryVO> entriesCm;
+    
+    @Ignore
+    ColumnConfig<MetaTestEntryVO, Integer> entriesQuestionsCountColumn;    
+    
+    @Ignore
+    ColumnModel<GroupVO> groupsCm;
+    @Ignore
+    ColumnModel<QuestionVO> questionsCm;
+    @Ignore
+    SearchField createSearchField() {
+        SearchField result = new SearchField();
+        return result;
+    }
+
+    <T> ListStore<T> createStore(ModelKeyProvider<T> keyProvider) {
+        ListStore<T> result = new ListStore<T>(keyProvider);
+        return result;
+    }
+
+    <T> ListLoader<ListLoadConfig, ListLoadResult<T>> createListLoader(
+            final ListStore<T> store, RpcProxy<ListLoadConfig, ListLoadResult<T>> rpcProxy, boolean remoteSort) {        
+        ListLoader<ListLoadConfig, ListLoadResult<T>> result = new ListLoader<ListLoadConfig, ListLoadResult<T>>(
+                rpcProxy);        
+        result.setRemoteSort(remoteSort);
+        result.addLoadHandler(new LoadResultListStoreBinding<ListLoadConfig, T, ListLoadResult<T>>(store));
+        return result;
+    }
+
+    Grid<PublicationVO> createPublicationsGrid(final ListStore<PublicationVO> store, ColumnModel<PublicationVO> cm, GridSelectionModel<PublicationVO> sm) {
+        Grid<PublicationVO> result = createGrid(store, cm, sm);
+        result.addRowDoubleClickHandler(new RowDoubleClickHandler() {
+            @Override
+            public void onRowDoubleClick(RowDoubleClickEvent event) {
+                PublicationVO item = store.getAll().get(event.getRowIndex());
+                if (item instanceof PublicationVO) {
+                    showPublicationWindow((PublicationVO)item, EditMode.etExisting);
+                }        
+            }
+        });
+        return result;
+    }
+    
     <T> Grid<T> createGrid(final ListStore<T> store, ColumnModel<T> cm, GridSelectionModel<T> sm) {        
         Grid<T> result = new Grid<T>(store, cm);
         result.setSelectionModel(sm);
@@ -226,7 +363,7 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
         result.setLoadMask(true);
         return result;
     }
-    
+
     <T> Grid<T> createGrid(
             final ListLoader<? extends ListLoadConfig, ? extends ListLoadResult<T>> loader,
             final ListStore<T> store, ColumnModel<T> cm, GridSelectionModel<T> sm) {        
@@ -238,12 +375,20 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
         result.setLoadMask(true);
         return result;
     }
-    
-    @Ignore
-    GridEditing<MetaTestEntryVO> entriesEditing;
+
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    <T> CheckBoxSelectionModel<T> createSm(SelectionChangedHandler selectionCahngeHandler) {
+        IdentityValueProvider<T> identity = new IdentityValueProvider<T>();
+        CheckBoxSelectionModel<T> result = new CheckBoxSelectionModel<T>(identity);
+        if (selectionCahngeHandler != null) {
+            result.addSelectionChangedHandler(selectionCahngeHandler);
+        }
+        return result;
+    }
+
     GridEditing<MetaTestEntryVO> createEntriesEditing(final Grid<MetaTestEntryVO> grid, ColumnConfig<MetaTestEntryVO, Integer> questionsCountColumn) {
         final GridInlineEditing<MetaTestEntryVO> result = new GridInlineEditing<MetaTestEntryVO>(grid);
-
+    
         final SpinnerField<Integer> questionsCountEditor = new SpinnerField<Integer>(new IntegerPropertyEditor());
         questionsCountEditor.addValueChangeHandler(new ValueChangeHandler<Integer>() {            
             @Override
@@ -284,260 +429,38 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
         
         return result; 
     }
-    
-    
-    @Ignore
-    @UiField
-    PagingToolBar questionsPager;
 
-    @Ignore
-    @UiField
-    PagingToolBar groupsPager;
-    
-    @Ignore
-    ListStore<MetaTestEntryVO> entriesStore;
-    ListStoreEditor<MetaTestEntryVO> entries;
     ListStoreEditor<MetaTestEntryVO> createEntriesStoreEditor(ListStore<MetaTestEntryVO> store) {
         return new ListStoreEditor<MetaTestEntryVO>(store);
     }
 
-    @Ignore
-    ListStore<QuestionVO> questionsStore;
-    @Ignore
-    ListStore<GroupVO> groupsStore;
-    @Ignore
-    ListStore<PublicationVO> publicationsStore;
+    ColumnModel<MetaTestEntryVO> createEntriesCm(
+                CheckBoxSelectionModel<MetaTestEntryVO> sm, ColumnConfig<MetaTestEntryVO, Integer> questionsCountColumn) {
     
-    <T> ListStore<T> createStore(ModelKeyProvider<T> keyProvider) {
-        ListStore<T> result = new ListStore<T>(keyProvider);
-        return result;
-    }
-
-    @Ignore
-    RpcProxy<FilterPagingLoadConfig, PagingLoadResult<GroupVO>> groupsRpcProxy; 
-    RpcProxy<FilterPagingLoadConfig, PagingLoadResult<GroupVO>> createGroupsRpcProxy() {
-        return new RpcProxy<FilterPagingLoadConfig, PagingLoadResult<GroupVO>>() {
-             @Override
-             public void load(FilterPagingLoadConfig loadConfig,
-                     AsyncCallback<PagingLoadResult<GroupVO>> callback) {
-                 Admin.RPC.loadGroupsPage(loadConfig, callback);
-             }
-        };
-    }
-    
-    @Ignore
-    RpcProxy<FilterPagingLoadConfig, PagingLoadResult<QuestionVO>> questionsRpcProxy; 
-    RpcProxy<FilterPagingLoadConfig, PagingLoadResult<QuestionVO>> createQuestionsRpcProxy() {
-        return new RpcProxy<FilterPagingLoadConfig, PagingLoadResult<QuestionVO>>() {
-             @Override
-             public void load(FilterPagingLoadConfig loadConfig,
-                     AsyncCallback<PagingLoadResult<QuestionVO>> callback) {
-                 Admin.RPC.loadQuestions(loadConfig, callback);
-             }
-        };
-    }
-
-    @Ignore
-    RpcProxy<ListLoadConfig, ListLoadResult<PublicationVO>> publicationsRpcProxy; 
-    RpcProxy<ListLoadConfig, ListLoadResult<PublicationVO>> createPublicationsRpcProxy() {
-        return new RpcProxy<ListLoadConfig, ListLoadResult<PublicationVO>>() {
-             @Override
-             public void load(ListLoadConfig loadConfig,
-                     AsyncCallback<ListLoadResult<PublicationVO>> callback) {                 
-                 Admin.RPC.loadPublicationsByMetatestId(id.getValue(), loadConfig, callback);
-             }
-        };
-    }
-    
-    @Ignore
-    PagingLoader<FilterPagingLoadConfig, PagingLoadResult<GroupVO>> groupsLoader;
-    @Ignore
-    PagingLoader<FilterPagingLoadConfig, PagingLoadResult<QuestionVO>> questionsLoader;
-    @Ignore
-    ListLoader<ListLoadConfig, ListLoadResult<PublicationVO>> publicationsLoader;
-    
-    <T> ListLoader<ListLoadConfig, ListLoadResult<T>> createListLoader(
-            final ListStore<T> store, RpcProxy<ListLoadConfig, ListLoadResult<T>> rpcProxy) {        
-        ListLoader<ListLoadConfig, ListLoadResult<T>> result = new ListLoader<ListLoadConfig, ListLoadResult<T>>(
-                rpcProxy);        
-        result.addLoadHandler(new LoadResultListStoreBinding<ListLoadConfig, T, ListLoadResult<T>>(store));
-        return result;
-    }
-
-    PagingLoader<FilterPagingLoadConfig, PagingLoadResult<QuestionVO>> createQuestionsPagingLoader(
-            final ListStore<QuestionVO> store, RpcProxy<FilterPagingLoadConfig, PagingLoadResult<QuestionVO>> rpcProxy, final SearchField searchField) {
-
-        PagingLoader<FilterPagingLoadConfig, PagingLoadResult<QuestionVO>> result = new PagingLoader<FilterPagingLoadConfig, PagingLoadResult<QuestionVO>>(
-                rpcProxy) {
-            @Override
-            protected FilterPagingLoadConfig newLoadConfig() {
-                FilterPagingLoadConfig result = new FilterPagingLoadConfigBean();
-
-                if (StringHelper.isNotEmptyOrNull(searchField.getNewFilterValue())) {
-                    String filterValue = searchField.getNewFilterValue();
-                    filterValue = filterValue.trim();
-                    filterValue = filterValue.toLowerCase();
-                    filterValue = filterValue.replaceAll("\\s+", " ");
-
-                    FilterConfig filter = new FilterConfigBean();
-                    filter.setComparison("contains");
-                    filter.setField("text");
-                    filter.setType("string");
-                    filter.setValue(filterValue);
-
-                    result.getFilters().add(filter);
-                }
-                
-                Set<String> entriesQuestionIds = VOHelper.getQuestionsIds(entriesStore.getAll());
-                if (!NullHelper.isEmptyOrNull(entriesQuestionIds)) {
-                    FilterConfig filter = new FilterConfigBean();
-                    filter.setComparison("notIn");
-                    filter.setField("_id");
-                    filter.setType("list");
-                    filter.setValue(StringHelper.combine(entriesQuestionIds.toArray(new String[0]), ", "));
-                    
-                    result.getFilters().add(filter);
-                }
-
-                return result;
-            }
-        };
-        result.setRemoteSort(true);
-        result.addLoadHandler(new LoadResultListStoreBinding<FilterPagingLoadConfig, QuestionVO, PagingLoadResult<QuestionVO>>(store));
-        result.addLoadHandler(new LoadHandler<FilterPagingLoadConfig, PagingLoadResult<QuestionVO>>(){
-            @Override
-            public void onLoad(
-                    LoadEvent<FilterPagingLoadConfig, PagingLoadResult<QuestionVO>> event) {
-                questionsPager.setVisible(event.getLoadResult().getTotalLength() > questionsPager.getPageSize());              
-            }
-        });
-
-        return result;
-    }
-    
-    PagingLoader<FilterPagingLoadConfig, PagingLoadResult<GroupVO>> createGroupsPagingLoader(
-            final ListStore<GroupVO> store, RpcProxy<FilterPagingLoadConfig, PagingLoadResult<GroupVO>> rpcProxy, final SearchField searchField) {
-
-        PagingLoader<FilterPagingLoadConfig, PagingLoadResult<GroupVO>> result = new PagingLoader<FilterPagingLoadConfig, PagingLoadResult<GroupVO>>(
-                rpcProxy) {
-            @Override
-            protected FilterPagingLoadConfig newLoadConfig() {
-                FilterPagingLoadConfig result = new FilterPagingLoadConfigBean();
-
-                if (StringHelper.isNotEmptyOrNull(searchField.getNewFilterValue())) {
-                    String filterValue = searchField.getNewFilterValue();
-                    filterValue = filterValue.trim();
-                    filterValue = filterValue.toLowerCase();
-                    filterValue = filterValue.replaceAll("\\s+", " ");
-
-                    FilterConfig filter = new FilterConfigBean();
-                    filter.setComparison("contains");
-                    filter.setField("name");
-                    filter.setType("string");
-                    filter.setValue(filterValue);
-
-                    result.getFilters().add(filter);
-                }
-                
-                Set<String> entriesGroupIds = VOHelper.getGroupsIds(entriesStore.getAll());
-                if (!NullHelper.isEmptyOrNull(entriesGroupIds)) {
-                    FilterConfig filter = new FilterConfigBean();
-                    filter.setComparison("notIn");
-                    filter.setField("_id");
-                    filter.setType("list");
-                    filter.setValue(StringHelper.combine(entriesGroupIds.toArray(new String[0]), ", "));
-                    
-                    result.getFilters().add(filter);
-                }
-
-                return result;
-            }
-        };
-        result.setRemoteSort(true);
-        result.addLoadHandler(new LoadResultListStoreBinding<FilterPagingLoadConfig, GroupVO, PagingLoadResult<GroupVO>>(store));
-        result.addLoadHandler(new LoadHandler<FilterPagingLoadConfig, PagingLoadResult<GroupVO>>(){
-            @Override
-            public void onLoad(
-                    LoadEvent<FilterPagingLoadConfig, PagingLoadResult<GroupVO>> event) {
-                groupsPager.setVisible(event.getLoadResult().getTotalLength() > groupsPager.getPageSize());              
-            }
-        });
-        
-        return result;
-    }
-    
-    @Ignore
-    CheckBoxSelectionModel<GroupVO> groupsSm;
-    @Ignore
-    CheckBoxSelectionModel<QuestionVO> questionsSm;
-    @Ignore
-    CheckBoxSelectionModel<MetaTestEntryVO> entriesSm;
-
-    @Ignore
-    CheckBoxSelectionModel<PublicationVO> publicationsSm;
-    
-    @SuppressWarnings("rawtypes")
-    @Ignore 
-    SelectionChangedHandler dualListSelectionHandler = new SelectionChangedHandler() {
-        private boolean ignore = false;
-        @Override
-        public void onSelectionChanged(SelectionChangedEvent event) {
-            if (ignore) {
-                return;
-            }
-            try {
-                ignore = true;                
-                if (event.getSource() != questionsSm) {
-                    questionsSm.deselectAll();
-                }                
-                if (event.getSource() != groupsSm) {
-                    groupsSm.deselectAll();
-                }                
-                if (event.getSource() != entriesSm) {
-                    entriesSm.deselectAll();
-                }                
-                enableDualListButtons();                
-            }
-            finally {
-                ignore = false;
-            }
+            List<ColumnConfig<MetaTestEntryVO, ?>> l = new ArrayList<ColumnConfig<MetaTestEntryVO, ?>>();
+            l.add(sm.getColumn());
+            
+            ColumnConfig<MetaTestEntryVO, MetaTestEntryVO> entryColumn = createEntryDescriptionColumnConfig(new IdentityValueProvider<MetaTestEntryVO>(),
+                    300, "Элемент теста"); 
+            
+            l.add(entryColumn);
+            
+    //        ColumnConfig<MetaTestEntryVO, Integer> questionsCountColumn = createQuestonsCountColumnConfig(entryPropertyAccess.numberOfQuestions(), 60, "Вопросов");
+            l.add(questionsCountColumn);
+            
+            ColumnModel<MetaTestEntryVO> result = new ColumnModel<MetaTestEntryVO>(l);
+            
+            AggregationRowConfig<MetaTestEntryVO> totalQuestionsCount = new AggregationRowConfig<MetaTestEntryVO>();
+            totalQuestionsCount.setRenderer(entryColumn, new AggregationSafeHtmlRenderer<MetaTestEntryVO>("Всего вопросов в тесте"));        
+            totalQuestionsCount.setRenderer(questionsCountColumn, 
+                    new AggregationNumberSummaryRenderer<MetaTestEntryVO, Integer>(
+                            NumberFormat.getDecimalFormat(),
+                    new SumSummaryType<Integer>()));
+            result.addAggregationRow(totalQuestionsCount);
+            
+            return result;
         }
-    }; 
-    
-    @SuppressWarnings({ "rawtypes", "unchecked" })
-    <T> CheckBoxSelectionModel<T> createSm(SelectionChangedHandler selectionCahngeHandler) {
-        IdentityValueProvider<T> identity = new IdentityValueProvider<T>();
-        CheckBoxSelectionModel<T> result = new CheckBoxSelectionModel<T>(identity);
-        if (selectionCahngeHandler != null) {
-            result.addSelectionChangedHandler(selectionCahngeHandler);
-        }
-        return result;
-    }
-    
-    private ColumnConfig<MetaTestEntryVO, Integer> createQuestonsCountColumnConfig(ValueProvider<MetaTestEntryVO, Integer> valueProvider, int width, String header) {
-        ColumnConfig<MetaTestEntryVO, Integer> result = new ColumnConfig<MetaTestEntryVO, Integer>(
-                valueProvider, width, header);
-        
-        ResizeCell<Integer> questionsCountCell = new ResizeCell<Integer>() {
-            @Override
-            public void render(Context context,
-                    Integer value, SafeHtmlBuilder sb) {
-                sb.append(value);
-                MetaTestEntryVO entry = entriesStore.findModelWithKey((String)context.getKey());
-                if (entry instanceof MTEGroupVO) {
-                    sb.append(
-                            TEMPLATES.textLinkAction(MultylinkCell.RESOURCES.multyLinkCellCss().multyLink(), 
-                                    "изменить"));
-                }
-            }
-        };
-        result.setMenuDisabled(true);
-        result.setSortable(false);
-        result.setCell(questionsCountCell);
-        
-        return result;        
-    }
-    
+
     private ColumnConfig<MetaTestEntryVO, MetaTestEntryVO> createEntryDescriptionColumnConfig(IdentityValueProvider<MetaTestEntryVO> valueProvider, int width, String header) {
         ColumnConfig<MetaTestEntryVO, MetaTestEntryVO> result = new ColumnConfig<MetaTestEntryVO, MetaTestEntryVO>(valueProvider, width, header);
         result.setCell(new ResizeCell<MetaTestEntryVO>() {
@@ -566,7 +489,240 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
         result.setSortable(false);
         
         return result;
+    
+    }
 
+    private ColumnConfig<MetaTestEntryVO, Integer> createQuestonsCountColumnConfig(ValueProvider<MetaTestEntryVO, Integer> valueProvider, int width, String header) {
+        ColumnConfig<MetaTestEntryVO, Integer> result = new ColumnConfig<MetaTestEntryVO, Integer>(
+                valueProvider, width, header);
+        
+        ResizeCell<Integer> questionsCountCell = new ResizeCell<Integer>() {
+            @Override
+            public void render(Context context,
+                    Integer value, SafeHtmlBuilder sb) {
+                sb.append(value);
+                MetaTestEntryVO entry = entriesStore.findModelWithKey((String)context.getKey());
+                if (entry instanceof MTEGroupVO) {
+                    sb.append(
+                            TEMPLATES.textLinkAction(MultylinkCell.RESOURCES.multyLinkCellCss().multyLink(), 
+                                    "изменить"));
+                }
+            }
+        };
+        result.setMenuDisabled(true);
+        result.setSortable(false);
+        result.setCell(questionsCountCell);
+        
+        return result;        
+    }
+
+    RpcProxy<FilterPagingLoadConfig, PagingLoadResult<QuestionVO>> createQuestionsRpcProxy() {
+        return new RpcProxy<FilterPagingLoadConfig, PagingLoadResult<QuestionVO>>() {
+             @Override
+             public void load(FilterPagingLoadConfig loadConfig,
+                     AsyncCallback<PagingLoadResult<QuestionVO>> callback) {
+                 Admin.RPC.loadQuestions(loadConfig, callback);
+             }
+        };
+    }
+
+    ColumnModel<QuestionVO> createQuestionsCm(
+            CheckBoxSelectionModel<QuestionVO> sm) {
+        ColumnConfig<QuestionVO, String> textColumn = new ColumnConfig<QuestionVO, String>(
+                questionPropertyAccess.text(), 100, "Вопрос");
+        textColumn.setCell(new AbstractCell<String>() {
+            @Override
+            public void render(Context context, String value, SafeHtmlBuilder sb) {
+                sb.appendHtmlConstant("<div style=\"white-space:normal !important;\">"
+                        + value + "</div>");
+            }
+        });
+    
+        ColumnConfig<QuestionVO, String> groupNameColumn = new ColumnConfig<QuestionVO, String>(
+                questionPropertyAccess.groupName(), 15, "Группа");
+        groupNameColumn.setCell(new AbstractCell<String>() {
+            @Override
+            public void render(Context context, String value,
+                    SafeHtmlBuilder sb) {
+                if (value == null) {
+                    sb.appendEscaped("");
+                } else {
+                    sb.appendEscaped(value);
+                }
+            }
+        });
+    
+        List<ColumnConfig<QuestionVO, ?>> l = new ArrayList<ColumnConfig<QuestionVO, ?>>();
+        l.add(sm.getColumn());
+        l.add(textColumn);
+        l.add(groupNameColumn);
+        ColumnModel<QuestionVO> result = new ColumnModel<QuestionVO>(l);
+    
+        return result;
+    }
+
+    PagingLoader<FilterPagingLoadConfig, PagingLoadResult<QuestionVO>> createQuestionsPagingLoader(
+            final ListStore<QuestionVO> store, RpcProxy<FilterPagingLoadConfig, PagingLoadResult<QuestionVO>> rpcProxy, final SearchField searchField) {
+    
+        PagingLoader<FilterPagingLoadConfig, PagingLoadResult<QuestionVO>> result = new PagingLoader<FilterPagingLoadConfig, PagingLoadResult<QuestionVO>>(
+                rpcProxy) {
+            @Override
+            protected FilterPagingLoadConfig newLoadConfig() {
+                FilterPagingLoadConfig result = new FilterPagingLoadConfigBean();
+    
+                if (StringHelper.isNotEmptyOrNull(searchField.getNewFilterValue())) {
+                    String filterValue = searchField.getNewFilterValue();
+                    filterValue = filterValue.trim();
+                    filterValue = filterValue.toLowerCase();
+                    filterValue = filterValue.replaceAll("\\s+", " ");
+    
+                    FilterConfig filter = new FilterConfigBean();
+                    filter.setComparison("contains");
+                    filter.setField("text");
+                    filter.setType("string");
+                    filter.setValue(filterValue);
+    
+                    result.getFilters().add(filter);
+                }
+                
+                Set<String> entriesQuestionIds = VOHelper.getQuestionsIds(entriesStore.getAll());
+                if (!NullHelper.isEmptyOrNull(entriesQuestionIds)) {
+                    FilterConfig filter = new FilterConfigBean();
+                    filter.setComparison("notIn");
+                    filter.setField("_id");
+                    filter.setType("list");
+                    filter.setValue(StringHelper.combine(entriesQuestionIds.toArray(new String[0]), ", "));
+                    
+                    result.getFilters().add(filter);
+                }
+    
+                return result;
+            }
+        };
+        result.setRemoteSort(true);
+        result.addLoadHandler(new LoadResultListStoreBinding<FilterPagingLoadConfig, QuestionVO, PagingLoadResult<QuestionVO>>(store));
+        result.addLoadHandler(new LoadHandler<FilterPagingLoadConfig, PagingLoadResult<QuestionVO>>(){
+            @Override
+            public void onLoad(
+                    LoadEvent<FilterPagingLoadConfig, PagingLoadResult<QuestionVO>> event) {
+                questionsPager.setVisible(event.getLoadResult().getTotalLength() > questionsPager.getPageSize());              
+            }
+        });
+    
+        return result;
+    }
+
+    PagingLoader<FilterPagingLoadConfig, PagingLoadResult<GroupVO>> createGroupsPagingLoader(
+            final ListStore<GroupVO> store, RpcProxy<FilterPagingLoadConfig, PagingLoadResult<GroupVO>> rpcProxy, final SearchField searchField) {
+    
+        PagingLoader<FilterPagingLoadConfig, PagingLoadResult<GroupVO>> result = new PagingLoader<FilterPagingLoadConfig, PagingLoadResult<GroupVO>>(
+                rpcProxy) {
+            @Override
+            protected FilterPagingLoadConfig newLoadConfig() {
+                FilterPagingLoadConfig result = new FilterPagingLoadConfigBean();
+    
+                if (StringHelper.isNotEmptyOrNull(searchField.getNewFilterValue())) {
+                    String filterValue = searchField.getNewFilterValue();
+                    filterValue = filterValue.trim();
+                    filterValue = filterValue.toLowerCase();
+                    filterValue = filterValue.replaceAll("\\s+", " ");
+    
+                    FilterConfig filter = new FilterConfigBean();
+                    filter.setComparison("contains");
+                    filter.setField("name");
+                    filter.setType("string");
+                    filter.setValue(filterValue);
+    
+                    result.getFilters().add(filter);
+                }
+                
+                Set<String> entriesGroupIds = VOHelper.getGroupsIds(entriesStore.getAll());
+                if (!NullHelper.isEmptyOrNull(entriesGroupIds)) {
+                    FilterConfig filter = new FilterConfigBean();
+                    filter.setComparison("notIn");
+                    filter.setField("_id");
+                    filter.setType("list");
+                    filter.setValue(StringHelper.combine(entriesGroupIds.toArray(new String[0]), ", "));
+                    
+                    result.getFilters().add(filter);
+                }
+    
+                return result;
+            }
+        };
+        result.setRemoteSort(true);
+        result.addLoadHandler(new LoadResultListStoreBinding<FilterPagingLoadConfig, GroupVO, PagingLoadResult<GroupVO>>(store));
+        result.addLoadHandler(new LoadHandler<FilterPagingLoadConfig, PagingLoadResult<GroupVO>>(){
+            @Override
+            public void onLoad(
+                    LoadEvent<FilterPagingLoadConfig, PagingLoadResult<GroupVO>> event) {
+                groupsPager.setVisible(event.getLoadResult().getTotalLength() > groupsPager.getPageSize());              
+            }
+        });
+        
+        return result;
+    }
+
+    ColumnModel<GroupVO> createGroupsCm(
+            CheckBoxSelectionModel<GroupVO> sm) {
+    
+        List<ColumnConfig<GroupVO, ?>> l = new ArrayList<ColumnConfig<GroupVO, ?>>();
+        l.add(sm.getColumn());
+        
+        ColumnConfig<GroupVO, String> nameColumn = new ColumnConfig<GroupVO, String>(
+                groupPropertyAccess.name(), 100, "Название"); 
+        l.add(nameColumn);
+        
+        ColumnConfig<GroupVO, Long> questionsCountColumn = new ColumnConfig<GroupVO, Long>(
+                groupPropertyAccess.questionsCount(), 20, "Вопросов"); 
+        questionsCountColumn.setSortable(false);        
+        l.add(questionsCountColumn);
+        
+        ColumnModel<GroupVO> result = new ColumnModel<GroupVO>(l);
+    
+        return result;
+    }
+
+    RpcProxy<FilterPagingLoadConfig, PagingLoadResult<GroupVO>> createGroupsRpcProxy() {
+        return new RpcProxy<FilterPagingLoadConfig, PagingLoadResult<GroupVO>>() {
+             @Override
+             public void load(FilterPagingLoadConfig loadConfig,
+                     AsyncCallback<PagingLoadResult<GroupVO>> callback) {
+                 Admin.RPC.loadGroupsPage(loadConfig, callback);
+             }
+        };
+    }
+
+    RpcProxy<ListLoadConfig, ListLoadResult<PublicationVO>> createPublicationsRpcProxy() {
+        return new RpcProxy<ListLoadConfig, ListLoadResult<PublicationVO>>() {
+             @Override
+             public void load(ListLoadConfig loadConfig,
+                     AsyncCallback<ListLoadResult<PublicationVO>> callback) {                 
+                 Admin.RPC.loadPublicationsByMetatestId(id.getValue(), loadConfig, callback);
+             }
+        };
+    }
+
+    ColumnModel<PublicationVO> createPublicationsCm(CheckBoxSelectionModel<PublicationVO> sm){
+        List<ColumnConfig<PublicationVO, ?>> l = new ArrayList<ColumnConfig<PublicationVO, ?>>();
+        
+        l.add(sm.getColumn());
+        
+        l.add(new ColumnConfig<PublicationVO, Long>(publicationsTreeProperties.reportsCount, 14, "Отчетов"));
+        
+        l.add(new ColumnConfig<PublicationVO, String>(publicationsTreeProperties.start, 20, "Начало"));
+        l.add(new ColumnConfig<PublicationVO, String>(publicationsTreeProperties.end, 20, "Конец"));
+        
+        l.add(new ColumnConfig<PublicationVO, String>(publicationsTreeProperties.fillBeforeTest, 40, "Заполнять перед тестом"));
+        l.add(new ColumnConfig<PublicationVO, String>(publicationsTreeProperties.maxAttempts , 20, "Макс. попыток"));
+        l.add(new ColumnConfig<PublicationVO, String>(publicationsTreeProperties.minScore, 15, "Мин. баллов"));
+        
+        l.add(new ColumnConfig<PublicationVO, String>(publicationsTreeProperties.maxTakeTestTime, 20, "Времени на тест"));
+        l.add(createPublicationActionsColumnConfig(new IdentityValueProvider<PublicationVO>()));
+        
+        ColumnModel<PublicationVO> result = new ColumnModel<PublicationVO>(l);
+    
+        return result;        
     }
 
     private ColumnConfig<PublicationVO, PublicationVO> createPublicationActionsColumnConfig(IdentityValueProvider<PublicationVO> valueProvider) {
@@ -577,11 +733,9 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
             public void render(Context context,
                     PublicationVO value, SafeHtmlBuilder sb) {
                 sb.appendHtmlConstant("<div style='text-align: right;'>");
-                if (value instanceof PublicationVO) {
-                    sb.append(createClickableElement(EDIT_PUBLICATION_LINK_ID, "изменить публикацию", Resources.ICONS.edit16x16()));
-                    sb.append(createClickableElement(COPY_PUBLICATION_LINK_ID, "копировать публикацию", Resources.ICONS.copy16x16()));
-                    sb.append(createClickableElement(DELETE_PUBLICATION_LINK_ID, "удалить публикацию", Resources.ICONS.delete16x16()));
-                }
+                sb.append(createClickableElement(EDIT_PUBLICATION_LINK_ID, "изменить публикацию", Resources.ICONS.edit16x16()));
+                sb.append(createClickableElement(COPY_PUBLICATION_LINK_ID, "копировать публикацию", Resources.ICONS.copy16x16()));
+                sb.append(createClickableElement(DELETE_PUBLICATION_LINK_ID, "удалить публикацию", Resources.ICONS.delete16x16()));
                 sb.appendHtmlConstant("</div>");
             }
         };
@@ -591,12 +745,12 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
                 
                 if (EDIT_PUBLICATION_LINK_ID.equals(event.getLinkType())) {
                     PublicationVO publication = (PublicationVO)event.getValue();
-                    showPublicationWindow(publication);
+                    showPublicationWindow(publication, EditMode.etExisting);
                 }
                 else if (COPY_PUBLICATION_LINK_ID.equals(event.getLinkType())) {
-                    PublicationVO publication = (PublicationVO)event.getValue();
+                    PublicationVO publication = VOHelper.clonePublicationForEditor((PublicationVO)event.getValue());
                     publication.setId(BaseVO.idString());
-                    showPublicationWindow(publication);
+                    showPublicationWindow(publication, EditMode.etCopy);
                 }
                 else if (DELETE_PUBLICATION_LINK_ID.equals(event.getLinkType())) {
                     final PublicationVO publication = (PublicationVO)event.getValue();
@@ -613,200 +767,15 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
         result.setSortable(false);
         result.setHideable(false);
         result.setResizable(false);
-        result.setWidth(120);
+        result.setWidth(90);
         result.setFixed(true);
         result.setMenuDisabled(true);        
         return result;
     }
-    
-    @Ignore
-    ColumnModel<PublicationVO> publicationsCm;
-    ColumnModel<PublicationVO> createPublicationsCm(CheckBoxSelectionModel<PublicationVO> sm){
-        List<ColumnConfig<PublicationVO, ?>> l = new ArrayList<ColumnConfig<PublicationVO, ?>>();
-        
-        l.add(new ColumnConfig<PublicationVO, Long>(publicationsTreeProperties.reportsCount, 14, "Отчетов"));
-        
-        l.add(new ColumnConfig<PublicationVO, String>(publicationsTreeProperties.start, 20, "Начало"));
-        l.add(new ColumnConfig<PublicationVO, String>(publicationsTreeProperties.end, 20, "Конец"));
-        
-        l.add(new ColumnConfig<PublicationVO, String>(publicationsTreeProperties.fillBeforeTest, 40, "Заполнять перед тестом"));
-        l.add(new ColumnConfig<PublicationVO, String>(publicationsTreeProperties.maxAttempts , 20, "Макс. попыток"));
-        l.add(new ColumnConfig<PublicationVO, String>(publicationsTreeProperties.minScore, 15, "Мин. баллов"));
-        
-        l.add(new ColumnConfig<PublicationVO, String>(publicationsTreeProperties.maxTakeTestTime, 20, "Времени на тест"));
-        l.add(createPublicationActionsColumnConfig(new IdentityValueProvider<PublicationVO>()));
-        
-        ColumnModel<PublicationVO> result = new ColumnModel<PublicationVO>(l);
 
-        return result;        
-    }
-    
-    @Ignore
-    ColumnModel<MetaTestEntryVO> entriesCm;
-    
-    @Ignore
-    ColumnConfig<MetaTestEntryVO, Integer> entriesQuestionsCountColumn;    
-    
-    ColumnModel<MetaTestEntryVO> createEntriesCm(
-            CheckBoxSelectionModel<MetaTestEntryVO> sm, ColumnConfig<MetaTestEntryVO, Integer> questionsCountColumn) {
-
-        List<ColumnConfig<MetaTestEntryVO, ?>> l = new ArrayList<ColumnConfig<MetaTestEntryVO, ?>>();
-        l.add(sm.getColumn());
-        
-        ColumnConfig<MetaTestEntryVO, MetaTestEntryVO> entryColumn = createEntryDescriptionColumnConfig(new IdentityValueProvider<MetaTestEntryVO>(),
-                300, "Элемент теста"); 
-        
-        l.add(entryColumn);
-        
-//        ColumnConfig<MetaTestEntryVO, Integer> questionsCountColumn = createQuestonsCountColumnConfig(entryPropertyAccess.numberOfQuestions(), 60, "Вопросов");
-        l.add(questionsCountColumn);
-        
-        ColumnModel<MetaTestEntryVO> result = new ColumnModel<MetaTestEntryVO>(l);
-        
-        AggregationRowConfig<MetaTestEntryVO> totalQuestionsCount = new AggregationRowConfig<MetaTestEntryVO>();
-        totalQuestionsCount.setRenderer(entryColumn, new AggregationSafeHtmlRenderer<MetaTestEntryVO>("Всего вопросов в тесте"));        
-        totalQuestionsCount.setRenderer(questionsCountColumn, 
-                new AggregationNumberSummaryRenderer<MetaTestEntryVO, Integer>(
-                        NumberFormat.getDecimalFormat(),
-                new SumSummaryType<Integer>()));
-        result.addAggregationRow(totalQuestionsCount);
-        
-        return result;
-    }
-    
-    @Ignore
-    ColumnModel<GroupVO> groupsCm;
-    ColumnModel<GroupVO> createGroupsCm(
-            CheckBoxSelectionModel<GroupVO> sm) {
-
-        List<ColumnConfig<GroupVO, ?>> l = new ArrayList<ColumnConfig<GroupVO, ?>>();
-        l.add(sm.getColumn());
-        
-        ColumnConfig<GroupVO, String> nameColumn = new ColumnConfig<GroupVO, String>(
-                groupPropertyAccess.name(), 100, "Название"); 
-        l.add(nameColumn);
-        
-        ColumnConfig<GroupVO, Long> questionsCountColumn = new ColumnConfig<GroupVO, Long>(
-                groupPropertyAccess.questionsCount(), 20, "Вопросов"); 
-        questionsCountColumn.setSortable(false);        
-        l.add(questionsCountColumn);
-        
-        ColumnModel<GroupVO> result = new ColumnModel<GroupVO>(l);
-
-        return result;
-    }
-
-    
-    @Ignore
-    ColumnModel<QuestionVO> questionsCm;
-    ColumnModel<QuestionVO> createQuestionsCm(
-            CheckBoxSelectionModel<QuestionVO> sm) {
-        ColumnConfig<QuestionVO, String> textColumn = new ColumnConfig<QuestionVO, String>(
-                questionPropertyAccess.text(), 100, "Вопрос");
-        textColumn.setCell(new AbstractCell<String>() {
-            @Override
-            public void render(Context context, String value, SafeHtmlBuilder sb) {
-                sb.appendHtmlConstant("<div style=\"white-space:normal !important;\">"
-                        + value + "</div>");
-            }
-        });
-
-        ColumnConfig<QuestionVO, String> groupNameColumn = new ColumnConfig<QuestionVO, String>(
-                questionPropertyAccess.groupName(), 15, "Группа");
-        groupNameColumn.setCell(new AbstractCell<String>() {
-            @Override
-            public void render(Context context, String value,
-                    SafeHtmlBuilder sb) {
-                if (value == null) {
-                    sb.appendEscaped("");
-                } else {
-                    sb.appendEscaped(value);
-                }
-            }
-        });
-
-        List<ColumnConfig<QuestionVO, ?>> l = new ArrayList<ColumnConfig<QuestionVO, ?>>();
-        l.add(sm.getColumn());
-        l.add(textColumn);
-        l.add(groupNameColumn);
-        ColumnModel<QuestionVO> result = new ColumnModel<QuestionVO>(l);
-
-        return result;
-    }
-    
-    private void bindPagerAndSearchField(SearchField searchField, final PagingToolBar pager) {
-        searchField.addFilterChangeHandler(new FilterHandler<String>() {
-            @Override
-            public void onFilter(FilterEvent<String> event) {
-                Scheduler.get().scheduleDeferred(new ScheduledCommand() {
-                    @Override
-                    public void execute() {
-                        pager.first();
-                    }
-                });
-            }
-        });
-    }
-    
-    public MetatestWindow(MetaTestVO metatest) {
-                
-        questionsSm = createSm(dualListSelectionHandler);
-        questionsCm = createQuestionsCm(questionsSm);
-        questionsStore = createStore(questionPropertyAccess.id());
-        questionsRpcProxy = createQuestionsRpcProxy();
-        questionsSearchField = createSearchField();
-        questionsLoader = createQuestionsPagingLoader(questionsStore, questionsRpcProxy, questionsSearchField);
-        questionsGrid = createGrid(questionsLoader, questionsStore, questionsCm, questionsSm);
-
-        groupsSm = createSm(dualListSelectionHandler);
-        groupsCm = createGroupsCm(groupsSm);
-        groupsStore = createStore(groupPropertyAccess.id());
-        groupsRpcProxy = createGroupsRpcProxy();
-        groupsSearchField = createSearchField();
-        groupsLoader = createGroupsPagingLoader(groupsStore, groupsRpcProxy, groupsSearchField);
-        groupsGrid = createGrid(groupsLoader, groupsStore, groupsCm, groupsSm);
-        
-        entriesSm = createSm(dualListSelectionHandler);
-        entriesQuestionsCountColumn = createQuestonsCountColumnConfig(entryPropertyAccess.numberOfQuestions(), 60, "Вопросов в тесте");
-        entriesCm = createEntriesCm(entriesSm, entriesQuestionsCountColumn);
-        entriesStore = createStore(entryPropertyAccess.id());
-        entries = createEntriesStoreEditor(entriesStore);
-        entriesGrid = createGrid(entriesStore, entriesCm, entriesSm);
-        entriesEditing = createEntriesEditing(entriesGrid, entriesQuestionsCountColumn);
-        
-        publicationsSm = createSm(null);
-        publicationsCm = createPublicationsCm(publicationsSm);
-        publicationsStore = createStore(publicationProperties.id());
-        publicationsRpcProxy = createPublicationsRpcProxy();
-        publicationsLoader = createListLoader(publicationsStore, publicationsRpcProxy);
-        publicationsGrid = createGrid(publicationsStore, publicationsCm, publicationsSm);
-        
-        // Create UI
-        uiBinder.createAndBindUi(this);        
-        
-        elementsSourceLayout.setActiveWidget(questionsPanel);
-        
-        questionsPager.bind(questionsLoader);
-        bindPagerAndSearchField(questionsSearchField, questionsPager);
-        
-        groupsPager.bind(groupsLoader);
-        bindPagerAndSearchField(groupsSearchField, groupsPager);
-        
-        Scheduler.get().scheduleDeferred(new ScheduledCommand() {
-            @Override
-            public void execute() {
-                questionsPager.first();
-                groupsPager.first();
-                publicationsLoader.load();
-                
-                window.maximize();
-            }
-        });
-        
-        enableDualListButtons();
-        
-        driver.initialize(this);
-        driver.edit(metatest);
+    @UiFactory
+    ContentPanel createContentPanel(ContentPanelAppearance appearance) {
+      return new ContentPanel(appearance);
     }
 
     @UiHandler("addQuestionButton")
@@ -890,22 +859,130 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
         entriesGrid.getView().ensureVisible(index, 0, true);        
     }    
     
-    private void showPublicationWindow(final PublicationVO publication) {
-        PublicationWindow window = new PublicationWindow(publication);
-        window.addSaveHandler(new SaveHandler<PublicationVO>() {
-            @Override
-            public void onSave(SaveEvent<PublicationVO> event) {
-                publicationsLoader.load();
-            }
-        });
-        window.asWidget().show();
-    }
-    
     @UiHandler("cancelButton")
     void cancelButtonClick(SelectEvent event) {
         window.hide();
     }
     
+    @UiHandler("addPublicationButton")
+    void addPublicationButtonClick(SelectEvent event) {
+        PublicationVO publication = new PublicationVO();
+        publication.setMetatestId(id.getValue());
+        publication.setMetatest(VOHelper.cloneMeatestForPublicationEditor(originalMetatestInstance));
+        showPublicationWindow(publication, EditMode.etNew);
+    }
+    
+    private void showPublicationWindow(final PublicationVO publication, final EditMode editMode) {
+        PublicationWindow window = new PublicationWindow(publication, editMode, SaveMode.saveToObject);
+        window.addSaveHandler(new SaveHandler<PublicationVO>() {
+            @Override
+            public void onSave(SaveEvent<PublicationVO> event) {
+                if (editMode == EditMode.etNew || editMode == EditMode.etCopy) {
+                    int rowToMakeVisible = publicationsStore.size();
+                    publicationsStore.add(publication);
+                    publicationsSm.select(false, publication);
+                    publicationsGrid.getView().ensureVisible(rowToMakeVisible, 0, false);
+                }
+                else {
+                    publicationsGrid.getView().refresh(false);
+                }
+            }
+        });
+        window.asWidget().show();
+    }
+
+    private void bindPagerAndSearchField(SearchField searchField, final PagingToolBar pager) {
+        searchField.addFilterChangeHandler(new FilterHandler<String>() {
+            @Override
+            public void onFilter(FilterEvent<String> event) {
+                Scheduler.get().scheduleDeferred(new ScheduledCommand() {
+                    @Override
+                    public void execute() {
+                        pager.first();
+                    }
+                });
+            }
+        });
+    }
+    
+    private String getHeader(EditMode editType) {
+        switch (editType) {
+        case etCopy:
+            return "Тест - копия";
+        case etNew:
+            return "Тест - новый";
+        case etExisting:
+            return "Тест - редактирование";
+        default:
+            return "Тест";
+        }        
+    }
+    
+    public MetatestWindow(MetaTestVO metatest, EditMode editType) {
+        originalMetatestInstance = metatest;
+        
+        questionsSm = createSm(dualListSelectionHandler);
+        questionsCm = createQuestionsCm(questionsSm);
+        questionsStore = createStore(questionPropertyAccess.id());
+        questionsRpcProxy = createQuestionsRpcProxy();
+        questionsSearchField = createSearchField();
+        questionsLoader = createQuestionsPagingLoader(questionsStore, questionsRpcProxy, questionsSearchField);
+        questionsGrid = createGrid(questionsLoader, questionsStore, questionsCm, questionsSm);
+    
+        groupsSm = createSm(dualListSelectionHandler);
+        groupsCm = createGroupsCm(groupsSm);
+        groupsStore = createStore(groupPropertyAccess.id());
+        groupsRpcProxy = createGroupsRpcProxy();
+        groupsSearchField = createSearchField();
+        groupsLoader = createGroupsPagingLoader(groupsStore, groupsRpcProxy, groupsSearchField);
+        groupsGrid = createGrid(groupsLoader, groupsStore, groupsCm, groupsSm);
+        
+        entriesSm = createSm(dualListSelectionHandler);
+        entriesQuestionsCountColumn = createQuestonsCountColumnConfig(entryPropertyAccess.numberOfQuestions(), 60, "Вопросов в тесте");
+        entriesCm = createEntriesCm(entriesSm, entriesQuestionsCountColumn);
+        entriesStore = createStore(entryPropertyAccess.id());
+        entries = createEntriesStoreEditor(entriesStore);
+        entriesGrid = createGrid(entriesStore, entriesCm, entriesSm);
+        entriesEditing = createEntriesEditing(entriesGrid, entriesQuestionsCountColumn);
+        
+        publicationsSm = createSm(publicationSelectionHandler);
+        publicationsCm = createPublicationsCm(publicationsSm);
+        publicationsStore = createStore(publicationProperties.id());
+        publicationsRpcProxy = createPublicationsRpcProxy();
+        publicationsLoader = createListLoader(publicationsStore, publicationsRpcProxy, false);
+        publicationsGrid = createPublicationsGrid(publicationsStore, publicationsCm, publicationsSm);
+
+        // Create UI
+        uiBinder.createAndBindUi(this);        
+        
+        window.setHeadingText(getHeader(editType));
+        
+        elementsSourceLayout.setActiveWidget(questionsPanel);
+        
+        questionsPager.bind(questionsLoader);
+        bindPagerAndSearchField(questionsSearchField, questionsPager);
+        
+        groupsPager.bind(groupsLoader);
+        bindPagerAndSearchField(groupsSearchField, groupsPager);
+        
+        Scheduler.get().scheduleDeferred(new ScheduledCommand() {
+            @Override
+            public void execute() {
+                questionsPager.first();
+                groupsPager.first();
+                publicationsLoader.load();
+                
+                window.maximize();
+            }
+        });
+        
+        enableDualListButtons();
+        enablePublicationsButtons();
+        
+        driver.initialize(this);
+        driver.edit(metatest);
+    }
+
     @Override
     public Window asWidget() {
         return window;
@@ -924,6 +1001,14 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
     @Override
     public HandlerRegistration addHideHandler(HideHandler handler) {
         return window.addHideHandler(handler);
+    }
+    
+    private void enablePublicationsButtons() {
+        boolean isSomePublicationSelected = publicationsSm.getSelectedItems().size() > 0;
+        boolean isOnePublicationSelected = publicationsSm.getSelectedItems().size() == 1;
+        removePublicationButton.setEnabled(isSomePublicationSelected);
+        copyPublicationButton.setEnabled(isOnePublicationSelected);
+        editPublicationButton.setEnabled(isOnePublicationSelected);
     }
     
     private void enableDualListButtons() {
