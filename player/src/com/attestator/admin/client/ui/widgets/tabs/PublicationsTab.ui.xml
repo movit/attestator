@@ -21,20 +21,23 @@
 		<ui:attributes width="1" height="1" />
 	</ui:with>
 
-	<ui:with field="gridCm" type="com.sencha.gxt.widget.core.client.grid.ColumnModel"/>
-	<ui:with field="gridStore" type="com.sencha.gxt.data.shared.TreeStore"/>
-    <ui:with type="com.sencha.gxt.theme.gray.client.toolbar.GrayPagingToolBarAppearance.GrayPagingToolBarResources"
-        field="grayIcons" />
+	<ui:with field="gridCm"
+		type="com.sencha.gxt.widget.core.client.grid.ColumnModel" />
+	<ui:with field="gridStore" type="com.sencha.gxt.data.shared.TreeStore" />
+	<ui:with
+		type="com.sencha.gxt.theme.gray.client.toolbar.GrayPagingToolBarAppearance.GrayPagingToolBarResources"
+		field="grayIcons" />
+		
+    <ui:with type="com.attestator.common.client.ui.resolurces.Resources.Icons"
+        field="icons" />
+		
 	<row:VerticalLayoutContainer ui:field="top">
-		<!-- <row:child layoutData="{maxWidthMinHeightVLData}"> -->
-		<!-- <toolbar:ToolBar> -->
-		<!-- <button:TextButton ui:field="showReportButton" text="Просмотр"> -->
-		<!-- </button:TextButton> -->
-		<!-- <toolbar:SeparatorToolItem /> -->
-		<!-- <button:TextButton ui:field="deleteReportsButton" -->
-		<!-- text="Удалить" enabled="false" /> -->
-		<!-- </toolbar:ToolBar> -->
-		<!-- </row:child> -->
+		<row:child layoutData="{maxWidthMinHeightVLData}">
+			<toolbar:ToolBar>
+				<button:TextButton ui:field="newTestButton"
+					icon="{icons.checkBoxChecked16x16}" iconAlign="LEFT" text="Создать новый тест" />
+			</toolbar:ToolBar>
+		</row:child>
 		<row:child layoutData="{maxWidthMaxHeightVLData}">
 			<grid:Grid ui:field="grid" loadMask="true"
 				columnReordering="true" borders="false">
@@ -42,7 +45,7 @@
 		</row:child>
 		<row:child layoutData="{maxWidthMinHeightVLData}">
 			<toolbar:ToolBar>
-                <button:TextButton ui:field="refreshButton" icon="{grayIcons.refresh}"/>
+				<button:TextButton ui:field="refreshButton" icon="{grayIcons.refresh}" />
 			</toolbar:ToolBar>
 		</row:child>
 	</row:VerticalLayoutContainer>

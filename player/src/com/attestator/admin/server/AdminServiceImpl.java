@@ -55,7 +55,7 @@ public class AdminServiceImpl extends RemoteServiceServlet implements
     @Override
     public List<GroupVO> loadGroups() throws IllegalStateException {
         try {
-            return Singletons.al().getAllGroups();
+            return Singletons.al().loadAllGroups();
         }
         catch (Throwable e) {
             logger.error("Error: ", e);
@@ -78,7 +78,7 @@ public class AdminServiceImpl extends RemoteServiceServlet implements
     @Override
     public ReportVO loadReport(String reportId) throws IllegalStateException {
         try {
-            return Singletons.al().getReport(reportId);
+            return Singletons.al().loadReport(reportId);
         }
         catch (Throwable e) {
             logger.error("Error: ", e);
@@ -116,7 +116,7 @@ public class AdminServiceImpl extends RemoteServiceServlet implements
     public List<PublicationsTreeItem> loadPublicationsTree(PublicationsTreeItem root) throws IllegalStateException {
         try {
             if (root == null) {
-                return (List<PublicationsTreeItem>)((List<?>)Singletons.al().getAllMetaTests()); 
+                return (List<PublicationsTreeItem>)((List<?>)Singletons.al().getAllMetaTests("entries")); 
             }
             else if (root instanceof MetaTestVO) {
                 return (List<PublicationsTreeItem>)((List<?>)Singletons.al().loadPublicationsByMetatestId(((MetaTestVO) root).getId(), null));
@@ -133,6 +133,17 @@ public class AdminServiceImpl extends RemoteServiceServlet implements
     public void saveQuestion(QuestionVO question) throws IllegalStateException {
         try {
             Singletons.al().saveQuestion(question);
+        }
+        catch (Throwable e) {
+            logger.error("Error: ", e);
+            throw new IllegalStateException(DEFAULT_ERROR_MESSAGE, e);
+        }
+    }
+    
+    @Override
+    public void saveMetatest(MetaTestVO metatest) throws IllegalStateException {
+        try {
+            Singletons.al().saveMetatest(metatest);
         }
         catch (Throwable e) {
             logger.error("Error: ", e);
@@ -229,6 +240,17 @@ public class AdminServiceImpl extends RemoteServiceServlet implements
     }
 
     @Override
+    public void deleteMetatests(List<String> metatestIds) throws IllegalStateException {
+        try {
+            Singletons.al().deleteMetatests(metatestIds);
+        }
+        catch (Throwable e) {
+            logger.error("Error: ", e);
+            throw new IllegalStateException(DEFAULT_ERROR_MESSAGE, e);
+        }
+    }
+    
+    @Override
     public void deletePublications(List<String> publicationIds) throws IllegalStateException {
         try {
             Singletons.al().deletePublications(publicationIds);
@@ -249,5 +271,26 @@ public class AdminServiceImpl extends RemoteServiceServlet implements
             throw new IllegalStateException(DEFAULT_ERROR_MESSAGE, e);
         }
     }
+    
+    @Override
+    public void setPublicationsForMetatest(String metatestId, List<PublicationVO> publication) throws IllegalStateException {
+        try {
+            Singletons.al().setPublicationsForMetatest(metatestId, publication);
+        }
+        catch (Throwable e) {
+            logger.error("Error: ", e);
+            throw new IllegalStateException(DEFAULT_ERROR_MESSAGE, e);
+        }
+    }
 
+    @Override
+    public MetaTestVO loadMetatest(String metatestId) {
+        try {
+            return Singletons.al().loadMetatest(metatestId);
+        }
+        catch (Throwable e) {
+            logger.error("Error: ", e);
+            throw new IllegalStateException(DEFAULT_ERROR_MESSAGE, e);
+        }
+    }
 }

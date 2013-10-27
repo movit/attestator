@@ -1,7 +1,6 @@
 package com.attestator.admin.client.ui;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
@@ -28,7 +27,6 @@ import com.attestator.common.shared.helper.NullHelper;
 import com.attestator.common.shared.helper.ReportHelper;
 import com.attestator.common.shared.helper.StringHelper;
 import com.attestator.common.shared.helper.VOHelper;
-import com.attestator.common.shared.vo.BaseVO;
 import com.attestator.common.shared.vo.GroupVO;
 import com.attestator.common.shared.vo.MTEGroupVO;
 import com.attestator.common.shared.vo.MTEQuestionVO;
@@ -57,6 +55,7 @@ import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.IsWidget;
+import com.google.gwt.user.client.ui.Widget;
 import com.sencha.gxt.cell.core.client.ResizeCell;
 import com.sencha.gxt.core.client.IdentityValueProvider;
 import com.sencha.gxt.core.client.ValueProvider;
@@ -77,13 +76,17 @@ import com.sencha.gxt.data.shared.loader.LoadHandler;
 import com.sencha.gxt.data.shared.loader.LoadResultListStoreBinding;
 import com.sencha.gxt.data.shared.loader.PagingLoadResult;
 import com.sencha.gxt.data.shared.loader.PagingLoader;
+import com.sencha.gxt.widget.core.client.Component;
 import com.sencha.gxt.widget.core.client.ContentPanel;
 import com.sencha.gxt.widget.core.client.ContentPanel.ContentPanelAppearance;
 import com.sencha.gxt.widget.core.client.Window;
+import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
 import com.sencha.gxt.widget.core.client.button.TextButton;
 import com.sencha.gxt.widget.core.client.container.AccordionLayoutContainer;
+import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
 import com.sencha.gxt.widget.core.client.event.BeforeStartEditEvent;
 import com.sencha.gxt.widget.core.client.event.BeforeStartEditEvent.BeforeStartEditHandler;
+import com.sencha.gxt.widget.core.client.event.HideEvent;
 import com.sencha.gxt.widget.core.client.event.HideEvent.HasHideHandlers;
 import com.sencha.gxt.widget.core.client.event.HideEvent.HideHandler;
 import com.sencha.gxt.widget.core.client.event.RowDoubleClickEvent;
@@ -153,6 +156,10 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
     @Ignore
     @UiField
     Window window;
+    
+    @UiField
+    @Ignore
+    VerticalLayoutContainer top;
     
     @UiField
     @Ignore
@@ -742,24 +749,17 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
         cell.addMultyLinikSelectHandler(new MultyLinikSelectHandler<PublicationVO>() {
             @Override
             public void onSelect(MultyLinikSelectEvent<PublicationVO> event) {
-                
                 if (EDIT_PUBLICATION_LINK_ID.equals(event.getLinkType())) {
                     PublicationVO publication = (PublicationVO)event.getValue();
                     showPublicationWindow(publication, EditMode.etExisting);
                 }
                 else if (COPY_PUBLICATION_LINK_ID.equals(event.getLinkType())) {
-                    PublicationVO publication = VOHelper.clonePublicationForEditor((PublicationVO)event.getValue());
-                    publication.setId(BaseVO.idString());
+                    PublicationVO publication = (PublicationVO)event.getValue();
                     showPublicationWindow(publication, EditMode.etCopy);
                 }
                 else if (DELETE_PUBLICATION_LINK_ID.equals(event.getLinkType())) {
                     final PublicationVO publication = (PublicationVO)event.getValue();
-                    Admin.RPC.deletePublications(Arrays.asList(publication.getId()), new AdminAsyncCallback<Void>() {
-                        @Override
-                        public void onSuccess(Void result) {
-                            publicationsLoader.load();
-                        }
-                    });
+                    publicationsStore.remove(publication);
                 }
             }
         });
@@ -772,7 +772,7 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
         result.setMenuDisabled(true);        
         return result;
     }
-
+    
     @UiFactory
     ContentPanel createContentPanel(ContentPanelAppearance appearance) {
       return new ContentPanel(appearance);
@@ -859,6 +859,77 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
         entriesGrid.getView().ensureVisible(index, 0, true);        
     }    
     
+    private boolean validate() {
+        StringBuilder sb = new StringBuilder();
+        Widget ensureVisibleWidget = null;
+        Component focusWidget = null;
+        
+        if (StringHelper.isEmptyOrNull(name.getValue())) {
+            sb.append("Название теста не может быть пустым" + "<br>");            
+            if (ensureVisibleWidget == null) {
+                ensureVisibleWidget = name;
+                focusWidget = name;
+            }
+        }
+        
+        if (entriesStore.size() == 0) {
+            sb.append("В тесте должен быть хотя бы одинн элемент" + "<br>");            
+        }
+        
+        if (sb.length() > 0) {
+            AlertMessageBox alert = new AlertMessageBox("Ошибка", sb.toString());
+            
+            if (ensureVisibleWidget != null) {
+                final Widget finalEnsureVisibleWidget = ensureVisibleWidget;
+                final Component finalFocusWiget = focusWidget;
+                alert.addHideHandler(new HideHandler() {
+                    @Override
+                    public void onHide(HideEvent event) {
+                        Scheduler.get().scheduleDeferred(new ScheduledCommand() {                            
+                            @Override
+                            public void execute() {
+                                top.getScrollSupport().ensureVisible(finalEnsureVisibleWidget);
+                                if (finalFocusWiget != null) {
+                                    finalFocusWiget.focus();
+                                }
+                            }
+                        });
+                    }
+                });
+            }
+            
+            alert.show();
+            return false;
+        }
+        
+        return true;
+        
+        
+    }
+    
+    @UiHandler("saveButton")
+    void saveButtonClick(SelectEvent event) {
+        if (!validate()) {
+            return;
+        }
+        
+        final MetaTestVO metatest = driver.flush();
+        Admin.RPC.saveMetatest(metatest, new AdminAsyncCallback<Void>() {
+            @Override
+            public void onSuccess(Void result) {
+                List<PublicationVO> publications = new ArrayList<PublicationVO>(publicationsStore.getAll());
+                Admin.RPC.setPublicationsForMetatest(metatest.getId(), publications, new AdminAsyncCallback<Void>() {
+                    @Override
+                    public void onSuccess(Void result) {
+                        window.hide();
+                        fireEvent(new SaveEvent<MetaTestVO>(metatest));
+                    }
+                });                
+            }
+        });
+        
+    }
+    
     @UiHandler("cancelButton")
     void cancelButtonClick(SelectEvent event) {
         window.hide();
@@ -866,21 +937,58 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
     
     @UiHandler("addPublicationButton")
     void addPublicationButtonClick(SelectEvent event) {
-        PublicationVO publication = new PublicationVO();
-        publication.setMetatestId(id.getValue());
-        publication.setMetatest(VOHelper.cloneMeatestForPublicationEditor(originalMetatestInstance));
-        showPublicationWindow(publication, EditMode.etNew);
+        showPublicationWindow(null, EditMode.etNew);
     }
     
-    private void showPublicationWindow(final PublicationVO publication, final EditMode editMode) {
+    @UiHandler("copyPublicationButton")
+    void copyPublicationButtonClick(SelectEvent event) {
+        if (publicationsSm.getSelectedItem() != null) {
+            showPublicationWindow(publicationsSm.getSelectedItem(), EditMode.etCopy);
+        }
+    }
+    
+    @UiHandler("editPublicationButton")
+    void editPublicationButtonClick(SelectEvent event) {
+        if (publicationsSm.getSelectedItem() != null) {
+            showPublicationWindow(publicationsSm.getSelectedItem(), EditMode.etExisting);
+        }
+    }
+    
+    @UiHandler("removePublicationButton")
+    void removePublicationButtonClick(SelectEvent event) {
+        if (!NullHelper.isEmptyOrNull(publicationsSm.getSelectedItems())) {
+            for (PublicationVO publication: publicationsSm.getSelectedItems()) {
+                publicationsStore.remove(publication);
+            }
+        }
+    }
+    
+    private void showPublicationWindow(PublicationVO publication, final EditMode editMode) {        
+        switch (editMode) {
+        case etNew:
+            publication = new PublicationVO();
+            publication.setReportsCount(0l);
+            publication.setMetatestId(id.getValue());
+            publication.setMetatest(VOHelper.cloneMeatestForPublicationEditor(originalMetatestInstance));
+            break;
+        case etCopy:
+            publication = VOHelper.clonePublicationForEditor(publication);
+            publication.makeNew();
+            break;
+        case etExisting:
+            break;
+        }
+            
+        final PublicationVO finalPublication = publication;
+        
         PublicationWindow window = new PublicationWindow(publication, editMode, SaveMode.saveToObject);
         window.addSaveHandler(new SaveHandler<PublicationVO>() {
             @Override
             public void onSave(SaveEvent<PublicationVO> event) {
                 if (editMode == EditMode.etNew || editMode == EditMode.etCopy) {
                     int rowToMakeVisible = publicationsStore.size();
-                    publicationsStore.add(publication);
-                    publicationsSm.select(false, publication);
+                    publicationsStore.add(finalPublication);
+                    publicationsSm.select(false, finalPublication);
                     publicationsGrid.getView().ensureVisible(rowToMakeVisible, 0, false);
                 }
                 else {
@@ -918,7 +1026,26 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
         }        
     }
     
-    public MetatestWindow(MetaTestVO metatest, EditMode editType) {
+    private void enablePublicationsButtons() {
+        boolean isSomePublicationSelected = publicationsSm.getSelectedItems().size() > 0;
+        boolean isOnePublicationSelected = publicationsSm.getSelectedItems().size() == 1;
+        removePublicationButton.setEnabled(isSomePublicationSelected);
+        copyPublicationButton.setEnabled(isOnePublicationSelected);
+        editPublicationButton.setEnabled(isOnePublicationSelected);
+    }
+
+    private void enableDualListButtons() {
+        boolean isSomeQuestionSelected = questionsSm.getSelectedItems().size() > 0;
+        boolean isSomeGroupSelected = groupsSm.getSelectedItems().size() > 0;
+        boolean isSomeEntrySelected = entriesSm.getSelectedItems().size() > 0;
+        addQuestionButton.setEnabled(isSomeQuestionSelected);
+        addGroupButton.setEnabled(isSomeGroupSelected);
+        removeEntryButton.setEnabled(isSomeEntrySelected);
+        moveEntryUpButton.setEnabled(isSomeEntrySelected);
+        moveEntryDownButton.setEnabled(isSomeEntrySelected);
+    }
+
+    public MetatestWindow(MetaTestVO metatest, final EditMode editMode) {
         originalMetatestInstance = metatest;
         
         questionsSm = createSm(dualListSelectionHandler);
@@ -955,7 +1082,7 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
         // Create UI
         uiBinder.createAndBindUi(this);        
         
-        window.setHeadingText(getHeader(editType));
+        window.setHeadingText(getHeader(editMode));
         
         elementsSourceLayout.setActiveWidget(questionsPanel);
         
@@ -970,7 +1097,9 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
             public void execute() {
                 questionsPager.first();
                 groupsPager.first();
-                publicationsLoader.load();
+                if (editMode == EditMode.etExisting) {
+                    publicationsLoader.load();
+                }
                 
                 window.maximize();
             }
@@ -981,6 +1110,14 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
         
         driver.initialize(this);
         driver.edit(metatest);
+        
+        if (editMode != EditMode.etExisting) {
+            PublicationVO publication = new PublicationVO();
+            publication.setReportsCount(0l);
+            publication.setMetatestId(id.getValue());
+            publication.setMetatest(VOHelper.cloneMeatestForPublicationEditor(originalMetatestInstance));
+            publicationsStore.add(publication);
+        }
     }
 
     @Override
@@ -1001,24 +1138,5 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
     @Override
     public HandlerRegistration addHideHandler(HideHandler handler) {
         return window.addHideHandler(handler);
-    }
-    
-    private void enablePublicationsButtons() {
-        boolean isSomePublicationSelected = publicationsSm.getSelectedItems().size() > 0;
-        boolean isOnePublicationSelected = publicationsSm.getSelectedItems().size() == 1;
-        removePublicationButton.setEnabled(isSomePublicationSelected);
-        copyPublicationButton.setEnabled(isOnePublicationSelected);
-        editPublicationButton.setEnabled(isOnePublicationSelected);
-    }
-    
-    private void enableDualListButtons() {
-        boolean isSomeQuestionSelected = questionsSm.getSelectedItems().size() > 0;
-        boolean isSomeGroupSelected = groupsSm.getSelectedItems().size() > 0;
-        boolean isSomeEntrySelected = entriesSm.getSelectedItems().size() > 0;
-        addQuestionButton.setEnabled(isSomeQuestionSelected);
-        addGroupButton.setEnabled(isSomeGroupSelected);
-        removeEntryButton.setEnabled(isSomeEntrySelected);
-        moveEntryUpButton.setEnabled(isSomeEntrySelected);
-        moveEntryDownButton.setEnabled(isSomeEntrySelected);
     }
 }

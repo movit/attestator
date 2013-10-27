@@ -23,6 +23,7 @@ public class DatastoreInvocationHandler implements InvocationHandler {
     private static final Method CREATE_UPDATE_OPERATIONS = getMethod("createUpdateOperations", Class.class);
     private static final Method UPDATE = getMethod("update", Query.class, UpdateOperations.class);
     private static final Method SAVE = getMethod("save", Object.class);
+    private static final Method SAVE_IT = getMethod("save", Iterable.class);
     private static final Method DELETE_QUERY = getMethod("delete", Query.class);
     private static final Method DELETE_OBJECT = getMethod("delete", Object.class);
     
@@ -59,17 +60,15 @@ public class DatastoreInvocationHandler implements InvocationHandler {
         }
         else if (SAVE.equals(method)) {
             Object obj = args[0];
-            if (obj instanceof TenantableVO) {
-                ((TenantableVO) obj).setTenantId(LoginManager.getThreadLocalTenatId());
-            }
-            if (obj instanceof ModificationDateAwareVO) {
-                Date now = new Date();
-                if (((ModificationDateAwareVO) obj).getCreated() == null) {
-                    ((ModificationDateAwareVO) obj).setCreated(now);
-                }
-                ((ModificationDateAwareVO) obj).setModified(now);
-            }
+            prepareForSave(obj);
             return method.invoke(rawDs, obj);
+        }
+        else if (SAVE_IT.equals(method)) {
+            Iterable<?> it = (Iterable<?>)args[0];
+            for (Object obj : it) {
+                prepareForSave(obj);
+            }
+            return method.invoke(rawDs, it);
         }
         else if (DELETE_QUERY.equals(method)) {
             return method.invoke(rawDs, args);
@@ -85,6 +84,19 @@ public class DatastoreInvocationHandler implements InvocationHandler {
             throw new UnsupportedOperationException("Method: " + method + " not supported");
         }
     }    
+    
+    private void prepareForSave(Object obj) {
+        if (obj instanceof TenantableVO) {
+            ((TenantableVO) obj).setTenantId(LoginManager.getThreadLocalTenatId());
+        }
+        if (obj instanceof ModificationDateAwareVO) {
+            Date now = new Date();
+            if (((ModificationDateAwareVO) obj).getCreated() == null) {
+                ((ModificationDateAwareVO) obj).setCreated(now);
+            }
+            ((ModificationDateAwareVO) obj).setModified(now);
+        }
+    }
     
     private static Method getMethod(String name, Class<?> ... params) {
         try {

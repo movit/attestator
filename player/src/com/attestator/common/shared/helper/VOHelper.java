@@ -75,6 +75,20 @@ public class VOHelper {
         return result;
     }
     
+    public static void copyMTEGroupForEditor(MTEGroupVO dst, MTEGroupVO src) {
+        dst.setId(src.getId());
+        dst.setGroupId(src.getGroupId());
+        dst.setGroup(src.getGroup());
+        dst.setNumberOfQuestions(src.getNumberOfQuestions());        
+    }
+    
+    public static void copyMTEQuestionForEditor(MTEQuestionVO dst, MTEQuestionVO src) {
+        dst.setId(src.getId());
+        dst.setQuestion(src.getQuestion());
+        dst.setQuestionId(src.getQuestionId());
+        dst.setNumberOfQuestions(src.getNumberOfQuestions());        
+    }
+    
     public static void copyMetatestForPublicationEditor(MetaTestVO dst, MetaTestVO src) {
         dst.setId(src.getId());
         dst.setCreated(src.getCreated());
@@ -83,6 +97,33 @@ public class VOHelper {
         dst.setName(src.getName());
         dst.setNumberOfQuestions(dst.getNumberOfQuestions());
         dst.setEntries(null);
+    }
+    
+    public static void copyMetatestForEditor(MetaTestVO dst, MetaTestVO src) {
+        dst.setId(src.getId());
+        dst.setCreated(src.getCreated());
+        dst.setModified(src.getModified());
+        dst.setTenantId(src.getTenantId());
+        dst.setName(src.getName());
+        dst.setNumberOfQuestions(dst.getNumberOfQuestions());
+        if (src.getEntries() != null) {
+            dst.setEntries(new ArrayList<MetaTestEntryVO>());
+            for (MetaTestEntryVO srcEntry: src.getEntries()) {
+                MetaTestEntryVO dstEntry = null;
+                if (srcEntry instanceof MTEGroupVO) {
+                    dstEntry = new MTEGroupVO();
+                    copyMTEGroupForEditor((MTEGroupVO)dstEntry, (MTEGroupVO)srcEntry);
+                }
+                else if (srcEntry instanceof MTEQuestionVO) {
+                    dstEntry = new MTEQuestionVO();
+                    copyMTEQuestionForEditor((MTEQuestionVO)dstEntry, (MTEQuestionVO)srcEntry);
+                }
+                else {
+                    throw new IllegalArgumentException("Unknown metatest entry type: " + srcEntry.getClass().getName());
+                }
+                dst.getEntries().add(dstEntry);
+            }
+        }
     }
     
     public static void copyAdditionalQuestionForEditor(AdditionalQuestionVO dst, AdditionalQuestionVO src) {
@@ -139,10 +180,16 @@ public class VOHelper {
         copyPublicationForEditor(result, publication);
         return result;
     }
+    
     public static MetaTestVO cloneMeatestForPublicationEditor(MetaTestVO metatest) {
         MetaTestVO result = new MetaTestVO();
         copyMetatestForPublicationEditor(result, metatest);
         return result;
     }
     
+    public static MetaTestVO cloneMeatestForEditor(MetaTestVO metatest) {
+        MetaTestVO result = new MetaTestVO();
+        copyMetatestForEditor(result, metatest);
+        return result;
+    }
 }

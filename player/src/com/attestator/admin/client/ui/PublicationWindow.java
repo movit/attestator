@@ -308,15 +308,15 @@ public class PublicationWindow implements IsWidget, Editor<PublicationVO>, HasSa
                 @Override
                 public void onSuccess(Void result) {
                     VOHelper.copyPublicationForEditor(originalPublicationInstance, publication);
-                    fireEvent(new SaveEvent<PublicationVO>(publication));
                     window.hide();
+                    fireEvent(new SaveEvent<PublicationVO>(publication));
                 }
             });
             break;
         case saveToObject:
             VOHelper.copyPublicationForEditor(originalPublicationInstance, publication);
-            fireEvent(new SaveEvent<PublicationVO>(originalPublicationInstance));
             window.hide();
+            fireEvent(new SaveEvent<PublicationVO>(originalPublicationInstance));
             break;
         default:
             throw new IllegalStateException("Unknown saveMode: " + saveMode);

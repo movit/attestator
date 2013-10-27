@@ -3,6 +3,7 @@ package com.attestator.admin.client.rpc;
 import java.util.List;
 
 import com.attestator.common.shared.vo.GroupVO;
+import com.attestator.common.shared.vo.MetaTestVO;
 import com.attestator.common.shared.vo.PublicationVO;
 import com.attestator.common.shared.vo.PublicationsTreeItem;
 import com.attestator.common.shared.vo.QuestionVO;
@@ -25,6 +26,7 @@ public interface AdminService extends RemoteService {
     PagingLoadResult<GroupVO> loadGroupsPage(FilterPagingLoadConfig loadConfig) throws IllegalStateException;
     
     ReportVO loadReport(String reportId) throws IllegalStateException;
+    MetaTestVO loadMetatest(String metatestId) throws IllegalStateException;
     
     ListLoadResult<PublicationVO> loadPublications() throws IllegalStateException;
     ListLoadResult<PublicationVO> loadPublicationsByMetatestId(String metatestId, ListLoadConfig config) throws IllegalStateException;
@@ -34,10 +36,13 @@ public interface AdminService extends RemoteService {
     
     void saveGroup(GroupVO group) throws IllegalStateException;
     void savePublication(PublicationVO publication) throws IllegalStateException;
+    void setPublicationsForMetatest(String metatestId, List<PublicationVO> publication) throws IllegalStateException;
     void saveGroups(List<GroupVO> groups) throws IllegalStateException;
     void saveQuestion(QuestionVO question) throws IllegalStateException;
+    void saveMetatest(MetaTestVO metatest) throws IllegalStateException;
     
     void deleteQuestions(List<String> questionIds) throws IllegalStateException;
+    void deleteMetatests(List<String> metatestIds) throws IllegalStateException;
     void deleteReports(List<String> reportIds) throws IllegalStateException;
     void deletePublications(List<String> publicationIds) throws IllegalStateException;
     

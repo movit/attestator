@@ -285,6 +285,16 @@ public class PublicationVO extends ModificationDateAwareVO implements Publicatio
         this.reportsCount = reportsCount;
     }
     
+    @Override
+    public void makeNew() {
+        super.makeNew();
+        if (additionalQuestions != null) {
+            for (AdditionalQuestionVO aq: additionalQuestions) {
+                aq.makeNew();
+            }
+        }
+    }
+    
     @SuppressWarnings("unused")
     @PostLoad   
     private void postLoad() {

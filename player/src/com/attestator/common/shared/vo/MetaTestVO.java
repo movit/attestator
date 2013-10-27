@@ -15,10 +15,6 @@ public class MetaTestVO extends ModificationDateAwareVO implements PublicationsT
 	private List<MetaTestEntryVO>  entries = new ArrayList<MetaTestEntryVO>();
 	private Integer                numberOfQuestions;
   
-//	@Transient
-//    @ReferenceCount(toClass=PublicationVO.class, toField="metatestId")
-//    private Integer                publicationsCount;
-	
     public List<MetaTestEntryVO> getEntries() {
         return entries;
     }
@@ -37,12 +33,6 @@ public class MetaTestVO extends ModificationDateAwareVO implements PublicationsT
     public void setNumberOfQuestions(Integer numberOfQuestions) {
         this.numberOfQuestions = numberOfQuestions;
     }
-//    public Integer getPublicationsCount() {
-//        return publicationsCount;
-//    }
-//    public void setPublicationsCount(Integer publicationsCount) {
-//        this.publicationsCount = publicationsCount;
-//    }
     @SuppressWarnings("unused")
     @PrePersist
     private void prePersist() {
@@ -51,5 +41,14 @@ public class MetaTestVO extends ModificationDateAwareVO implements PublicationsT
             count += NullHelper.nullSafeIntegerOrZerro(entry.getNumberOfQuestions());
         }
         numberOfQuestions = count;
-    }    
+    }
+    @Override
+    public void makeNew() {        
+        super.makeNew();
+        if (entries != null) {
+            for (MetaTestEntryVO entry: entries) {
+                entry.makeNew();
+            }
+        }
+    }
 }

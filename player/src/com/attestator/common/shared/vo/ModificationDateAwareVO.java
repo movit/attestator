@@ -17,5 +17,11 @@ public abstract class ModificationDateAwareVO extends TenantableVO {
     }
     public void setModified(Date modified) {
         this.modified = modified;
-    }    
+    }
+    @Override
+    public void makeNew() {        
+        super.makeNew();
+        created = null;
+        modified = null;
+    }
 }

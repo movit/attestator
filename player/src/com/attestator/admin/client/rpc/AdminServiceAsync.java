@@ -3,6 +3,7 @@ package com.attestator.admin.client.rpc;
 import java.util.List;
 
 import com.attestator.common.shared.vo.GroupVO;
+import com.attestator.common.shared.vo.MetaTestVO;
 import com.attestator.common.shared.vo.PublicationVO;
 import com.attestator.common.shared.vo.PublicationsTreeItem;
 import com.attestator.common.shared.vo.QuestionVO;
@@ -22,9 +23,17 @@ public interface AdminServiceAsync {
     void loadReports(FilterPagingLoadConfig loadConfig, AsyncCallback<PagingLoadResult<ReportVO>> callback);
     void loadGroupsPage(FilterPagingLoadConfig loadConfig, AsyncCallback<PagingLoadResult<GroupVO>> callback);
     
+    void loadReport(String reportId, AsyncCallback<ReportVO> callback);
+    void loadMetatest(String metatestId, AsyncCallback<MetaTestVO> callback);
+    
+    void loadPublications(AsyncCallback<ListLoadResult<PublicationVO>> callback);
+    void loadPublicationsTree(PublicationsTreeItem root, AsyncCallback<List<PublicationsTreeItem>> callback);
+    void loadPublicationsByMetatestId(String metatestId, ListLoadConfig config, AsyncCallback<ListLoadResult<PublicationVO>> callback);
+    
     void deleteQuestions(List<String> questionIds, AsyncCallback<Void> callback);
     void deleteReports(List<String> reportIds, AsyncCallback<Void> callback);
     void deletePublications(List<String> publicationIds, AsyncCallback<Void> callback);
+    void deleteMetatests(List<String> metatestIds, AsyncCallback<Void> callback);
 
     void setQuestionsGroup(List<String> questionIds, String groupId, AsyncCallback<Void> callback);
     
@@ -32,16 +41,12 @@ public interface AdminServiceAsync {
     void saveGroups(List<GroupVO> groups, AsyncCallback<Void> callback);
     
     void saveQuestion(QuestionVO question, AsyncCallback<Void> callback);
+    void saveMetatest(MetaTestVO metatest, AsyncCallback<Void> callback);
     void savePublication(PublicationVO publication, AsyncCallback<Void> callback);
+    void setPublicationsForMetatest(String metatestId, List<PublicationVO> publications, AsyncCallback<Void> callback);
     void saveGroup(GroupVO question, AsyncCallback<Void> callback);
     
     void getLoggedUser(AsyncCallback<UserVO> callback);
     void login(String login, String password, AsyncCallback<UserVO> callback);
-    void logout(AsyncCallback<Void> callback);
-    
-    void loadReport(String reportId, AsyncCallback<ReportVO> callback);
-    
-    void loadPublications(AsyncCallback<ListLoadResult<PublicationVO>> callback);
-    void loadPublicationsTree(PublicationsTreeItem root, AsyncCallback<List<PublicationsTreeItem>> callback);
-    void loadPublicationsByMetatestId(String metatestId, ListLoadConfig config, AsyncCallback<ListLoadResult<PublicationVO>> callback);
+    void logout(AsyncCallback<Void> callback);    
 }

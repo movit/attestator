@@ -20,7 +20,6 @@ import com.attestator.admin.client.ui.widgets.MultylinkCell;
 import com.attestator.common.client.ui.resolurces.Resources;
 import com.attestator.common.shared.helper.ReportHelper;
 import com.attestator.common.shared.helper.VOHelper;
-import com.attestator.common.shared.vo.BaseVO;
 import com.attestator.common.shared.vo.MetaTestVO;
 import com.attestator.common.shared.vo.ModificationDateAwareVO;
 import com.attestator.common.shared.vo.PublicationVO;
@@ -209,7 +208,7 @@ public class PublicationsTab extends Composite {
                 }
                 else if (COPY_PUBLICATION_LINK_ID.equals(event.getLinkType())) {
                     PublicationVO publication = VOHelper.clonePublicationForEditor((PublicationVO)event.getValue());
-                    publication.setId(BaseVO.idString());
+                    publication.makeNew();
                     showPublicationWindow(publication, EditMode.etCopy);
                 }
                 else if (DELETE_PUBLICATION_LINK_ID.equals(event.getLinkType())) {
@@ -217,7 +216,7 @@ public class PublicationsTab extends Composite {
                     Admin.RPC.deletePublications(Arrays.asList(publication.getId()), new AdminAsyncCallback<Void>() {
                         @Override
                         public void onSuccess(Void result) {
-                            gridStore.remove(publication);                            
+                            refreshGrid(null, null);                            
                         }
                     });
                 }
@@ -229,9 +228,30 @@ public class PublicationsTab extends Composite {
                     showPublicationWindow(publication, EditMode.etNew);
                 }
                 else if (EDIT_TEST_LINK_ID.equals(event.getLinkType())) {
-                    final MetaTestVO metatest = (MetaTestVO) event.getValue();
-                    showMetatestWindow(metatest, EditMode.etExisting);
+                    Admin.RPC.loadMetatest(((MetaTestVO)event.getValue()).getId(), new AdminAsyncCallback<MetaTestVO>() {
+                        @Override
+                        public void onSuccess(MetaTestVO result) {
+                            showMetatestWindow(result, EditMode.etExisting);
+                        }
+                    });
                 }                
+                else if (COPY_TEST_LINK_ID.equals(event.getLinkType())) {
+                    Admin.RPC.loadMetatest(((MetaTestVO)event.getValue()).getId(), new AdminAsyncCallback<MetaTestVO>() {
+                        @Override
+                        public void onSuccess(MetaTestVO result) {
+                            showMetatestWindow(result, EditMode.etCopy);
+                        }
+                    });
+                }                
+                else if (DELETE_TEST_LINK_ID.equals(event.getLinkType())) {
+                    MetaTestVO metatest = (MetaTestVO) event.getValue();
+                    Admin.RPC.deleteMetatests(Arrays.asList(metatest.getId()), new AdminAsyncCallback<Void>() {
+                        @Override
+                        public void onSuccess(Void result) {
+                            refreshGrid(null, null);
+                        }
+                    });
+                }
             }
         });
         result.setCell(cell);
@@ -299,12 +319,12 @@ public class PublicationsTab extends Composite {
     }
     
     private void refresh() {
-        refreshGrid(null, null); //TODO enableButtons() called after grid refresh is finished to reflect new selected state
+        refreshGrid(null, null);
     }
     
     private HandlerRegistration selectAfterLoadRegistration;
-    private void refreshGrid(final String metaTestId, final String publicationId) {
-        if (metaTestId != null) {
+    private void refreshGrid(final String metaTestIdToSelect, final String publicationIdToSelect) {
+        if (metaTestIdToSelect != null) {
             selectAfterLoadRegistration = gridLoader.addLoaderHandler(new LoaderHandler<PublicationsTreeItem, List<PublicationsTreeItem>>() {
                 private void unregister() {
                     if (selectAfterLoadRegistration != null) {
@@ -315,13 +335,20 @@ public class PublicationsTab extends Composite {
                 @Override
                 public void onLoad(
                         LoadEvent<PublicationsTreeItem, List<PublicationsTreeItem>> event) {
-                    if (publicationId != null && event.getLoadConfig() != null) {
-                        if (metaTestId.equals(((MetaTestVO)event.getLoadConfig()).getId())) {
-                            PublicationVO publication = (PublicationVO)gridStore.findModelWithKey(publicationId);
+                    if (publicationIdToSelect != null && event.getLoadConfig() != null) {
+                        // Loaded metatest subtree and we need select specific publication
+                        if (metaTestIdToSelect.equals(((MetaTestVO)event.getLoadConfig()).getId())) {
+                            PublicationVO publication = (PublicationVO)gridStore.findModelWithKey(publicationIdToSelect);
                             grid.getSelectionModel().select(false, publication);
                             unregister();
                         }
-                    }                    
+                    }
+                    else if (publicationIdToSelect == null && event.getLoadConfig() == null) {
+                        // Loaded root tree and we need select specific metatest
+                        MetaTestVO metatest = (MetaTestVO)gridStore.findModelWithKey(metaTestIdToSelect);
+                        grid.getSelectionModel().select(false, metatest);
+                        unregister();
+                    }
                 }
                 
                 @Override
@@ -337,12 +364,24 @@ public class PublicationsTab extends Composite {
         gridLoader.load();
     }
     
-    private void showMetatestWindow(final MetaTestVO metatest, EditMode editType) {
-        MetatestWindow window = new MetatestWindow(metatest, editType);
+    private void showMetatestWindow(MetaTestVO metatest, EditMode editMode) {
+        switch (editMode) {
+        case etNew:
+            metatest = new MetaTestVO();
+            break;
+        case etCopy:
+            metatest = VOHelper.cloneMeatestForEditor(metatest);
+            metatest.makeNew();
+            break;
+        case etExisting:
+            break;
+        }
+        
+        MetatestWindow window = new MetatestWindow(metatest, editMode);
         window.addSaveHandler(new SaveHandler<MetaTestVO>() {
             @Override
             public void onSave(SaveEvent<MetaTestVO> event) {
-                refreshGrid(metatest.getId(), null);
+                refreshGrid(event.getValue().getId(), null);
             }
         });
         window.asWidget().show();
@@ -357,6 +396,11 @@ public class PublicationsTab extends Composite {
             }
         });
         window.asWidget().show();
+    }
+    
+    @UiHandler("newTestButton") 
+    public void newTestButton(SelectEvent event) {
+        showMetatestWindow(null, EditMode.etNew);
     }
     
     @UiHandler("refreshButton") 

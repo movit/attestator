@@ -22,6 +22,10 @@ public class BaseVO implements Serializable, JsonSerializable{
 		this.id = id;
 	}
 	
+	public void makeNew() {
+	    this.id = idString();
+	}
+	
     public static String idString() {
         byte b[] = idByteArray();
 
