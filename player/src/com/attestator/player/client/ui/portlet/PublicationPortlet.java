@@ -47,7 +47,7 @@ public class PublicationPortlet implements IsWidget {
         }
         
         if (publication.getIntroduction() != null) {
-            introduction.setText(publication.getIntroduction());
+            introduction.setHTML(publication.getIntroduction());
             vl.add(introduction, new VerticalLayoutData(-1, -1, new Margins(5, 0, 20, 0)));
         }
         

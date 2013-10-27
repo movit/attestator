@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Set;
 
 import com.attestator.admin.client.Admin;
+import com.attestator.admin.client.helper.WidgetHelpr;
 import com.attestator.admin.client.props.BoundedConverter;
 import com.attestator.admin.client.props.GroupVOPropertyAccess;
 import com.attestator.admin.client.props.MetatestEntryVOPropertyAccess;
@@ -727,6 +728,8 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
         l.add(new ColumnConfig<PublicationVO, String>(publicationsTreeProperties.maxTakeTestTime, 20, "Времени на тест"));
         l.add(createPublicationActionsColumnConfig(new IdentityValueProvider<PublicationVO>()));
         
+        WidgetHelpr.disableColumnHeaderOperations(l);
+
         ColumnModel<PublicationVO> result = new ColumnModel<PublicationVO>(l);
     
         return result;        

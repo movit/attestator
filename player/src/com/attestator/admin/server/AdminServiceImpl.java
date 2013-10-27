@@ -89,7 +89,7 @@ public class AdminServiceImpl extends RemoteServiceServlet implements
     @Override
     public ListLoadResult<PublicationVO> loadPublications() throws IllegalStateException {
         try {
-            return new ListLoadResultBean<PublicationVO>(Singletons.al().getAllPublications());
+            return new ListLoadResultBean<PublicationVO>(Singletons.al().loadAllPublications());
         }
         catch (Throwable e) {
             logger.error("Error: ", e);
@@ -116,7 +116,7 @@ public class AdminServiceImpl extends RemoteServiceServlet implements
     public List<PublicationsTreeItem> loadPublicationsTree(PublicationsTreeItem root) throws IllegalStateException {
         try {
             if (root == null) {
-                return (List<PublicationsTreeItem>)((List<?>)Singletons.al().getAllMetaTests("entries")); 
+                return (List<PublicationsTreeItem>)((List<?>)Singletons.al().loadAllMetaTests("entries")); 
             }
             else if (root instanceof MetaTestVO) {
                 return (List<PublicationsTreeItem>)((List<?>)Singletons.al().loadPublicationsByMetatestId(((MetaTestVO) root).getId(), null));

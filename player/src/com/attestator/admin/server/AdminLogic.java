@@ -17,6 +17,7 @@ import com.attestator.common.shared.vo.GroupVO;
 import com.attestator.common.shared.vo.MTEGroupVO;
 import com.attestator.common.shared.vo.MTEQuestionVO;
 import com.attestator.common.shared.vo.MetaTestVO;
+import com.attestator.common.shared.vo.ModificationDateAwareVO;
 import com.attestator.common.shared.vo.PublicationVO;
 import com.attestator.common.shared.vo.QuestionVO;
 import com.attestator.common.shared.vo.ReportVO;
@@ -59,81 +60,15 @@ public class AdminLogic extends CommonLogic {
         return result;
     }
     
-    private List<? extends SortInfo> prepareReportSortInfo(List<? extends SortInfo> orders) {
-    	List<SortInfo> result = new ArrayList<SortInfo>();
-    	for (SortInfo si: orders) {
-    		if ("fullName".equals(si.getSortField())) {
-    			result.add(new SortInfoBean("lastName", si.getSortDir()));
-    			result.add(new SortInfoBean("firstName", si.getSortDir()));
-    			result.add(new SortInfoBean("middleName", si.getSortDir()));
-    		}
-    		else {
-    			result.add(si);
-    		}
-    	}
-    	return result;
+    private <T> void addDefaultOrder(Class<T> clazz, Query<T> q) {
+        if (ModificationDateAwareVO.class.isAssignableFrom(clazz)) {
+            q.order("created, _id");
+        }
+        else {
+            q.order("_id");
+        }
     }
     
-    private <T> void addOrders(Query<T> q, List<? extends SortInfo> orders) {
-        StringBuilder sb = new StringBuilder();
-        int i = 0;
-        boolean idAdded = false;
-        for (SortInfo order: orders) {
-            if (StringHelper.isEmptyOrNull(order.getSortField())) {
-                logger.warn("Incorrect SortInfo");
-                continue;
-            }
-            if (i > 0) {
-                sb.append(",");
-            }
-            if (order.getSortDir() == SortDir.DESC) {
-                sb.append("-");
-            }
-            sb.append(order.getSortField());
-            
-            if ("_id".equals(order.getSortField())) {
-                idAdded = true;
-            }
-            
-            i++;
-        }
-        
-        // To prevent order of equal elements
-        if (!idAdded) {
-            if (i > 0) {
-                sb.append(",");
-            }
-            sb.append("_id");
-        }
-        
-        q.order(sb.toString());
-    }
-    
-    private <T> void addFilters(Query<T> q, List<FilterConfig> filters) {
-        for (FilterConfig filter: filters) {
-            if (StringHelper.isEmptyOrNull(filter.getValue())
-            ||  StringHelper.isEmptyOrNull(filter.getField())) {
-                logger.warn("Incorrect FilterConfig");
-                continue;
-            }
-            
-            if ("contains".equals(filter.getComparison())) {
-                List<Pattern> keywordPatterns = new ArrayList<Pattern>();
-                String[] keywords = filter.getValue().split("\\s+");
-                for (String keyword: keywords) {
-                    if (StringHelper.isEmptyOrNull(keyword)) {
-                        continue;
-                    }
-                    keywordPatterns.add(Pattern.compile(keyword, Pattern.CASE_INSENSITIVE));                    
-                }
-                q.field(filter.getField()).hasAllOf(keywordPatterns);
-            }
-            else if ("notIn".equals(filter.getComparison())) {
-                q.field(filter.getField()).notIn(StringHelper.splitBySeparatorToList(filter.getValue(), ", "));
-            }
-        }
-    }
-
     public <T> PagingLoadResult<T> loadPage(Class<T> clazz, FilterPagingLoadConfig loadConfig, String ... excludFields) {
         CheckHelper.throwIfNull(loadConfig, "loadConfig");
         
@@ -155,7 +90,7 @@ public class AdminLogic extends CommonLogic {
             addOrders(q, loadConfig.getSortInfo());
         }
         else {
-            q.order("_id");
+            addDefaultOrder(clazz, q);
         }
 
         // Get total count (without offset and limit)
@@ -214,8 +149,11 @@ public class AdminLogic extends CommonLogic {
         Query<PublicationVO> q = Singletons.ds().createQuery(PublicationVO.class);
         q.field("metatestId").equal(metatestId);
         
-        if (config != null && config.getSortInfo() != null) {
+        if (config != null &&  !NullHelper.nullSafeIsEmpty(config.getSortInfo())) {
             addOrders(q, config.getSortInfo());
+        }
+        else {
+            addDefaultOrder(PublicationVO.class, q);
         }
         
         List<PublicationVO> result = q.asList();        
@@ -223,17 +161,39 @@ public class AdminLogic extends CommonLogic {
         return result;
     }
 
-    public List<MetaTestVO> getAllMetaTests(String ... excludFields) {
+    public ReportVO loadReport(String reportId) {
+        CheckHelper.throwIfNullOrEmpty(reportId, "reportId");
+        
+        Query<ReportVO> q = Singletons.ds().createQuery(ReportVO.class);        
+        q.field("_id").equal(reportId);
+        
+        ReportVO result = q.get();
+        return result;
+    }
+
+    public MetaTestVO loadMetatest(String metatestId) {
+        CheckHelper.throwIfNullOrEmpty(metatestId, "metatestId");
+        
+        Query<MetaTestVO> q = Singletons.ds().createQuery(MetaTestVO.class);        
+        q.field("_id").equal(metatestId);
+        
+        MetaTestVO result = q.get();
+        return result;
+    }
+
+    public List<MetaTestVO> loadAllMetaTests(String ... excludFields) {
         Query<MetaTestVO> q = Singletons.ds().createQuery(MetaTestVO.class);
         if (excludFields != null) {
             q.retrievedFields(false, excludFields);
-        }
+        }        
+        addDefaultOrder(MetaTestVO.class, q);        
         List<MetaTestVO> qRes = q.asList();        
         return qRes;
     }
     
-    public List<PublicationVO> getAllPublications() {
+    public List<PublicationVO> loadAllPublications() {
         Query<PublicationVO> q = Singletons.ds().createQuery(PublicationVO.class);
+        addDefaultOrder(PublicationVO.class, q);
         List<PublicationVO> qRes = q.asList();        
         return qRes;
     }
@@ -482,24 +442,79 @@ public class AdminLogic extends CommonLogic {
         putGlobalChangesMarker();
     }
 
-    public ReportVO loadReport(String reportId) {
-        CheckHelper.throwIfNullOrEmpty(reportId, "reportId");
-        
-        Query<ReportVO> q = Singletons.ds().createQuery(ReportVO.class);        
-        q.field("_id").equal(reportId);
-        
-        ReportVO result = q.get();
-        return result;
+    private List<? extends SortInfo> prepareReportSortInfo(List<? extends SortInfo> orders) {
+    	List<SortInfo> result = new ArrayList<SortInfo>();
+    	for (SortInfo si: orders) {
+    		if ("fullName".equals(si.getSortField())) {
+    			result.add(new SortInfoBean("lastName", si.getSortDir()));
+    			result.add(new SortInfoBean("firstName", si.getSortDir()));
+    			result.add(new SortInfoBean("middleName", si.getSortDir()));
+    		}
+    		else {
+    			result.add(si);
+    		}
+    	}
+    	return result;
     }
-    
-    public MetaTestVO loadMetatest(String metatestId) {
-        CheckHelper.throwIfNullOrEmpty(metatestId, "metatestId");
+
+    private <T> void addOrders(Query<T> q, List<? extends SortInfo> orders) {
+        StringBuilder sb = new StringBuilder();
+        int i = 0;
+        boolean idAdded = false;
+        for (SortInfo order: orders) {
+            if (StringHelper.isEmptyOrNull(order.getSortField())) {
+                logger.warn("Incorrect SortInfo");
+                continue;
+            }
+            if (i > 0) {
+                sb.append(",");
+            }
+            if (order.getSortDir() == SortDir.DESC) {
+                sb.append("-");
+            }
+            sb.append(order.getSortField());
+            
+            if ("_id".equals(order.getSortField())) {
+                idAdded = true;
+            }
+            
+            i++;
+        }
         
-        Query<MetaTestVO> q = Singletons.ds().createQuery(MetaTestVO.class);        
-        q.field("_id").equal(metatestId);
+        // To prevent order of equal elements
+        if (!idAdded) {
+            if (i > 0) {
+                sb.append(",");
+            }
+            sb.append("_id");
+        }
         
-        MetaTestVO result = q.get();
-        return result;
+        q.order(sb.toString());
+    }
+
+    private <T> void addFilters(Query<T> q, List<FilterConfig> filters) {
+        for (FilterConfig filter: filters) {
+            if (StringHelper.isEmptyOrNull(filter.getValue())
+            ||  StringHelper.isEmptyOrNull(filter.getField())) {
+                logger.warn("Incorrect FilterConfig");
+                continue;
+            }
+            
+            if ("contains".equals(filter.getComparison())) {
+                List<Pattern> keywordPatterns = new ArrayList<Pattern>();
+                String[] keywords = filter.getValue().split("\\s+");
+                for (String keyword: keywords) {
+                    if (StringHelper.isEmptyOrNull(keyword)) {
+                        continue;
+                    }
+                    keywordPatterns.add(Pattern.compile(keyword, Pattern.CASE_INSENSITIVE));                    
+                }
+                q.field(filter.getField()).hasAllOf(keywordPatterns);
+            }
+            else if ("notIn".equals(filter.getComparison())) {
+                q.field(filter.getField()).notIn(StringHelper.splitBySeparatorToList(filter.getValue(), ", "));
+            }
+        }
     }
     
 }

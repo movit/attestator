@@ -7,6 +7,7 @@ import java.util.Date;
 import java.util.List;
 
 import com.attestator.admin.client.Admin;
+import com.attestator.admin.client.helper.WidgetHelpr;
 import com.attestator.admin.client.props.PublicationsTreePropertyAccess;
 import com.attestator.admin.client.rpc.AdminAsyncCallback;
 import com.attestator.admin.client.ui.EditMode;
@@ -255,12 +256,12 @@ public class PublicationsTab extends Composite {
             }
         });
         result.setCell(cell);
-        result.setSortable(false);
         result.setHideable(false);
         result.setResizable(false);
         result.setWidth(120);
         result.setFixed(true);
-        result.setMenuDisabled(true);        
+        result.setMenuDisabled(true);
+        result.setSortable(false);
         return result;
     }
     
@@ -280,6 +281,8 @@ public class PublicationsTab extends Composite {
         
         l.add(new ColumnConfig<PublicationsTreeItem, String>(publicationProperties.maxTakeTestTime, 20, "Времени на тест"));
         l.add(createPublicationActionsColumnConfig(new IdentityValueProvider<PublicationsTreeItem>()));
+        
+        WidgetHelpr.disableColumnHeaderOperations(l);
         
         ColumnModel<PublicationsTreeItem> result = new ColumnModel<PublicationsTreeItem>(l);
 
