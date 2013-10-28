@@ -286,11 +286,11 @@ public class PublicationVO extends ModificationDateAwareVO implements Publicatio
     }
     
     @Override
-    public void makeNew() {
-        super.makeNew();
+    public void resetIdentity() {
+        super.resetIdentity();
         if (additionalQuestions != null) {
             for (AdditionalQuestionVO aq: additionalQuestions) {
-                aq.makeNew();
+                aq.resetIdentity();
             }
         }
     }

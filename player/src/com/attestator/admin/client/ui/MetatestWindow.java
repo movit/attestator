@@ -13,7 +13,6 @@ import com.attestator.admin.client.props.PublicationVOPropertyAccess;
 import com.attestator.admin.client.props.PublicationsTreePropertyAccess;
 import com.attestator.admin.client.props.QuestionVOPropertyAccess;
 import com.attestator.admin.client.rpc.AdminAsyncCallback;
-import com.attestator.admin.client.ui.PublicationWindow.SaveMode;
 import com.attestator.admin.client.ui.event.FilterEvent;
 import com.attestator.admin.client.ui.event.FilterEvent.FilterHandler;
 import com.attestator.admin.client.ui.event.MultyLinikSelectEvent;
@@ -354,10 +353,8 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
         result.addRowDoubleClickHandler(new RowDoubleClickHandler() {
             @Override
             public void onRowDoubleClick(RowDoubleClickEvent event) {
-                PublicationVO item = store.getAll().get(event.getRowIndex());
-                if (item instanceof PublicationVO) {
-                    showPublicationWindow((PublicationVO)item, EditMode.etExisting);
-                }        
+                PublicationVO publication = store.getAll().get(event.getRowIndex());
+                showPublicationWindow(publication.getId(), EditMode.etExisting);
             }
         });
         return result;
@@ -754,11 +751,11 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
             public void onSelect(MultyLinikSelectEvent<PublicationVO> event) {
                 if (EDIT_PUBLICATION_LINK_ID.equals(event.getLinkType())) {
                     PublicationVO publication = (PublicationVO)event.getValue();
-                    showPublicationWindow(publication, EditMode.etExisting);
+                    showPublicationWindow(publication.getId(), EditMode.etExisting);
                 }
                 else if (COPY_PUBLICATION_LINK_ID.equals(event.getLinkType())) {
                     PublicationVO publication = (PublicationVO)event.getValue();
-                    showPublicationWindow(publication, EditMode.etCopy);
+                    showPublicationWindow(publication.getId(), EditMode.etCopy);
                 }
                 else if (DELETE_PUBLICATION_LINK_ID.equals(event.getLinkType())) {
                     final PublicationVO publication = (PublicationVO)event.getValue();
@@ -946,14 +943,14 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
     @UiHandler("copyPublicationButton")
     void copyPublicationButtonClick(SelectEvent event) {
         if (publicationsSm.getSelectedItem() != null) {
-            showPublicationWindow(publicationsSm.getSelectedItem(), EditMode.etCopy);
+            showPublicationWindow(publicationsSm.getSelectedItem().getId(), EditMode.etCopy);
         }
     }
     
     @UiHandler("editPublicationButton")
     void editPublicationButtonClick(SelectEvent event) {
         if (publicationsSm.getSelectedItem() != null) {
-            showPublicationWindow(publicationsSm.getSelectedItem(), EditMode.etExisting);
+            showPublicationWindow(publicationsSm.getSelectedItem().getId(), EditMode.etExisting);
         }
     }
     
@@ -966,40 +963,25 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
         }
     }
     
-    private void showPublicationWindow(PublicationVO publication, final EditMode editMode) {        
-        switch (editMode) {
-        case etNew:
-            publication = new PublicationVO();
-            publication.setReportsCount(0l);
-            publication.setMetatestId(id.getValue());
-            publication.setMetatest(VOHelper.cloneMeatestForPublicationEditor(originalMetatestInstance));
-            break;
-        case etCopy:
-            publication = VOHelper.clonePublicationForEditor(publication);
-            publication.makeNew();
-            break;
-        case etExisting:
-            break;
-        }
-            
-        final PublicationVO finalPublication = publication;
-        
-        PublicationWindow window = new PublicationWindow(publication, editMode, SaveMode.saveToObject);
-        window.addSaveHandler(new SaveHandler<PublicationVO>() {
+    private void showPublicationWindow(String publicationId, final EditMode editMode) {
+        SaveHandler<PublicationVO> savePublicationHandler = new SaveHandler<PublicationVO>() {
             @Override
             public void onSave(SaveEvent<PublicationVO> event) {
+                PublicationVO publication = event.getValue();
                 if (editMode == EditMode.etNew || editMode == EditMode.etCopy) {
                     int rowToMakeVisible = publicationsStore.size();
-                    publicationsStore.add(finalPublication);
-                    publicationsSm.select(false, finalPublication);
+                    publicationsStore.add(publication);
+                    publicationsSm.select(false, publication);
                     publicationsGrid.getView().ensureVisible(rowToMakeVisible, 0, false);
                 }
                 else {
-                    publicationsGrid.getView().refresh(false);
+                    publicationsStore.update(publication);
+//                    publicationsGrid.getView().refresh(false);
                 }
             }
-        });
-        window.asWidget().show();
+        };
+
+        PublicationWindow.showWindow(editMode, publicationId, originalMetatestInstance, savePublicationHandler, null);
     }
 
     private void bindPagerAndSearchField(SearchField searchField, final PagingToolBar pager) {
@@ -1048,7 +1030,7 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
         moveEntryDownButton.setEnabled(isSomeEntrySelected);
     }
 
-    public MetatestWindow(MetaTestVO metatest, final EditMode editMode) {
+    private MetatestWindow(MetaTestVO metatest, final EditMode editMode) {
         originalMetatestInstance = metatest;
         
         questionsSm = createSm(dualListSelectionHandler);
@@ -1116,9 +1098,8 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
         
         if (editMode != EditMode.etExisting) {
             PublicationVO publication = new PublicationVO();
-            publication.setReportsCount(0l);
-            publication.setMetatestId(id.getValue());
-            publication.setMetatest(VOHelper.cloneMeatestForPublicationEditor(originalMetatestInstance));
+            publication.setMetatestId(metatest.getId());
+            publication.setMetatest(metatest);
             publicationsStore.add(publication);
         }
     }
@@ -1142,4 +1123,33 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
     public HandlerRegistration addHideHandler(HideHandler handler) {
         return window.addHideHandler(handler);
     }
+    
+    public static void showWindow(final EditMode editMode, String id, final SaveHandler<MetaTestVO> saveHandler, final HideHandler hideHandler) {
+        final AdminAsyncCallback<MetaTestVO> showWindowCallback = new AdminAsyncCallback<MetaTestVO>() {
+            @Override
+            public void onSuccess(MetaTestVO result) {
+                MetatestWindow window = new MetatestWindow(result, editMode);
+                if (hideHandler != null) {
+                    window.addHideHandler(hideHandler);
+                }
+                if (saveHandler != null) {                
+                    window.addSaveHandler(saveHandler);
+                }
+                window.asWidget().show();
+            }
+        };
+        
+        switch (editMode) {
+        case etExisting:
+            Admin.RPC.get(MetaTestVO.class.getName(), id, showWindowCallback);
+            break;
+        case etCopy:
+            Admin.RPC.copy(MetaTestVO.class.getName(), id, showWindowCallback);
+            break;
+        case etNew:
+            showWindowCallback.onSuccess(new MetaTestVO());
+            break;       
+        }
+    }
+    
 }

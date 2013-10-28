@@ -43,11 +43,11 @@ public class MetaTestVO extends ModificationDateAwareVO implements PublicationsT
         numberOfQuestions = count;
     }
     @Override
-    public void makeNew() {        
-        super.makeNew();
+    public void resetIdentity() {        
+        super.resetIdentity();
         if (entries != null) {
             for (MetaTestEntryVO entry: entries) {
-                entry.makeNew();
+                entry.resetIdentity();
             }
         }
     }

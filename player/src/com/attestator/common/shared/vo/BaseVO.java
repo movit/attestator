@@ -22,7 +22,7 @@ public class BaseVO implements Serializable, JsonSerializable{
 		this.id = id;
 	}
 	
-	public void makeNew() {
+	public void resetIdentity() {
 	    this.id = idString();
 	}
 	

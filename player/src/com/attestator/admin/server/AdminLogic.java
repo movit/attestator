@@ -12,6 +12,7 @@ import com.attestator.common.shared.helper.CheckHelper;
 import com.attestator.common.shared.helper.NullHelper;
 import com.attestator.common.shared.helper.StringHelper;
 import com.attestator.common.shared.helper.VOHelper;
+import com.attestator.common.shared.vo.BaseVO;
 import com.attestator.common.shared.vo.CacheType;
 import com.attestator.common.shared.vo.GroupVO;
 import com.attestator.common.shared.vo.MTEGroupVO;
@@ -247,13 +248,17 @@ public class AdminLogic extends CommonLogic {
         GroupVO defaultGroup = getDeafultGroup(); 
                 
         List<GroupVO> groupsToDelete = loadAllGroups();
-        groupsToDelete.removeAll(groupsToSave);
-        groupsToDelete.remove(defaultGroup);
         
-        for (GroupVO groupToDelete: groupsToDelete) {
+        List<String>  groupsToDeleteIds = VOHelper.getIds(groupsToDelete);
+        List<String>  groupsToSaveIds = VOHelper.getIds(groupsToSave);
+        
+        groupsToDeleteIds.removeAll(groupsToSaveIds);
+        groupsToDeleteIds.remove(defaultGroup.getId());
+        
+        for (String groupToDeleteId: groupsToDeleteIds) {
             // Switch questions to default group
             Query<QuestionVO> qQuestion = Singletons.ds().createQuery(QuestionVO.class);
-            qQuestion.field("groupId").equal(groupToDelete.getId());
+            qQuestion.field("groupId").equal(groupToDeleteId);
             
             UpdateOperations<QuestionVO> uoQuestion = Singletons.ds().createUpdateOperations(QuestionVO.class);
             uoQuestion.set("groupId", defaultGroup.getId());
@@ -261,23 +266,12 @@ public class AdminLogic extends CommonLogic {
             
             Singletons.ds().update(qQuestion, uoQuestion);
             
-            // Switch metatests to default group 
-            // Leave this code as positioning array access example
-//            Query<MetaTestVO> qMetatest = Singletons.ds().createQuery(MetaTestVO.class);
-//            qMetatest.disableValidation().filter("entries.groupId", groupToDelete.getId()).enableValidation();
-//            
-//            UpdateOperations<MetaTestVO> uoMetatest = Singletons.ds().createUpdateOperations(MetaTestVO.class);
-//            uoMetatest.disableValidation().set("entries.$.groupId", GroupVO.DEFAULT_GROUP_ID).enableValidation();
-//            
-//            Singletons.ds().update(qMetatest, uoMetatest);
-            
-            
             //Delete metatest entries with deleted group            
             Query<MetaTestVO> qMetatest = Singletons.ds().createQuery(MetaTestVO.class);
-            qMetatest.disableValidation().filter("entries.groupId", groupToDelete.getId()).enableValidation();
+            qMetatest.disableValidation().filter("entries.groupId", groupToDeleteId).enableValidation();
           
             MTEGroupVO mteTemplate = ReflectionHelper.createEmpty(MTEGroupVO.class);
-            mteTemplate.setGroupId(groupToDelete.getId());
+            mteTemplate.setGroupId(groupToDeleteId);
             
             UpdateOperations<MetaTestVO> uoMetatest = Singletons.ds().createUpdateOperations(MetaTestVO.class);
             uoMetatest.removeAll("entries", mteTemplate);
@@ -285,7 +279,9 @@ public class AdminLogic extends CommonLogic {
             Singletons.ds().update(qMetatest, uoMetatest);
             
             // Delete group
-            Singletons.ds().delete(groupToDelete);
+            Query<GroupVO> qGroup = Singletons.ds().createQuery(GroupVO.class);
+            qGroup.field("_id").equal(groupToDeleteId);
+            Singletons.ds().delete(qGroup);
         }
         
         for (GroupVO groupToSave: groupsToSave) {
@@ -377,6 +373,21 @@ public class AdminLogic extends CommonLogic {
         putGlobalChangesMarker();
     }
 
+    public void deletePublications(List<String> publicationIds) {
+        CheckHelper.throwIfNull(publicationIds, "publicationIds");
+        
+        if (publicationIds.isEmpty()) {
+            return;
+        }
+        
+        Query<PublicationVO> q = Singletons.ds().createQuery(PublicationVO.class);
+        q.field("_id").in(publicationIds);
+        
+        Singletons.ds().delete(q);
+        
+        putChangesMarker(null, CacheType.getActivePublications);
+    }
+
     public void deleteMetatests(List<String> metatestIds) {
         CheckHelper.throwIfNull(metatestIds, "metatestIds");
         
@@ -391,21 +402,6 @@ public class AdminLogic extends CommonLogic {
         Query<MetaTestVO> qm = Singletons.ds().createQuery(MetaTestVO.class);
         qm.field("_id").in(metatestIds);        
         Singletons.ds().delete(qm);
-        
-        putChangesMarker(null, CacheType.getActivePublications);
-    }
-    
-    public void deletePublications(List<String> publicationIds) {
-        CheckHelper.throwIfNull(publicationIds, "publicationIds");
-        
-        if (publicationIds.isEmpty()) {
-            return;
-        }
-        
-        Query<PublicationVO> q = Singletons.ds().createQuery(PublicationVO.class);
-        q.field("_id").in(publicationIds);
-        
-        Singletons.ds().delete(q);
         
         putChangesMarker(null, CacheType.getActivePublications);
     }
@@ -516,5 +512,30 @@ public class AdminLogic extends CommonLogic {
             }
         }
     }
+
+    public <T extends BaseVO> T get(Class<T> clazz, String id) {
+        CheckHelper.throwIfNull(clazz, "clazz");
+        CheckHelper.throwIfNullOrEmpty(id, "id");
+        
+        Query<T> q = Singletons.ds().createQuery(clazz);        
+        q.field("_id").equal(id);
+        
+        T result = q.get();
+        
+        return result;
+    }
+
+    public <T extends BaseVO> T copy(Class<T> clazz, String id) {
+        CheckHelper.throwIfNull(clazz, "clazz");
+        CheckHelper.throwIfNullOrEmpty(id, "id");
+        
+        T result = get(clazz, id);
+        if (result != null) {
+            result.resetIdentity();
+        }
+        
+        return result;
+    }
+    
     
 }

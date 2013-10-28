@@ -2,6 +2,7 @@ package com.attestator.admin.client.rpc;
 
 import java.util.List;
 
+import com.attestator.common.shared.vo.BaseVO;
 import com.attestator.common.shared.vo.GroupVO;
 import com.attestator.common.shared.vo.MetaTestVO;
 import com.attestator.common.shared.vo.PublicationVO;
@@ -34,12 +35,15 @@ public interface AdminService extends RemoteService {
 
     List<GroupVO> loadGroups() throws IllegalStateException;
     
+    <T extends BaseVO> T get(String className, String id);
+    <T extends BaseVO> T copy(String className, String id);
+    
     void saveGroup(GroupVO group) throws IllegalStateException;
     void savePublication(PublicationVO publication) throws IllegalStateException;
-    void setPublicationsForMetatest(String metatestId, List<PublicationVO> publication) throws IllegalStateException;
     void saveGroups(List<GroupVO> groups) throws IllegalStateException;
     void saveQuestion(QuestionVO question) throws IllegalStateException;
     void saveMetatest(MetaTestVO metatest) throws IllegalStateException;
+    void setPublicationsForMetatest(String metatestId, List<PublicationVO> publication) throws IllegalStateException;
     
     void deleteQuestions(List<String> questionIds) throws IllegalStateException;
     void deleteMetatests(List<String> metatestIds) throws IllegalStateException;

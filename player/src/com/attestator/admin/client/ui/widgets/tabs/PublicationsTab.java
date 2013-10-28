@@ -18,9 +18,9 @@ import com.attestator.admin.client.ui.event.MultyLinikSelectEvent.MultyLinikSele
 import com.attestator.admin.client.ui.event.SaveEvent;
 import com.attestator.admin.client.ui.event.SaveEvent.SaveHandler;
 import com.attestator.admin.client.ui.widgets.MultylinkCell;
+import com.attestator.admin.client.ui.widgets.TreeGridExt;
 import com.attestator.common.client.ui.resolurces.Resources;
 import com.attestator.common.shared.helper.ReportHelper;
-import com.attestator.common.shared.helper.VOHelper;
 import com.attestator.common.shared.vo.MetaTestVO;
 import com.attestator.common.shared.vo.ModificationDateAwareVO;
 import com.attestator.common.shared.vo.PublicationVO;
@@ -29,6 +29,7 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.core.client.Scheduler;
 import com.google.gwt.core.client.Scheduler.ScheduledCommand;
 import com.google.gwt.event.shared.HandlerRegistration;
+import com.google.gwt.resources.client.ImageResource;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
@@ -39,6 +40,7 @@ import com.sencha.gxt.cell.core.client.ResizeCell;
 import com.sencha.gxt.core.client.IdentityValueProvider;
 import com.sencha.gxt.core.client.Style.SelectionMode;
 import com.sencha.gxt.data.client.loader.RpcProxy;
+import com.sencha.gxt.data.shared.IconProvider;
 import com.sencha.gxt.data.shared.TreeStore;
 import com.sencha.gxt.data.shared.loader.BeforeLoadEvent;
 import com.sencha.gxt.data.shared.loader.ChildTreeStoreBinding;
@@ -100,10 +102,18 @@ public class PublicationsTab extends Composite {
     @UiField(provided = true)    
     TreeGrid<PublicationsTreeItem> grid;
     TreeGrid<PublicationsTreeItem> createGrid(TreeLoader<PublicationsTreeItem> loader, final TreeStore<PublicationsTreeItem> store, ColumnModel<PublicationsTreeItem> cm, ColumnConfig<PublicationsTreeItem, ?> cc) {        
-        TreeGrid<PublicationsTreeItem> result = new TreeGrid<PublicationsTreeItem>(store, cm, cc);
-        result.getStyle().setLeafIcon(Resources.ICONS.file16x16());
-        result.getStyle().setNodeOpenIcon(Resources.ICONS.checkBoxChecked16x16());
-        result.getStyle().setNodeCloseIcon(Resources.ICONS.checkBoxChecked16x16());
+        final TreeGrid<PublicationsTreeItem> result = new TreeGridExt<PublicationsTreeItem>(store, cm, cc);
+        result.setIconProvider(new IconProvider<PublicationsTreeItem>() {            
+            @Override
+            public ImageResource getIcon(PublicationsTreeItem model) {
+                if (model instanceof MetaTestVO) {
+                    return Resources.ICONS.checkBoxChecked16x16();
+                }
+                else {
+                    return Resources.ICONS.file16x16();
+                }                
+            }
+        });
         result.getView().setAutoFill(true);
         result.getView().setForceFit(true);
         result.getView().setSortingEnabled(false);
@@ -114,10 +124,13 @@ public class PublicationsTab extends Composite {
         result.addRowDoubleClickHandler(new RowDoubleClickHandler() {
             @Override
             public void onRowDoubleClick(RowDoubleClickEvent event) {
-                PublicationsTreeItem item = store.getAll().get(event.getRowIndex());
+                final PublicationsTreeItem item = result.getSelectionModel().getSelectedItem();
                 if (item instanceof PublicationVO) {
-                    showPublicationWindow((PublicationVO)item, EditMode.etExisting);
-                }        
+                    showPublicationWindow(((PublicationVO)item).getId(), null, EditMode.etExisting);
+                }
+                else if (item instanceof MetaTestVO) {
+                    showMetatestWindow(((MetaTestVO)item).getId(), EditMode.etExisting);
+                }
             }
         });
         return result;
@@ -191,8 +204,8 @@ public class PublicationsTab extends Composite {
                     sb.append(createClickableElement(DELETE_PUBLICATION_LINK_ID, "удалить публикацию", Resources.ICONS.delete16x16()));
                 }
                 else {
-                    sb.append(createClickableElement(EDIT_TEST_LINK_ID, "изменить тест", Resources.ICONS.edit16x16()));
                     sb.append(createClickableElement(NEW_PUBLICATION_LINK_ID, "добавить публикацию", Resources.ICONS.addFile16x16()));
+                    sb.append(createClickableElement(EDIT_TEST_LINK_ID, "изменить тест", Resources.ICONS.edit16x16()));
                     sb.append(createClickableElement(COPY_TEST_LINK_ID, "копировать тест", Resources.ICONS.copy16x16()));
                     sb.append(createClickableElement(DELETE_TEST_LINK_ID, "удалить тест", Resources.ICONS.delete16x16()));
                 }
@@ -205,12 +218,11 @@ public class PublicationsTab extends Composite {
                 
                 if (EDIT_PUBLICATION_LINK_ID.equals(event.getLinkType())) {
                     PublicationVO publication = (PublicationVO)event.getValue();
-                    showPublicationWindow(publication, EditMode.etExisting);
+                    showPublicationWindow(publication.getId(), null, EditMode.etExisting);
                 }
                 else if (COPY_PUBLICATION_LINK_ID.equals(event.getLinkType())) {
-                    PublicationVO publication = VOHelper.clonePublicationForEditor((PublicationVO)event.getValue());
-                    publication.makeNew();
-                    showPublicationWindow(publication, EditMode.etCopy);
+                    PublicationVO publication = (PublicationVO)event.getValue();
+                    showPublicationWindow(publication.getId(), null, EditMode.etCopy);
                 }
                 else if (DELETE_PUBLICATION_LINK_ID.equals(event.getLinkType())) {
                     final PublicationVO publication = (PublicationVO)event.getValue();
@@ -223,26 +235,13 @@ public class PublicationsTab extends Composite {
                 }
                 else if (NEW_PUBLICATION_LINK_ID.equals(event.getLinkType())) { 
                     final MetaTestVO metatest = (MetaTestVO) event.getValue();
-                    PublicationVO publication = new PublicationVO();
-                    publication.setMetatestId(metatest.getId());
-                    publication.setMetatest(metatest);
-                    showPublicationWindow(publication, EditMode.etNew);
+                    showPublicationWindow(null, metatest, EditMode.etNew);
                 }
                 else if (EDIT_TEST_LINK_ID.equals(event.getLinkType())) {
-                    Admin.RPC.loadMetatest(((MetaTestVO)event.getValue()).getId(), new AdminAsyncCallback<MetaTestVO>() {
-                        @Override
-                        public void onSuccess(MetaTestVO result) {
-                            showMetatestWindow(result, EditMode.etExisting);
-                        }
-                    });
+                    showMetatestWindow(((MetaTestVO)event.getValue()).getId(), EditMode.etExisting);
                 }                
                 else if (COPY_TEST_LINK_ID.equals(event.getLinkType())) {
-                    Admin.RPC.loadMetatest(((MetaTestVO)event.getValue()).getId(), new AdminAsyncCallback<MetaTestVO>() {
-                        @Override
-                        public void onSuccess(MetaTestVO result) {
-                            showMetatestWindow(result, EditMode.etCopy);
-                        }
-                    });
+                    showMetatestWindow(((MetaTestVO)event.getValue()).getId(), EditMode.etCopy);
                 }                
                 else if (DELETE_TEST_LINK_ID.equals(event.getLinkType())) {
                     MetaTestVO metatest = (MetaTestVO) event.getValue();
@@ -367,38 +366,24 @@ public class PublicationsTab extends Composite {
         gridLoader.load();
     }
     
-    private void showMetatestWindow(MetaTestVO metatest, EditMode editMode) {
-        switch (editMode) {
-        case etNew:
-            metatest = new MetaTestVO();
-            break;
-        case etCopy:
-            metatest = VOHelper.cloneMeatestForEditor(metatest);
-            metatest.makeNew();
-            break;
-        case etExisting:
-            break;
-        }
-        
-        MetatestWindow window = new MetatestWindow(metatest, editMode);
-        window.addSaveHandler(new SaveHandler<MetaTestVO>() {
+    private void showMetatestWindow(String metatestId, EditMode editMode) {
+        SaveHandler<MetaTestVO> metatestSaveHandler = new SaveHandler<MetaTestVO>() {
             @Override
             public void onSave(SaveEvent<MetaTestVO> event) {
                 refreshGrid(event.getValue().getId(), null);
             }
-        });
-        window.asWidget().show();
+        };        
+        MetatestWindow.showWindow(editMode, metatestId, metatestSaveHandler, null);
     }
     
-    private void showPublicationWindow(final PublicationVO publication, EditMode editMode) {
-        PublicationWindow window = new PublicationWindow(publication, editMode);
-        window.addSaveHandler(new SaveHandler<PublicationVO>() {
+    private void showPublicationWindow(String publicationId, MetaTestVO metatest, EditMode editMode) {
+        SaveHandler<PublicationVO> savePublicationHandler = new SaveHandler<PublicationVO>() {
             @Override
             public void onSave(SaveEvent<PublicationVO> event) {
-                refreshGrid(publication.getMetatest().getId(), publication.getId());
+                refreshGrid(event.getValue().getMetatestId(), event.getValue().getId());
             }
-        });
-        window.asWidget().show();
+        };        
+        PublicationWindow.showWindow(editMode, publicationId, metatest, savePublicationHandler, null);
     }
     
     @UiHandler("newTestButton") 

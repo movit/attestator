@@ -5,6 +5,7 @@ import java.util.List;
 import org.apache.log4j.Logger;
 
 import com.attestator.admin.client.rpc.AdminService;
+import com.attestator.common.shared.vo.BaseVO;
 import com.attestator.common.shared.vo.GroupVO;
 import com.attestator.common.shared.vo.MetaTestVO;
 import com.attestator.common.shared.vo.PublicationVO;
@@ -174,17 +175,6 @@ public class AdminServiceImpl extends RemoteServiceServlet implements
     }
 
     @Override
-    public void deleteQuestions(List<String> questionIds) throws IllegalStateException {
-        try {
-            Singletons.al().deleteQuestions(questionIds);
-        }
-        catch (Throwable e) {
-            logger.error("Error: ", e);
-            throw new IllegalStateException(DEFAULT_ERROR_MESSAGE, e);
-        }
-    }
-
-    @Override
     public void setQuestionsGroup(List<String> questionIds, String groupId) throws IllegalStateException  {
         try {
             Singletons.al().setQuestionsGroup(questionIds, groupId);
@@ -221,6 +211,17 @@ public class AdminServiceImpl extends RemoteServiceServlet implements
     public UserVO getLoggedUser() throws IllegalStateException {        
         try {
             return LoginManager.getThreadLocalLoggedUser();
+        }
+        catch (Throwable e) {
+            logger.error("Error: ", e);
+            throw new IllegalStateException(DEFAULT_ERROR_MESSAGE, e);
+        }
+    }
+
+    @Override
+    public void deleteQuestions(List<String> questionIds) throws IllegalStateException {
+        try {
+            Singletons.al().deleteQuestions(questionIds);
         }
         catch (Throwable e) {
             logger.error("Error: ", e);
@@ -287,6 +288,30 @@ public class AdminServiceImpl extends RemoteServiceServlet implements
     public MetaTestVO loadMetatest(String metatestId) {
         try {
             return Singletons.al().loadMetatest(metatestId);
+        }
+        catch (Throwable e) {
+            logger.error("Error: ", e);
+            throw new IllegalStateException(DEFAULT_ERROR_MESSAGE, e);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T extends BaseVO> T get(String className, String id) {        
+        try {
+            return Singletons.al().get((Class<T>)Class.forName(className), id);
+        }
+        catch (Throwable e) {
+            logger.error("Error: ", e);
+            throw new IllegalStateException(DEFAULT_ERROR_MESSAGE, e);
+        }
+    }
+    
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T extends BaseVO> T copy(String className, String id) {        
+        try {
+            return Singletons.al().copy((Class<T>)Class.forName(className), id);
         }
         catch (Throwable e) {
             logger.error("Error: ", e);

@@ -5,7 +5,9 @@ import java.util.Comparator;
 
 import com.attestator.admin.client.Admin;
 import com.attestator.admin.client.props.MilisecondsPropertyEditor;
+import com.attestator.admin.client.rpc.AdminAsyncCallback;
 import com.attestator.admin.client.rpc.AdminAsyncEmptyCallback;
+import com.attestator.admin.client.ui.EditMode;
 import com.attestator.admin.client.ui.event.SaveEvent;
 import com.attestator.admin.client.ui.event.SaveEvent.HasSaveEventHandlers;
 import com.attestator.admin.client.ui.event.SaveEvent.SaveHandler;
@@ -14,6 +16,7 @@ import com.attestator.admin.client.ui.widgets.ChoicesListItem;
 import com.attestator.admin.client.ui.widgets.GroupsComboBox;
 import com.attestator.common.shared.helper.StringHelper;
 import com.attestator.common.shared.vo.ChoiceVO;
+import com.attestator.common.shared.vo.QuestionVO;
 import com.attestator.common.shared.vo.SingleChoiceQuestionVO;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.core.client.Scheduler;
@@ -43,7 +46,7 @@ import com.sencha.gxt.widget.core.client.form.NumberPropertyEditor;
 import com.sencha.gxt.widget.core.client.form.NumberPropertyEditor.DoublePropertyEditor;
 import com.sencha.gxt.widget.core.client.form.NumberPropertyEditor.LongPropertyEditor;
 
-public class SCQWindow implements IsWidget, Editor<SingleChoiceQuestionVO>, HasSaveEventHandlers<SingleChoiceQuestionVO>,  HasHideHandlers {
+public class SCQWindow implements IsWidget, Editor<SingleChoiceQuestionVO>, HasSaveEventHandlers<QuestionVO>,  HasHideHandlers {
     interface DriverImpl extends
             SimpleBeanEditorDriver<SingleChoiceQuestionVO, SCQWindow> {
     }
@@ -95,11 +98,7 @@ public class SCQWindow implements IsWidget, Editor<SingleChoiceQuestionVO>, HasS
     @UiField
     protected VerticalLayoutContainer top;
     
-    public SCQWindow() {
-        this(null); 
-    }
-    
-    public SCQWindow(SingleChoiceQuestionVO question) {
+    private SCQWindow(SingleChoiceQuestionVO question) {
         super();
         if (question == null) {
             question = new SingleChoiceQuestionVO();
@@ -220,7 +219,7 @@ public class SCQWindow implements IsWidget, Editor<SingleChoiceQuestionVO>, HasS
     }
 
     @Override
-    public HandlerRegistration addSaveHandler(SaveHandler<SingleChoiceQuestionVO> handler) {
+    public HandlerRegistration addSaveHandler(SaveHandler<QuestionVO> handler) {
         return window.addHandler(handler, SaveEvent.getType());
     }
 
@@ -228,5 +227,32 @@ public class SCQWindow implements IsWidget, Editor<SingleChoiceQuestionVO>, HasS
     public HandlerRegistration addHideHandler(HideHandler handler) {
         return window.addHideHandler(handler);
     }
-
+    
+    public static void showWindow(EditMode editMode, String id, final SaveHandler<QuestionVO> saveHandler, final HideHandler hideHandler) {
+        final AdminAsyncCallback<SingleChoiceQuestionVO> showWindowCallback = new AdminAsyncCallback<SingleChoiceQuestionVO>() {
+            @Override
+            public void onSuccess(SingleChoiceQuestionVO result) {
+                SCQWindow window = new SCQWindow(result);
+                if (hideHandler != null) {
+                    window.addHideHandler(hideHandler);
+                }
+                if (saveHandler != null) {                
+                    window.addSaveHandler(saveHandler);
+                }
+                window.asWidget().show();
+            }
+        };
+        
+        switch (editMode) {
+        case etExisting:
+            Admin.RPC.get(SingleChoiceQuestionVO.class.getName(), id, showWindowCallback);
+            break;
+        case etCopy:
+            Admin.RPC.copy(SingleChoiceQuestionVO.class.getName(), id, showWindowCallback);
+            break;
+        case etNew:
+            showWindowCallback.onSuccess(new SingleChoiceQuestionVO());
+            break;       
+        }
+    }
 }

@@ -7,6 +7,7 @@ import java.util.List;
 import com.attestator.admin.client.Admin;
 import com.attestator.admin.client.props.QuestionVOPropertyAccess;
 import com.attestator.admin.client.rpc.AdminAsyncCallback;
+import com.attestator.admin.client.ui.EditMode;
 import com.attestator.admin.client.ui.GroupsWindow;
 import com.attestator.admin.client.ui.event.FilterEvent;
 import com.attestator.admin.client.ui.event.FilterEvent.FilterHandler;
@@ -20,7 +21,6 @@ import com.attestator.common.shared.helper.StringHelper;
 import com.attestator.common.shared.helper.VOHelper;
 import com.attestator.common.shared.vo.GroupVO;
 import com.attestator.common.shared.vo.QuestionVO;
-import com.attestator.common.shared.vo.SingleChoiceQuestionVO;
 import com.google.gwt.cell.client.AbstractCell;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.core.client.Scheduler;
@@ -86,7 +86,7 @@ public class QuestionsBankTab extends Composite {
         result.addRowDoubleClickHandler(new RowDoubleClickHandler() {
             @Override
             public void onRowDoubleClick(RowDoubleClickEvent event) {
-                showQuestionWindow(store.get(event.getRowIndex()));
+                showQuestionWindow(store.get(event.getRowIndex()), EditMode.etExisting);
             }
         });
         return result;
@@ -325,32 +325,33 @@ public class QuestionsBankTab extends Composite {
         });
     }
     
-    private void showQuestionWindow(QuestionVO question) {
-        SCQWindow window = new SCQWindow((SingleChoiceQuestionVO)question);
-        window.addSaveHandler(new SaveHandler<SingleChoiceQuestionVO>() {
-            @Override
-            public void onSave(SaveEvent<SingleChoiceQuestionVO> event) {
-                refreshGrid();
-            }
-        });
-        window.addHideHandler(new HideHandler() {
-            @Override
-            public void onHide(HideEvent event) {
-                refreshGroups();
-            }
-        });
-        window.asWidget().show();
+    private SaveHandler<QuestionVO> saveQuestionHandler = new SaveHandler<QuestionVO>() {
+        @Override
+        public void onSave(SaveEvent<QuestionVO> event) {
+            refreshGrid();
+        }
+    };
+    
+    private HideHandler hideQuestionHandler = new HideHandler() {
+        @Override
+        public void onHide(HideEvent event) {
+            refreshGroups();
+        }
+    };
+    
+    private void showQuestionWindow(QuestionVO question, EditMode editMode) {
+        SCQWindow.showWindow(editMode, question != null ? question.getId() : null, saveQuestionHandler, hideQuestionHandler);
     }
     
     @UiHandler("newQuestion")
     public void newQuestionClick(SelectEvent event) {
-        showQuestionWindow(null);
+        showQuestionWindow(null, EditMode.etNew);
     }
     
     @UiHandler("editQuestionButton") 
     public void editQuestionButtonClick(SelectEvent event) {
         if (questionsBankSm.getSelectedItems().size() == 1) {
-            showQuestionWindow(questionsBankSm.getSelectedItem());
+            showQuestionWindow(questionsBankSm.getSelectedItem(), EditMode.etExisting);
         }
     }
     @UiHandler("deleteQuestionsButton") 

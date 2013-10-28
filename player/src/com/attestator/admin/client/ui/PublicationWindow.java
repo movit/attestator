@@ -15,9 +15,9 @@ import com.attestator.admin.client.ui.widgets.AdditionalQuestionItem;
 import com.attestator.admin.client.ui.widgets.AdditionalQuestionsList;
 import com.attestator.admin.client.ui.widgets.DateTimeSelector;
 import com.attestator.common.shared.helper.StringHelper;
-import com.attestator.common.shared.helper.VOHelper;
 import com.attestator.common.shared.vo.AdditionalQuestionVO;
 import com.attestator.common.shared.vo.AdditionalQuestionVO.AnswerTypeEnum;
+import com.attestator.common.shared.vo.MetaTestVO;
 import com.attestator.common.shared.vo.PublicationVO;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.core.client.Scheduler;
@@ -153,14 +153,7 @@ public class PublicationWindow implements IsWidget, Editor<PublicationVO>, HasSa
     @UiField
     FieldSet publicationParamsFieldSet;
     
-    @Ignore
-    private PublicationVO originalPublicationInstance;
-    
     @Ignore SaveMode saveMode;
-    
-    public PublicationWindow(PublicationVO publication, EditMode editMode) {
-        this(publication, editMode, SaveMode.saveToServer);
-    }
     
     private String getHeader(EditMode editType) {
         switch (editType) {
@@ -175,11 +168,10 @@ public class PublicationWindow implements IsWidget, Editor<PublicationVO>, HasSa
         }        
     }
 
-    public PublicationWindow(PublicationVO publication, EditMode editMode, SaveMode saveMode) {
+    private PublicationWindow(PublicationVO publication, EditMode editMode, SaveMode saveMode) {
         super();
         
         this.saveMode = saveMode;
-        this.originalPublicationInstance = publication;
         
         uiBinder.createAndBindUi(this);
         publicationParamsFieldSet.addExpandHandler(new ExpandHandler() {            
@@ -191,9 +183,8 @@ public class PublicationWindow implements IsWidget, Editor<PublicationVO>, HasSa
         
         window.setHeadingText(getHeader(editMode));
         
-        PublicationVO publicationEditInstance = VOHelper.clonePublicationForEditor(publication);
         driver.initialize(this);
-        driver.edit(publicationEditInstance);
+        driver.edit(publication);
     }
 
     @UiHandler("cancelButton")
@@ -287,6 +278,42 @@ public class PublicationWindow implements IsWidget, Editor<PublicationVO>, HasSa
         return window.addHideHandler(handler);
     }
     
+    public static void showWindow(final EditMode editMode, String id, MetaTestVO metatest, final SaveHandler<PublicationVO> saveHandler, final HideHandler hideHandler) {
+        showWindow(editMode, SaveMode.saveToServer, id, metatest, saveHandler, hideHandler);
+    }
+    
+    public static void showWindow(final EditMode editMode, final SaveMode saveMode, String id, MetaTestVO metatest, final SaveHandler<PublicationVO> saveHandler, final HideHandler hideHandler) {
+        final AdminAsyncCallback<PublicationVO> showWindowCallback = new AdminAsyncCallback<PublicationVO>() {
+            @Override
+            public void onSuccess(PublicationVO result) {
+                PublicationWindow window = new PublicationWindow(result, editMode, saveMode);
+                if (hideHandler != null) {
+                    window.addHideHandler(hideHandler);
+                }
+                if (saveHandler != null) {
+                    window.addSaveHandler(saveHandler);
+                }
+                window.asWidget().show();
+            }
+        };
+        
+        switch (editMode) {
+        case etExisting:
+            Admin.RPC.get(PublicationVO.class.getName(), id, showWindowCallback);
+            break;
+        case etCopy:
+            Admin.RPC.copy(PublicationVO.class.getName(), id, showWindowCallback);
+            break;
+        case etNew:
+            PublicationVO publication = new PublicationVO();
+            publication.setMetatestId(metatest.getId());
+            publication.setMetatest(metatest);
+            showWindowCallback.onSuccess(publication);
+            break;       
+        }
+    }
+    
+    
     @UiHandler("saveButton")
     protected void saveButtonClick(SelectEvent event) {
         final PublicationVO publication = driver.flush();
@@ -307,16 +334,14 @@ public class PublicationWindow implements IsWidget, Editor<PublicationVO>, HasSa
             Admin.RPC.savePublication(publication, new AdminAsyncCallback<Void>() {
                 @Override
                 public void onSuccess(Void result) {
-                    VOHelper.copyPublicationForEditor(originalPublicationInstance, publication);
                     window.hide();
                     fireEvent(new SaveEvent<PublicationVO>(publication));
                 }
             });
             break;
         case saveToObject:
-            VOHelper.copyPublicationForEditor(originalPublicationInstance, publication);
             window.hide();
-            fireEvent(new SaveEvent<PublicationVO>(originalPublicationInstance));
+            fireEvent(new SaveEvent<PublicationVO>(publication));
             break;
         default:
             throw new IllegalStateException("Unknown saveMode: " + saveMode);

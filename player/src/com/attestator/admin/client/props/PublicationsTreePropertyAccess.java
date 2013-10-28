@@ -63,7 +63,8 @@ public class PublicationsTreePropertyAccess {
         @Override
         public Long getValue(PublicationsTreeItem object) {
             if (object instanceof PublicationVO) {
-                return ((PublicationVO) object).getReportsCount();
+                Long result = ((PublicationVO) object).getReportsCount(); 
+                return result != null ? result : 0;
             }
             return null;
         }

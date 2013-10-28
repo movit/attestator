@@ -2,6 +2,7 @@ package com.attestator.admin.client.rpc;
 
 import java.util.List;
 
+import com.attestator.common.shared.vo.BaseVO;
 import com.attestator.common.shared.vo.GroupVO;
 import com.attestator.common.shared.vo.MetaTestVO;
 import com.attestator.common.shared.vo.PublicationVO;
@@ -30,6 +31,9 @@ public interface AdminServiceAsync {
     void loadPublicationsTree(PublicationsTreeItem root, AsyncCallback<List<PublicationsTreeItem>> callback);
     void loadPublicationsByMetatestId(String metatestId, ListLoadConfig config, AsyncCallback<ListLoadResult<PublicationVO>> callback);
     
+    <T extends BaseVO> void get(String className, String id, AsyncCallback<T> callback);
+    <T extends BaseVO> void copy(String className, String id, AsyncCallback<T> callback);
+
     void deleteQuestions(List<String> questionIds, AsyncCallback<Void> callback);
     void deleteReports(List<String> reportIds, AsyncCallback<Void> callback);
     void deletePublications(List<String> publicationIds, AsyncCallback<Void> callback);

@@ -6,14 +6,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import com.attestator.common.shared.vo.AdditionalQuestionVO;
 import com.attestator.common.shared.vo.BaseVO;
 import com.attestator.common.shared.vo.GroupVO;
 import com.attestator.common.shared.vo.MTEGroupVO;
 import com.attestator.common.shared.vo.MTEQuestionVO;
 import com.attestator.common.shared.vo.MetaTestEntryVO;
-import com.attestator.common.shared.vo.MetaTestVO;
-import com.attestator.common.shared.vo.PublicationVO;
 
 public class VOHelper {
     public static <T extends BaseVO> T getById(Collection<T> vos, String id) {
@@ -72,124 +69,6 @@ public class VOHelper {
                 }
             }
         }
-        return result;
-    }
-    
-    public static void copyMTEGroupForEditor(MTEGroupVO dst, MTEGroupVO src) {
-        dst.setId(src.getId());
-        dst.setGroupId(src.getGroupId());
-        dst.setGroup(src.getGroup());
-        dst.setNumberOfQuestions(src.getNumberOfQuestions());        
-    }
-    
-    public static void copyMTEQuestionForEditor(MTEQuestionVO dst, MTEQuestionVO src) {
-        dst.setId(src.getId());
-        dst.setQuestion(src.getQuestion());
-        dst.setQuestionId(src.getQuestionId());
-        dst.setNumberOfQuestions(src.getNumberOfQuestions());        
-    }
-    
-    public static void copyMetatestForPublicationEditor(MetaTestVO dst, MetaTestVO src) {
-        dst.setId(src.getId());
-        dst.setCreated(src.getCreated());
-        dst.setModified(src.getModified());
-        dst.setTenantId(src.getTenantId());
-        dst.setName(src.getName());
-        dst.setNumberOfQuestions(dst.getNumberOfQuestions());
-        dst.setEntries(null);
-    }
-    
-    public static void copyMetatestForEditor(MetaTestVO dst, MetaTestVO src) {
-        dst.setId(src.getId());
-        dst.setCreated(src.getCreated());
-        dst.setModified(src.getModified());
-        dst.setTenantId(src.getTenantId());
-        dst.setName(src.getName());
-        dst.setNumberOfQuestions(dst.getNumberOfQuestions());
-        if (src.getEntries() != null) {
-            dst.setEntries(new ArrayList<MetaTestEntryVO>());
-            for (MetaTestEntryVO srcEntry: src.getEntries()) {
-                MetaTestEntryVO dstEntry = null;
-                if (srcEntry instanceof MTEGroupVO) {
-                    dstEntry = new MTEGroupVO();
-                    copyMTEGroupForEditor((MTEGroupVO)dstEntry, (MTEGroupVO)srcEntry);
-                }
-                else if (srcEntry instanceof MTEQuestionVO) {
-                    dstEntry = new MTEQuestionVO();
-                    copyMTEQuestionForEditor((MTEQuestionVO)dstEntry, (MTEQuestionVO)srcEntry);
-                }
-                else {
-                    throw new IllegalArgumentException("Unknown metatest entry type: " + srcEntry.getClass().getName());
-                }
-                dst.getEntries().add(dstEntry);
-            }
-        }
-    }
-    
-    public static void copyAdditionalQuestionForEditor(AdditionalQuestionVO dst, AdditionalQuestionVO src) {
-        dst.setId(src.getId());
-        dst.setText(src.getText());
-        dst.setCheckValue(src.getCheckValue());
-        dst.setRequired(src.getRequired());
-        dst.setOrder(src.getOrder());
-        dst.setAnswerType(src.getAnswerType());        
-    }
-    
-    public static void copyPublicationForEditor(PublicationVO dst, PublicationVO src) {
-        dst.setId(src.getId());
-        dst.setCreated(src.getCreated());
-        dst.setModified(src.getModified());
-        dst.setTenantId(src.getTenantId());
-        dst.setMetatestId(src.getMetatestId());
-        dst.setMetatest(src.getMetatest());
-        dst.setReportsCount(src.getReportsCount());
-        dst.setStart(src.getStart());
-        dst.setEnd(src.getEnd());
-        dst.setIntroduction(src.getIntroduction());
-        dst.setMaxAttempts(src.getMaxAttempts());
-        dst.setMinScore(src.getMinScore());    
-        dst.setInterruptOnFalure(src.getInterruptOnFalure());
-        dst.setMaxTakeTestTime(src.getMaxTakeTestTime());
-        dst.setMaxQuestionAnswerTime(src.getMaxQuestionAnswerTime());
-        dst.setAllowSkipQuestions(src.getAllowSkipQuestions()); 
-        dst.setAllowInterruptTest(src.getAllowInterruptTest());
-        dst.setRandomQuestionsOrder(src.getRandomQuestionsOrder());
-        dst.setAskFirstName(src.getAskFirstName());
-        dst.setAskFirstNameRequired(src.getAskFirstNameRequired());
-        dst.setAskLastName(src.getAskLastName());
-        dst.setAskLastNameRequired(src.getAskLastNameRequired());
-        dst.setAskMiddleName(src.getAskMiddleName());
-        dst.setAskMiddleNameRequired(src.getAskMiddleNameRequired());
-        dst.setAskEmail(src.getAskEmail());
-        dst.setAskEmailRequired(src.getAskEmailRequired());        
-        if (src.getAdditionalQuestions() != null) {
-            dst.setAdditionalQuestions(new ArrayList<AdditionalQuestionVO>());
-            for (AdditionalQuestionVO srcAq: src.getAdditionalQuestions()) {
-                AdditionalQuestionVO dstAq = new AdditionalQuestionVO();
-                copyAdditionalQuestionForEditor(dstAq, srcAq);
-                dst.getAdditionalQuestions().add(dstAq);
-            }        
-        }
-        else {
-            dst.setAdditionalQuestions(null);
-        }
-    }
-    
-    public static PublicationVO clonePublicationForEditor(PublicationVO publication) {
-        PublicationVO result = new PublicationVO();
-        copyPublicationForEditor(result, publication);
-        return result;
-    }
-    
-    public static MetaTestVO cloneMeatestForPublicationEditor(MetaTestVO metatest) {
-        MetaTestVO result = new MetaTestVO();
-        copyMetatestForPublicationEditor(result, metatest);
-        return result;
-    }
-    
-    public static MetaTestVO cloneMeatestForEditor(MetaTestVO metatest) {
-        MetaTestVO result = new MetaTestVO();
-        copyMetatestForEditor(result, metatest);
         return result;
     }
 }
