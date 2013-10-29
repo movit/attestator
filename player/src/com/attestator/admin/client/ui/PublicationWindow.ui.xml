@@ -254,7 +254,7 @@
                                             </form:FieldLabel>
                                         </row:child>
                                         <row:child layoutData="{minWidthMinHeightVLData}">
-                                            <form:CheckBox ui:field="interruptOnFalure" boxLabel="Прерывать тест если слишком много ошибок"/>
+                                            <form:CheckBox ui:field="interruptOnFalure" boxLabel="Прерывать тест, если слишком много ошибок"/>
                                         </row:child>                            
                                         <row:child layoutData="{minWidthMinHeightVLData}">
                                             <form:CheckBox ui:field="randomQuestionsOrder" boxLabel="Вопросы в случайном порядке"/>
