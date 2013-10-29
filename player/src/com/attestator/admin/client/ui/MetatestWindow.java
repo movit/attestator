@@ -975,20 +975,13 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
             @Override
             public void onSave(SaveEvent<PublicationVO> event) {
                 PublicationVO publication = event.getValue();
-                if (editMode == EditMode.etNew || editMode == EditMode.etCopy) {
-                    int rowToMakeVisible = publicationsStore.size();
-                    publicationsStore.add(publication);
-                    publicationsSm.select(false, publication);
-                    publicationsGrid.getView().ensureVisible(rowToMakeVisible, 0, false);
-                }
-                else {
-                    publicationsStore.update(publication);
-//                    publicationsGrid.getView().refresh(false);
-                }
+                int rowToMakeVisible = publicationsStore.indexOf(publication);
+                publicationsSm.select(false, publication);
+                publicationsGrid.getView().ensureVisible(rowToMakeVisible, 0, false);
             }
         };
 
-        PublicationWindow.showWindow(editMode, publicationId, originalMetatestInstance, savePublicationHandler, null);
+        PublicationWindow.showWindow(editMode, publicationId, originalMetatestInstance, publicationsStore, savePublicationHandler, null);
     }
 
     private void bindPagerAndSearchField(SearchField searchField, final PagingToolBar pager) {

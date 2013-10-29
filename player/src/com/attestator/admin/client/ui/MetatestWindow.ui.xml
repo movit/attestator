@@ -167,7 +167,7 @@
 				<row:BorderLayoutContainer borders="false">
 					<row:west layoutData="{westData}">
 						<gxt:ContentPanel appearance="{contentPanelAppearance}"
-							headingText="Элементы которые можно добавить в тест">
+							headingText="Элементы, которые можно добавить в тест">
 							<row:AccordionLayoutContainer ui:field="elementsSourceLayout" borders="false"
 								expandMode="SINGLE_FILL">
 

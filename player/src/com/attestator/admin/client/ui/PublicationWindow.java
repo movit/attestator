@@ -33,6 +33,7 @@ import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Widget;
+import com.sencha.gxt.data.shared.ListStore;
 import com.sencha.gxt.widget.core.client.Component;
 import com.sencha.gxt.widget.core.client.Window;
 import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
@@ -57,11 +58,6 @@ public class PublicationWindow implements IsWidget, Editor<PublicationVO>, HasSa
     interface UiBinderImpl extends UiBinder<Widget, PublicationWindow> {
     }
     
-    public static enum SaveMode {
-        saveToObject,
-        saveToServer
-    }
-   
     private DriverImpl driver = GWT.create(DriverImpl.class);    
     private static UiBinderImpl uiBinder = GWT.create(UiBinderImpl.class);
     
@@ -153,7 +149,8 @@ public class PublicationWindow implements IsWidget, Editor<PublicationVO>, HasSa
     @UiField
     FieldSet publicationParamsFieldSet;
     
-    @Ignore SaveMode saveMode;
+    @Ignore 
+    ListStore<PublicationVO> externalStore;
     
     private String getHeader(EditMode editType) {
         switch (editType) {
@@ -168,10 +165,10 @@ public class PublicationWindow implements IsWidget, Editor<PublicationVO>, HasSa
         }        
     }
 
-    private PublicationWindow(PublicationVO publication, EditMode editMode, SaveMode saveMode) {
+    private PublicationWindow(PublicationVO publication, EditMode editMode, ListStore<PublicationVO> externalStore) {
         super();
         
-        this.saveMode = saveMode;
+        this.externalStore = externalStore;
         
         uiBinder.createAndBindUi(this);
         publicationParamsFieldSet.addExpandHandler(new ExpandHandler() {            
@@ -279,14 +276,14 @@ public class PublicationWindow implements IsWidget, Editor<PublicationVO>, HasSa
     }
     
     public static void showWindow(final EditMode editMode, String id, MetaTestVO metatest, final SaveHandler<PublicationVO> saveHandler, final HideHandler hideHandler) {
-        showWindow(editMode, SaveMode.saveToServer, id, metatest, saveHandler, hideHandler);
+        showWindow(editMode, id, metatest, null, saveHandler, hideHandler);
     }
     
-    public static void showWindow(final EditMode editMode, final SaveMode saveMode, String id, MetaTestVO metatest, final SaveHandler<PublicationVO> saveHandler, final HideHandler hideHandler) {
+    public static void showWindow(final EditMode editMode, String id, MetaTestVO metatest, final ListStore<PublicationVO> externalStore, final SaveHandler<PublicationVO> saveHandler, final HideHandler hideHandler) {
         final AdminAsyncCallback<PublicationVO> showWindowCallback = new AdminAsyncCallback<PublicationVO>() {
             @Override
             public void onSuccess(PublicationVO result) {
-                PublicationWindow window = new PublicationWindow(result, editMode, saveMode);
+                PublicationWindow window = new PublicationWindow(result, editMode, externalStore);
                 if (hideHandler != null) {
                     window.addHideHandler(hideHandler);
                 }
@@ -298,12 +295,26 @@ public class PublicationWindow implements IsWidget, Editor<PublicationVO>, HasSa
         };
         
         switch (editMode) {
-        case etExisting:
-            Admin.RPC.get(PublicationVO.class.getName(), id, showWindowCallback);
+        case etExisting:                 
+            if (externalStore != null) {
+                PublicationVO publication = externalStore.findModelWithKey(id);
+                showWindowCallback.onSuccess(publication);
+            }
+            else {
+                Admin.RPC.get(PublicationVO.class.getName(), id, showWindowCallback);                   
+            }
             break;
-        case etCopy:
-            Admin.RPC.copy(PublicationVO.class.getName(), id, showWindowCallback);
+        case etCopy: {
+            if (externalStore != null) {
+                PublicationVO publication = externalStore.findModelWithKey(id);
+                publication.resetIdentity();
+                showWindowCallback.onSuccess(publication);
+            }
+            else {
+                Admin.RPC.copy(PublicationVO.class.getName(), id, showWindowCallback);                   
+            }
             break;
+        }
         case etNew:
             PublicationVO publication = new PublicationVO();
             publication.setMetatestId(metatest.getId());
@@ -329,8 +340,17 @@ public class PublicationWindow implements IsWidget, Editor<PublicationVO>, HasSa
             return;
         }
         
-        switch (saveMode) {
-        case saveToServer:
+        if (externalStore != null) {
+            if (externalStore.findModelWithKey(publication.getId()) != null) {
+                externalStore.update(publication);
+            }
+            else {
+                externalStore.add(publication);
+            }
+            window.hide();
+            fireEvent(new SaveEvent<PublicationVO>(publication));
+        }
+        else {
             Admin.RPC.savePublication(publication, new AdminAsyncCallback<Void>() {
                 @Override
                 public void onSuccess(Void result) {
@@ -338,13 +358,6 @@ public class PublicationWindow implements IsWidget, Editor<PublicationVO>, HasSa
                     fireEvent(new SaveEvent<PublicationVO>(publication));
                 }
             });
-            break;
-        case saveToObject:
-            window.hide();
-            fireEvent(new SaveEvent<PublicationVO>(publication));
-            break;
-        default:
-            throw new IllegalStateException("Unknown saveMode: " + saveMode);
         }
     }
 }

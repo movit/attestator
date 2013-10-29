@@ -49,7 +49,7 @@ public class ReportHelper {
         HtmlBuilder hb = new HtmlBuilder();
         hb.startTag("div", "report");
         hb.startTag("div", "reportTitle").appendText("Отчет о прохождении теста").endTag("div");
-        hb.startTag("div", "reportTestTitle").appendText(report.getPublication().getMetatest().getName()).endTag("div");
+        hb.startTag("div", "reportTestTitle").appendText(report.getMetatestName()).endTag("div");
         hb.startTag("div", "reportSummary");
         
         String name = StringHelper.concatAllNotEmpty(" ", 
