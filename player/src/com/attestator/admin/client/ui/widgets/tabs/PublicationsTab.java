@@ -28,6 +28,8 @@ import com.attestator.common.shared.vo.PublicationsTreeItem;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.core.client.Scheduler;
 import com.google.gwt.core.client.Scheduler.ScheduledCommand;
+import com.google.gwt.event.logical.shared.SelectionEvent;
+import com.google.gwt.event.logical.shared.SelectionHandler;
 import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.resources.client.ImageResource;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
@@ -48,7 +50,6 @@ import com.sencha.gxt.data.shared.loader.LoadEvent;
 import com.sencha.gxt.data.shared.loader.LoadExceptionEvent;
 import com.sencha.gxt.data.shared.loader.LoaderHandler;
 import com.sencha.gxt.data.shared.loader.TreeLoader;
-import com.sencha.gxt.widget.core.client.Composite;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
 import com.sencha.gxt.widget.core.client.event.RowDoubleClickEvent;
 import com.sencha.gxt.widget.core.client.event.RowDoubleClickEvent.RowDoubleClickHandler;
@@ -57,7 +58,7 @@ import com.sencha.gxt.widget.core.client.grid.ColumnConfig;
 import com.sencha.gxt.widget.core.client.grid.ColumnModel;
 import com.sencha.gxt.widget.core.client.treegrid.TreeGrid;
 
-public class PublicationsTab extends Composite {
+public class PublicationsTab extends Tab {
     private static final String NEW_PUBLICATION_LINK_ID = "newPublication";
     private static final String EDIT_TEST_LINK_ID = "editTest";
     private static final String DELETE_TEST_LINK_ID = "deleteTest";
@@ -318,6 +319,13 @@ public class PublicationsTab extends Composite {
         
         // Create UI
         initWidget(uiBinder.createAndBindUi(this));
+        
+        addSelectionHandler(new SelectionHandler<Tab>() {            
+            @Override
+            public void onSelection(SelectionEvent<Tab> event) {
+                refresh();                
+            }
+        });
     }
     
     private void refresh() {
@@ -362,7 +370,8 @@ public class PublicationsTab extends Composite {
                 public void onBeforeLoad(BeforeLoadEvent<PublicationsTreeItem> event) {
                 }
             });
-        } 
+        }
+        gridStore.clear();
         gridLoader.load();
     }
     

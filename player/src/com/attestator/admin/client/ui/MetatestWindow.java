@@ -41,6 +41,8 @@ import com.google.gwt.core.client.Scheduler.ScheduledCommand;
 import com.google.gwt.editor.client.Editor;
 import com.google.gwt.editor.client.SimpleBeanEditorDriver;
 import com.google.gwt.editor.client.adapters.SimpleEditor;
+import com.google.gwt.event.logical.shared.ResizeEvent;
+import com.google.gwt.event.logical.shared.ResizeHandler;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.event.shared.GwtEvent;
@@ -109,6 +111,7 @@ import com.sencha.gxt.widget.core.client.grid.editing.GridInlineEditing;
 import com.sencha.gxt.widget.core.client.selection.SelectionChangedEvent;
 import com.sencha.gxt.widget.core.client.selection.SelectionChangedEvent.SelectionChangedHandler;
 import com.sencha.gxt.widget.core.client.toolbar.PagingToolBar;
+import com.sencha.gxt.widget.core.client.toolbar.ToolBar;
 
 public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEventHandlers<MetaTestVO>,  HasHideHandlers{
     private static final String EDIT_PUBLICATION_LINK_ID = "editPublication";
@@ -172,6 +175,10 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
     @UiField
     @Ignore
     ContentPanel groupsPanel;
+    
+    @UiField
+    @Ignore
+    ToolBar groupsToolbar;
     
     @UiField
     @Ignore
@@ -1076,6 +1083,14 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
         
         groupsPager.bind(groupsLoader);
         bindPagerAndSearchField(groupsSearchField, groupsPager);
+        
+        // groupsToolbar incorrectly resizes without this hack
+        groupsPanel.addResizeHandler(new ResizeHandler() {            
+            @Override
+            public void onResize(ResizeEvent event) {
+                groupsPanel.forceLayout();                
+            }
+        });
         
         Scheduler.get().scheduleDeferred(new ScheduledCommand() {
             @Override

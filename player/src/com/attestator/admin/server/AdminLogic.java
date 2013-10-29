@@ -202,7 +202,7 @@ public class AdminLogic extends CommonLogic {
     public void saveMetatest(MetaTestVO metatest) {
         CheckHelper.throwIfNull(metatest, "question");        
         Singletons.ds().save(metatest);
-        putChangesMarker(null, CacheType.getActivePublications);
+        putGlobalChangesMarker();
     }
     
     public void saveQuestion(QuestionVO question) {
@@ -223,23 +223,19 @@ public class AdminLogic extends CommonLogic {
         q.field("_id").notIn(publicationsIds);
         Singletons.ds().delete(q);
         
-        putChangesMarker(null, CacheType.getActivePublications);
+        putGlobalChangesMarker();
     }
     
     public void savePublication(PublicationVO publication) {
         CheckHelper.throwIfNull(publication, "publication");        
         Singletons.ds().save(publication);
-        putChangesMarker(null, CacheType.getActivePublications);
+        putGlobalChangesMarker();
     }
 
     public void saveGroup(GroupVO group) {
         CheckHelper.throwIfNull(group, "group");        
         Singletons.ds().save(group);
         putGlobalChangesMarker();
-    }
-    
-    public GroupVO getDeafultGroup() {
-        return getById(GroupVO.class, LoginManager.getThreadLocalLoggedUser().getDefaultGroupId());
     }
     
     public void setGroups(List<GroupVO> groupsToSave) {
@@ -299,7 +295,7 @@ public class AdminLogic extends CommonLogic {
         }
         putGlobalChangesMarker();
     }
-    
+
     public void setQuestionsGroup(List<String> questionIds, String groupId) {
         CheckHelper.throwIfNull(questionIds, "questionIds");
         CheckHelper.throwIfNull(groupId, "groupId");
@@ -327,6 +323,10 @@ public class AdminLogic extends CommonLogic {
         putGlobalChangesMarker();
     }
 
+    public GroupVO getDeafultGroup() {
+        return getById(GroupVO.class, LoginManager.getThreadLocalLoggedUser().getDefaultGroupId());
+    }
+    
     public UserVO createNewUser(String email, String password) {
         return createNewUser(email, password, null); 
     }

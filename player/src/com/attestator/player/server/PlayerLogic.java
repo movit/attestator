@@ -92,7 +92,7 @@ public class PlayerLogic extends CommonLogic{
                         pq.criteria("end").greaterThanOrEq(now)
                 )
         );
-        
+        pq.order("metatestId, created");        
         List<PublicationVO> activePublications = pq.asList();
         
         return activePublications;

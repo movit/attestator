@@ -65,7 +65,7 @@
 		<ui:attributes text="Студенты" enabled="false" />
 	</ui:with>
 
-	<row:VerticalLayoutContainer>
+	<row:VerticalLayoutContainer ui:field="top">
 		<row:child layoutData="{topVLData}">
 			<row:HBoxLayoutContainer hBoxLayoutAlign="TOP">
 				<row:child layoutData="{boxLayoutDataMargins4}">
@@ -83,7 +83,7 @@
 			</row:HBoxLayoutContainer>
 		</row:child>
 		<row:child layoutData="{maxWidthMaxHeightVLData}">
-			<gxt:PlainTabPanel>
+			<gxt:PlainTabPanel ui:field="tabs" tabScroll="true">
 				<gxt:child config="{questionBankTabConfig}">
 					<tabs:QuestionsBankTab/>
 				</gxt:child>

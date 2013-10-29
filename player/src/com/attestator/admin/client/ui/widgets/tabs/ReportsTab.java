@@ -16,6 +16,8 @@ import com.google.gwt.cell.client.DateCell;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.core.client.Scheduler;
 import com.google.gwt.core.client.Scheduler.ScheduledCommand;
+import com.google.gwt.event.logical.shared.SelectionEvent;
+import com.google.gwt.event.logical.shared.SelectionHandler;
 import com.google.gwt.i18n.client.DateTimeFormat;
 import com.google.gwt.i18n.client.DateTimeFormat.PredefinedFormat;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
@@ -33,7 +35,6 @@ import com.sencha.gxt.data.shared.loader.LoadEvent;
 import com.sencha.gxt.data.shared.loader.LoadResultListStoreBinding;
 import com.sencha.gxt.data.shared.loader.PagingLoadResult;
 import com.sencha.gxt.data.shared.loader.PagingLoader;
-import com.sencha.gxt.widget.core.client.Composite;
 import com.sencha.gxt.widget.core.client.button.TextButton;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
 import com.sencha.gxt.widget.core.client.event.RowDoubleClickEvent;
@@ -45,7 +46,7 @@ import com.sencha.gxt.widget.core.client.grid.ColumnModel;
 import com.sencha.gxt.widget.core.client.grid.Grid;
 import com.sencha.gxt.widget.core.client.toolbar.PagingToolBar;
 
-public class ReportsTab extends Composite {
+public class ReportsTab extends Tab {
     interface UiBinderImpl extends UiBinder<Widget, ReportsTab> {
     }
     private static UiBinderImpl uiBinder = GWT.create(UiBinderImpl.class);
@@ -211,6 +212,13 @@ public class ReportsTab extends Composite {
         
         // Use created by UiBuilder fields to finish configuration
         reportsPager.bind(reportsLoader);
+        
+        addSelectionHandler(new SelectionHandler<Tab>() {            
+            @Override
+            public void onSelection(SelectionEvent<Tab> event) {
+                refresh();                
+            }
+        });
     }
     
     private void showReportWindow(ReportVO report) {

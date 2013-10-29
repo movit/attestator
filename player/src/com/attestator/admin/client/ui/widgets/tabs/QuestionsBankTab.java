@@ -48,7 +48,6 @@ import com.sencha.gxt.data.shared.loader.LoadResultListStoreBinding;
 import com.sencha.gxt.data.shared.loader.PagingLoadResult;
 import com.sencha.gxt.data.shared.loader.PagingLoader;
 import com.sencha.gxt.widget.core.client.Component;
-import com.sencha.gxt.widget.core.client.Composite;
 import com.sencha.gxt.widget.core.client.button.TextButton;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
 import com.sencha.gxt.widget.core.client.event.HideEvent;
@@ -69,7 +68,7 @@ import com.sencha.gxt.widget.core.client.menu.MenuItem;
 import com.sencha.gxt.widget.core.client.menu.SeparatorMenuItem;
 import com.sencha.gxt.widget.core.client.toolbar.PagingToolBar;
 
-public class QuestionsBankTab extends Composite {
+public class QuestionsBankTab extends Tab {
     interface UiBinderImpl extends UiBinder<Widget, QuestionsBankTab> {
     }
     private static UiBinderImpl uiBinder = GWT.create(UiBinderImpl.class);
@@ -321,6 +320,13 @@ public class QuestionsBankTab extends Composite {
                         uploadQuestionsField.setValue("");
                     }
                 });
+            }
+        });
+        
+        addSelectionHandler(new SelectionHandler<Tab>() {            
+            @Override
+            public void onSelection(SelectionEvent<Tab> event) {
+                refresh();                
             }
         });
     }

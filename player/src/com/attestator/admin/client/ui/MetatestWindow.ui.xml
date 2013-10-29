@@ -175,7 +175,7 @@
 									headingText="Группы" animCollapse="false">
 									<row:VerticalLayoutContainer>
 										<row:child layoutData="{minWidthMinHeightVLData}">
-											<toolbar:ToolBar visible="true">
+											<toolbar:ToolBar ui:field="groupsToolbar" visible="true">
 												<button:TextButton ui:field="addGroupButton"
 													icon="{icons.next16x16}" iconAlign="RIGHT" text="Добавить в тест" />
 												<toolbar:FillToolItem />
