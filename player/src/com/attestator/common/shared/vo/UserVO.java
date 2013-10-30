@@ -3,7 +3,7 @@ package com.attestator.common.shared.vo;
 import com.google.code.morphia.annotations.Entity;
 
 @Entity("user")
-public class UserVO extends ModificationDateAwareVO {	
+public class UserVO extends TenantableVO {	
     private static final long serialVersionUID = -2277743477030122995L;
     
     private String defaultGroupId;

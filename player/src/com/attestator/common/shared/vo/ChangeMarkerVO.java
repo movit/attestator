@@ -7,7 +7,7 @@ import com.attestator.common.shared.helper.CheckHelper;
 import com.google.code.morphia.annotations.Entity;
 
 @Entity("changemarker")
-public class ChangeMarkerVO extends ModificationDateAwareVO {
+public class ChangeMarkerVO extends TenantableVO {
     private static final long serialVersionUID = -6155856555799173610L;
     private String clientId;
     

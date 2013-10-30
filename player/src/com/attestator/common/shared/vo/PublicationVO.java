@@ -12,7 +12,7 @@ import com.google.code.morphia.annotations.PostLoad;
 import com.google.code.morphia.annotations.Transient;
 
 @Entity("publication")
-public class PublicationVO extends ModificationDateAwareVO implements PublicationsTreeItem {
+public class PublicationVO extends TenantableVO implements PublicationsTreeItem {
     private static final long serialVersionUID = -8206061763678113027L;    
     
     private String          metatestId;
@@ -303,27 +303,63 @@ public class PublicationVO extends ModificationDateAwareVO implements Publicatio
             additionalQuestions.get(i).setOrder(i);
         }
     }    
+    
+    public PublicationVO() {
+    }
+    
+    public PublicationVO(PublicationVO src) {
+        // private\s+\S*\s+(\S*);
+        // this\.$1 = src\.$1;
+        this.metatestId = src.metatestId;
+        this.metatest = src.metatest;
+        this.reportsCount = src.reportsCount;
+        this.start = src.start;
+        this.end = src.end;
+        this.introduction = src.introduction;
+        this.maxAttempts = src.maxAttempts;
+        this.minScore = src.minScore;    
+        this.interruptOnFalure = src.interruptOnFalure;
+        this.maxTakeTestTime = src.maxTakeTestTime;
+        this.maxQuestionAnswerTime = src.maxQuestionAnswerTime;
+        this.allowSkipQuestions = src.allowSkipQuestions; 
+        this.allowInterruptTest = src.allowInterruptTest;
+        this.randomQuestionsOrder = src.randomQuestionsOrder;
+        this.askFirstName = src.askFirstName;
+        this.askFirstNameRequired = src.askFirstNameRequired;
+        this.askLastName = src.askLastName;
+        this.askLastNameRequired = src.askLastNameRequired;
+        this.askMiddleName = src.askMiddleName;
+        this.askMiddleNameRequired = src.askMiddleNameRequired;
+        this.askEmail = src.askEmail;
+        this.askEmailRequired = src.askEmailRequired;
+        if (src.additionalQuestions != null) {
+            for (AdditionalQuestionVO srcAq: src.additionalQuestions) {
+                this.additionalQuestions.add(new AdditionalQuestionVO(srcAq));
+            }
+        }
+    }
 
     @Override
     public String toString() {
         return "PublicationVO [metatestId=" + metatestId + ", metatest="
-                + metatest + ", start=" + start + ", end=" + end
-                + ", introduction=" + introduction + ", askFirstName="
-                + askFirstName + ", askFirstNameRequired="
-                + askFirstNameRequired + ", askLastName=" + askLastName
-                + ", askLastNameRequired=" + askLastNameRequired
-                + ", askMiddleName=" + askMiddleName
-                + ", askMiddleNameRequired=" + askMiddleNameRequired
-                + ", askEmail=" + askEmail + ", askEmailRequired="
-                + askEmailRequired + ", maxAttempts=" + maxAttempts
+                + metatest + ", reportsCount=" + reportsCount + ", start="
+                + start + ", end=" + end + ", introduction=" + introduction
+                + ", maxAttempts=" + maxAttempts + ", minScore=" + minScore
+                + ", interruptOnFalure=" + interruptOnFalure
                 + ", maxTakeTestTime=" + maxTakeTestTime
                 + ", maxQuestionAnswerTime=" + maxQuestionAnswerTime
                 + ", allowSkipQuestions=" + allowSkipQuestions
                 + ", allowInterruptTest=" + allowInterruptTest
                 + ", randomQuestionsOrder=" + randomQuestionsOrder
-                + ", additionalQuestions=" + additionalQuestions
-                + ", getTenantId()="
-                + getTenantId() + ", getId()=" + getId() + "]";
+                + ", askFirstName=" + askFirstName + ", askFirstNameRequired="
+                + askFirstNameRequired + ", askLastName=" + askLastName
+                + ", askLastNameRequired=" + askLastNameRequired
+                + ", askMiddleName=" + askMiddleName
+                + ", askMiddleNameRequired=" + askMiddleNameRequired
+                + ", askEmail=" + askEmail + ", askEmailRequired="
+                + askEmailRequired + ", additionalQuestions="
+                + additionalQuestions + ", getTenantId()=" + getTenantId()
+                + ", getCreated()=" + getCreated() + ", getModified()="
+                + getModified() + ", getId()=" + getId() + "]";
     }
-
 }

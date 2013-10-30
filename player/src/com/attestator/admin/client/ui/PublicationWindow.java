@@ -306,9 +306,9 @@ public class PublicationWindow implements IsWidget, Editor<PublicationVO>, HasSa
             break;
         case etCopy: {
             if (externalStore != null) {
-                PublicationVO publication = externalStore.findModelWithKey(id);
-                publication.resetIdentity();
-                showWindowCallback.onSuccess(publication);
+                PublicationVO original = externalStore.findModelWithKey(id);
+                PublicationVO copy     = new PublicationVO(original);                
+                showWindowCallback.onSuccess(copy);
             }
             else {
                 Admin.RPC.copy(PublicationVO.class.getName(), id, showWindowCallback);                   

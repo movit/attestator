@@ -4,7 +4,7 @@ import com.google.code.morphia.annotations.Index;
 import com.google.code.morphia.annotations.Indexes;
 
 @Indexes({@Index(name = "tenantAndId", value = "tenantId, _id")})
-public abstract class TenantableVO extends BaseVO {
+public abstract class TenantableVO extends ModificationDateAwareVO {
 	private static final long serialVersionUID = 2220524524737242868L;
 	
 	private String tenantId;

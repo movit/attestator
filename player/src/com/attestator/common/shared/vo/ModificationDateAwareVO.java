@@ -2,7 +2,7 @@ package com.attestator.common.shared.vo;
 
 import java.util.Date;
 
-public abstract class ModificationDateAwareVO extends TenantableVO {
+public abstract class ModificationDateAwareVO extends BaseVO {
     private static final long serialVersionUID = 9053483188451134959L;
     private Date created = new Date();
     private Date modified = new Date();

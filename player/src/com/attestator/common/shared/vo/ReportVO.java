@@ -9,7 +9,7 @@ import com.attestator.common.shared.helper.StringHelper;
 import com.google.code.morphia.annotations.Entity;
 
 @Entity("report")
-public class ReportVO extends ModificationDateAwareVO {
+public class ReportVO extends TenantableVO {
     private static final long serialVersionUID = -5907963588232512986L;
 
     private PublicationVO publication;

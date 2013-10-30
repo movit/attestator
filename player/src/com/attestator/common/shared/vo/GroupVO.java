@@ -5,7 +5,7 @@ import com.google.code.morphia.annotations.Entity;
 import com.google.code.morphia.annotations.Transient;
 
 @Entity("group")
-public class GroupVO extends ModificationDateAwareVO{
+public class GroupVO extends TenantableVO {
     private static final long serialVersionUID = 8072477436639798845L;
     
     public static String DEFAULT_GROUP_INITIAL_NAME = "Общие вопросы";

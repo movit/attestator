@@ -8,7 +8,7 @@ import com.google.code.morphia.annotations.Entity;
 import com.google.code.morphia.annotations.PrePersist;
 
 @Entity("metatest")
-public class MetaTestVO extends ModificationDateAwareVO implements PublicationsTreeItem {
+public class MetaTestVO extends TenantableVO implements PublicationsTreeItem {
 	private static final long serialVersionUID = 4340732034670583318L;
 	
     private String                 name;    
@@ -50,5 +50,12 @@ public class MetaTestVO extends ModificationDateAwareVO implements PublicationsT
                 entry.resetIdentity();
             }
         }
+    }
+    @Override
+    public String toString() {
+        return "MetaTestVO [name=" + name + ", numberOfQuestions="
+                + numberOfQuestions + ", getTenantId()=" + getTenantId()
+                + ", getCreated()=" + getCreated() + ", getModified()="
+                + getModified() + ", getId()=" + getId() + "]";
     }
 }

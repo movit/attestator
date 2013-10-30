@@ -61,5 +61,16 @@ public class AdditionalQuestionVO extends BaseVO {
     }
     public void setOrder(Integer order) {
         this.order = order;
+    }
+    
+    public AdditionalQuestionVO() {
+    }
+    
+    public AdditionalQuestionVO(AdditionalQuestionVO src) {
+        this.text = src.text;
+        this.checkValue = src.checkValue;
+        this.required = src.required;
+        this.order = src.order;
+        this.answerType = src.answerType;
     }    
 }
