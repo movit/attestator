@@ -220,7 +220,9 @@ public class AdminLogic extends CommonLogic {
         List<String> publicationsIds = VOHelper.getIds(publications);
         Query<PublicationVO> q = Singletons.ds().createQuery(PublicationVO.class);
         q.field("metatestId").equal(metatestId);
-        q.field("_id").notIn(publicationsIds);
+        if (!NullHelper.isEmptyOrNull(publicationsIds)) {
+            q.field("_id").notIn(publicationsIds);
+        }
         Singletons.ds().delete(q);
         
         putGlobalChangesMarker();
@@ -497,8 +499,13 @@ public class AdminLogic extends CommonLogic {
             }
             
             if ("contains".equals(filter.getComparison())) {
+                String filterValue = filter.getValue();
+                //Replace NON unicode letters or digits to spaces 
+                filterValue = filterValue.replaceAll("[^\\p{L}\\d]+", " ");  
+                filterValue = StringHelper.escapeRegexpLiteral(filterValue);
+                
+                String[] keywords = filterValue.split("\\s+");
                 List<Pattern> keywordPatterns = new ArrayList<Pattern>();
-                String[] keywords = filter.getValue().split("\\s+");
                 for (String keyword: keywords) {
                     if (StringHelper.isEmptyOrNull(keyword)) {
                         continue;
@@ -508,7 +515,10 @@ public class AdminLogic extends CommonLogic {
                 q.field(filter.getField()).hasAllOf(keywordPatterns);
             }
             else if ("notIn".equals(filter.getComparison())) {
-                q.field(filter.getField()).notIn(StringHelper.splitBySeparatorToList(filter.getValue(), ", "));
+                List<String> values = StringHelper.splitBySeparatorToList(filter.getValue(), ", ");
+                if (!NullHelper.isEmptyOrNull(values)) {
+                    q.field(filter.getField()).notIn(values);
+                }
             }
         }
     }

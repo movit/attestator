@@ -7,6 +7,7 @@ import com.attestator.common.shared.helper.NullHelper;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.uibinder.client.UiConstructor;
+import com.google.gwt.user.client.Event;
 import com.sencha.gxt.cell.core.client.form.TriggerFieldCell;
 import com.sencha.gxt.data.shared.Store;
 import com.sencha.gxt.theme.base.client.field.StoreFilterFieldDefaultAppearance;
@@ -34,9 +35,10 @@ public class SearchField extends TriggerField<String> implements HasFilterEventH
         super(new SearchFieldCell());
         setAutoValidate(true);
         setValidateOnBlur(false);
+        sinkEvents(Event.ONPASTE);
 
         redraw();
-
+        
         addTriggerClickHandler(new TriggerClickHandler() {
             @Override
             public void onTriggerClick(TriggerClickEvent event) {
@@ -44,7 +46,19 @@ public class SearchField extends TriggerField<String> implements HasFilterEventH
             }
         });
     }
+    
+    @Override
+    public void onBrowserEvent(Event event) {        
+        super.onBrowserEvent(event);
+        switch (event.getTypeInt()) {
+        case Event.ONPASTE:
+            // Force filtering 
+            onKeyUp(null);
+            break;
+        }
+    }
 
+    
     protected void onFilter(String value) {
         if (!NullHelper.nullSafeEquals(oldFilterValue, value)) {
             newFilterValue = value;

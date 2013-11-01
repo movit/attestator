@@ -3,13 +3,15 @@ package com.attestator.common.shared.helper;
 import java.util.Date;
 
 public class DateHelper {
+    public static final long MILLISECONDS_IN_DAY = 1000 * 60 * 60 * 24; 
+    
     public static boolean isTheSameDate(Date d1, Date d2) {
         if (d1 == null || d2 == null) {
             return false;
         }
         
-        long d1DatePart = d1.getTime() / (1000 * 60 * 60 * 24);
-        long d2DatePart = d2.getTime() / (1000 * 60 * 60 * 24);
+        long d1DatePart = d1.getTime() / MILLISECONDS_IN_DAY;
+        long d2DatePart = d2.getTime() / MILLISECONDS_IN_DAY;
         
         return d1DatePart == d2DatePart;
     }
@@ -30,6 +32,6 @@ public class DateHelper {
     }
     
     public static long getTimePart(Date date) {
-        return date.getTime() % (1000 * 60 * 60 * 24);
+        return date.getTime() % MILLISECONDS_IN_DAY;
     }
 }

@@ -1,0 +1,27 @@
+<!DOCTYPE ui:UiBinder SYSTEM "http://dl.google.com/gwt/DTD/xhtml.ent">
+<ui:UiBinder xmlns:ui='urn:ui:com.google.gwt.uibinder'
+	xmlns:g="urn:import:com.google.gwt.user.client.ui" xmlns:gxt="urn:import:com.sencha.gxt.widget.core.client"
+	xmlns:row="urn:import:com.sencha.gxt.widget.core.client.container"
+	xmlns:menu="urn:import:com.sencha.gxt.widget.core.client.menu"
+	xmlns:button="urn:import:com.sencha.gxt.widget.core.client.button"
+	xmlns:form="urn:import:com.sencha.gxt.widget.core.client.form"
+	xmlns:toolbar="urn:import:com.sencha.gxt.widget.core.client.toolbar"
+	xmlns:grid="urn:import:com.sencha.gxt.widget.core.client.grid"
+	xmlns:att="urn:import:com.attestator.admin.client.ui.widgets">
+	
+	<gxt:Window ui:field="window" pixelSize="600, 600" modal="true"
+		maximizable="false" resizable="true" blinkModal="true" headingText="Отчет"
+		focusWidget="{cancelButton}">
+
+		<row:VerticalLayoutContainer ui:field="top">
+			<row:child>
+			</row:child>
+		</row:VerticalLayoutContainer>
+
+		<gxt:button>
+			<button:TextButton ui:field="cancelButton" text="Закрыть" />
+		</gxt:button>
+
+	</gxt:Window>
+
+</ui:UiBinder>

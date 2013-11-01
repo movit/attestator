@@ -9,7 +9,6 @@ import com.attestator.admin.client.ui.event.DeleteEvent.HasDeleteEventHandlers;
 import com.attestator.admin.client.ui.event.RearrangeEvent;
 import com.attestator.admin.client.ui.event.RearrangeEvent.HasRearrangeEventHandlers;
 import com.attestator.admin.client.ui.event.RearrangeEvent.RearrangeHandler;
-import com.attestator.common.shared.helper.DateHelper;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.editor.client.LeafValueEditor;
 import com.google.gwt.event.shared.HandlerRegistration;
@@ -20,6 +19,7 @@ import com.google.gwt.uibinder.client.UiConstructor;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.client.ui.Widget;
+import com.sencha.gxt.core.client.util.DateWrapper;
 import com.sencha.gxt.widget.core.client.Composite;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.form.DateField;
@@ -78,20 +78,19 @@ public class DateTimeSelector extends Composite implements LeafValueEditor<Date>
 
     @Override
     public Date getValue() {
-        Date result = null;
         if (dateField.getValue() != null) {
+            DateWrapper dateWrapper = new DateWrapper(dateField.getValue());
+            DateWrapper resultWrapper = dateWrapper.clearTime();
+            
             if (timeField.getValue() != null) {
-                long resultTime = DateHelper.getDatePart(dateField.getValue()) + DateHelper.getTimePart(timeField.getValue()); 
-                if (resultTime < dateField.getValue().getTime()) {
-                    resultTime += 1000 * 60 * 60 * 24;
-                }
-                result = new Date(resultTime);
+                DateWrapper timeWrapper = new DateWrapper(timeField.getValue());
+                resultWrapper = resultWrapper.addHours(timeWrapper.getHours());
+                resultWrapper = resultWrapper.addMinutes(timeWrapper.getMinutes());
+                resultWrapper = resultWrapper.addSeconds(timeWrapper.getSeconds());
             }
-            else {
-                result = dateField.getValue();
-            }
+        
+            return resultWrapper.asDate();
         }
-        return result;
+        return null;
     } 
-    
 }
