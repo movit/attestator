@@ -8,7 +8,13 @@ import com.attestator.admin.client.Admin;
 import com.attestator.admin.client.props.ReportVOPropertyAccess;
 import com.attestator.admin.client.rpc.AdminAsyncCallback;
 import com.attestator.admin.client.ui.ReportWindow;
+import com.attestator.admin.client.ui.event.FilterEvent;
+import com.attestator.admin.client.ui.event.FilterEvent.FilterHandler;
+import com.attestator.admin.client.ui.widgets.PageringGridFilters;
+import com.attestator.admin.client.ui.widgets.SearchField;
+import com.attestator.common.client.helper.DateFilterHandler;
 import com.attestator.common.shared.helper.NullHelper;
+import com.attestator.common.shared.helper.StringHelper;
 import com.attestator.common.shared.helper.VOHelper;
 import com.attestator.common.shared.vo.ReportVO;
 import com.google.gwt.cell.client.AbstractCell;
@@ -20,6 +26,7 @@ import com.google.gwt.event.logical.shared.SelectionEvent;
 import com.google.gwt.event.logical.shared.SelectionHandler;
 import com.google.gwt.i18n.client.DateTimeFormat;
 import com.google.gwt.i18n.client.DateTimeFormat.PredefinedFormat;
+import com.google.gwt.i18n.client.NumberFormat;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
@@ -29,10 +36,15 @@ import com.google.gwt.user.client.ui.Widget;
 import com.sencha.gxt.core.client.IdentityValueProvider;
 import com.sencha.gxt.data.client.loader.RpcProxy;
 import com.sencha.gxt.data.shared.ListStore;
+import com.sencha.gxt.data.shared.loader.BeforeLoadEvent;
+import com.sencha.gxt.data.shared.loader.BeforeLoadEvent.BeforeLoadHandler;
+import com.sencha.gxt.data.shared.loader.FilterConfig;
+import com.sencha.gxt.data.shared.loader.FilterConfigBean;
 import com.sencha.gxt.data.shared.loader.FilterPagingLoadConfig;
 import com.sencha.gxt.data.shared.loader.FilterPagingLoadConfigBean;
 import com.sencha.gxt.data.shared.loader.LoadEvent;
 import com.sencha.gxt.data.shared.loader.LoadResultListStoreBinding;
+import com.sencha.gxt.data.shared.loader.Loader;
 import com.sencha.gxt.data.shared.loader.PagingLoadResult;
 import com.sencha.gxt.data.shared.loader.PagingLoader;
 import com.sencha.gxt.widget.core.client.button.TextButton;
@@ -40,10 +52,16 @@ import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
 import com.sencha.gxt.widget.core.client.event.RowDoubleClickEvent;
 import com.sencha.gxt.widget.core.client.event.RowDoubleClickEvent.RowDoubleClickHandler;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
+import com.sencha.gxt.widget.core.client.form.NumberPropertyEditor.DoublePropertyEditor;
+import com.sencha.gxt.widget.core.client.form.NumberPropertyEditor.IntegerPropertyEditor;
 import com.sencha.gxt.widget.core.client.grid.CheckBoxSelectionModel;
 import com.sencha.gxt.widget.core.client.grid.ColumnConfig;
 import com.sencha.gxt.widget.core.client.grid.ColumnModel;
 import com.sencha.gxt.widget.core.client.grid.Grid;
+import com.sencha.gxt.widget.core.client.grid.filters.BooleanFilter;
+import com.sencha.gxt.widget.core.client.grid.filters.DateFilter;
+import com.sencha.gxt.widget.core.client.grid.filters.GridFilters;
+import com.sencha.gxt.widget.core.client.grid.filters.NumericFilter;
 import com.sencha.gxt.widget.core.client.toolbar.PagingToolBar;
 
 public class ReportsTab extends Tab {
@@ -52,6 +70,12 @@ public class ReportsTab extends Tab {
     private static UiBinderImpl uiBinder = GWT.create(UiBinderImpl.class);
     private static ReportVOPropertyAccess reportProperties = GWT.create(ReportVOPropertyAccess.class);
 
+    @UiField(provided=true)
+    SearchField reportsSearchField;
+    SearchField createSearchField() {
+        return new SearchField();
+    }
+    
     @UiField(provided = true)
     Grid<ReportVO> reportsGrid;
     Grid<ReportVO> createReportsGrid(
@@ -60,6 +84,10 @@ public class ReportsTab extends Tab {
         
         Grid<ReportVO> result = new Grid<ReportVO>(store, cm);        
         result.setLoader(loader);
+        result.getView().setForceFit(true);
+        result.getView().setAutoFill(true);
+        result.getView().setStripeRows(true);
+        
         result.addRowDoubleClickHandler(new RowDoubleClickHandler() {            
             @Override
             public void onRowDoubleClick(RowDoubleClickEvent event) {
@@ -70,7 +98,6 @@ public class ReportsTab extends Tab {
         return result;
     }
 
-    @UiField(provided = true)
     ListStore<ReportVO> reportsStore;
 
     ListStore<ReportVO> createReportsStore() {
@@ -78,7 +105,6 @@ public class ReportsTab extends Tab {
         return result;
     }
 
-    @UiField(provided = true)
     CheckBoxSelectionModel<ReportVO> reportsSm;
 
     CheckBoxSelectionModel<ReportVO> createReportsSm() {
@@ -96,7 +122,6 @@ public class ReportsTab extends Tab {
         return result;
     }
 
-    @UiField(provided = true)
     ColumnModel<ReportVO> reportsCm;
 
     ColumnModel<ReportVO> createReportsCm(CheckBoxSelectionModel<ReportVO> sm) {
@@ -137,10 +162,57 @@ public class ReportsTab extends Tab {
         return result;
     }
 
+    GridFilters<ReportVO> reportsGf;
+    GridFilters<ReportVO> createReportsGf(Grid<ReportVO> grid, Loader<FilterPagingLoadConfig, ?> loader, final SearchField searchField, PagingToolBar pager) {
+        GridFilters<ReportVO> result = new PageringGridFilters<ReportVO>(loader, pager);
+        result.initPlugin(grid);
+        
+        DateFilter<ReportVO> startFilter = new DateFilter<ReportVO>(reportProperties.start());
+        startFilter.setHandler(new DateFilterHandler());        
+        result.addFilter(startFilter);
+        
+        DateFilter<ReportVO> endFilter = new DateFilter<ReportVO>(reportProperties.end());
+        endFilter.setHandler(new DateFilterHandler());        
+        result.addFilter(endFilter);
+        
+        BooleanFilter<ReportVO> finishedFilter = new BooleanFilter<ReportVO>(reportProperties.finished());
+        result.addFilter(finishedFilter);
+
+        NumericFilter<ReportVO, Double> scoreFilter = new NumericFilter<ReportVO, Double>(reportProperties.score(), new DoublePropertyEditor(NumberFormat.getFormat("0.00")));
+        result.addFilter(scoreFilter);
+        
+        NumericFilter<ReportVO, Integer> numAnswersFilter = new NumericFilter<ReportVO, Integer>(reportProperties.numAnswers(), new IntegerPropertyEditor());
+        result.addFilter(numAnswersFilter);
+
+        NumericFilter<ReportVO, Integer> numUnansweredFilter = new NumericFilter<ReportVO, Integer>(reportProperties.numUnanswered(), new IntegerPropertyEditor());
+        result.addFilter(numUnansweredFilter);
+
+        NumericFilter<ReportVO, Integer> numErrorsFilter = new NumericFilter<ReportVO, Integer>(reportProperties.numErrors(), new IntegerPropertyEditor());
+        result.addFilter(numErrorsFilter);
+        
+        //IMPORTANT! Any BeforeLoadHandler should be added after GridFilters binded to grid
+        //because GridFilters is clear LoadConfig on own before load handler
+        loader.addBeforeLoadHandler(new BeforeLoadHandler<FilterPagingLoadConfig>() {
+            @Override
+            public void onBeforeLoad(
+                    BeforeLoadEvent<FilterPagingLoadConfig> event) {
+                if (!StringHelper.isEmptyOrNull(searchField.getNewFilterValue())) {
+                    FilterConfig filter = new FilterConfigBean();
+                    filter.setField("firstName or lastName or middleName or metatestName");
+                    filter.setComparison("contains");
+                    filter.setValue(searchField.getNewFilterValue());
+                    event.getLoadConfig().getFilters().add(filter);
+                }
+            }
+        });
+        
+        return result;
+    }
+    
     PagingLoader<FilterPagingLoadConfig, PagingLoadResult<ReportVO>> reportsLoader;
 
     PagingLoader<FilterPagingLoadConfig, PagingLoadResult<ReportVO>> createReportsLoader(
-            final ListStore<ReportVO> store) {
+            final ListStore<ReportVO> store, final SearchField searchField) {
         RpcProxy<FilterPagingLoadConfig, PagingLoadResult<ReportVO>> rpcProxy = new RpcProxy<FilterPagingLoadConfig, PagingLoadResult<ReportVO>>() {
             @Override
             public void load(FilterPagingLoadConfig loadConfig,
@@ -149,7 +221,7 @@ public class ReportsTab extends Tab {
             }
         };
 
-        PagingLoader<FilterPagingLoadConfig, PagingLoadResult<ReportVO>> result = new PagingLoader<FilterPagingLoadConfig, PagingLoadResult<ReportVO>>(
+        final PagingLoader<FilterPagingLoadConfig, PagingLoadResult<ReportVO>> result = new PagingLoader<FilterPagingLoadConfig, PagingLoadResult<ReportVO>>(
                 rpcProxy) {
             @Override
             protected FilterPagingLoadConfig newLoadConfig() {
@@ -157,7 +229,9 @@ public class ReportsTab extends Tab {
                 return result;
             }
         };
+        
         result.setRemoteSort(true);
+
         result.addLoadHandler(new LoadResultListStoreBinding<FilterPagingLoadConfig, ReportVO, PagingLoadResult<ReportVO>>(
                 store) {
             @Override
@@ -166,7 +240,7 @@ public class ReportsTab extends Tab {
                 enableButtons();
             }
         });
-
+        
         return result;
     }
     @UiField(provided=true)
@@ -187,8 +261,11 @@ public class ReportsTab extends Tab {
         return result;
     }
     
-    @UiField
+    @UiField(provided = true)
     PagingToolBar reportsPager;
+    PagingToolBar createReportsPager(int pageSize) {
+        return new PagingToolBar(pageSize);
+    }
     
     @UiField
     TextButton deleteReportsButton;
@@ -200,12 +277,14 @@ public class ReportsTab extends Tab {
         // Prepare fields for UiBuilder
         top = createTop();
         
+        reportsSearchField = createSearchField();
         reportsSm = createReportsSm();
         reportsCm = createReportsCm(reportsSm);
         reportsStore = createReportsStore();
-        reportsLoader = createReportsLoader(reportsStore);
-        reportsGrid = createReportsGrid(reportsLoader,
-                reportsStore, reportsCm);
+        reportsLoader = createReportsLoader(reportsStore, reportsSearchField);
+        reportsPager = createReportsPager(50);
+        reportsGrid = createReportsGrid(reportsLoader, reportsStore, reportsCm);
+        reportsGf = createReportsGf(reportsGrid, reportsLoader, reportsSearchField, reportsPager);
 
         // Create UI
         initWidget(uiBinder.createAndBindUi(this));
@@ -213,10 +292,26 @@ public class ReportsTab extends Tab {
         // Use created by UiBuilder fields to finish configuration
         reportsPager.bind(reportsLoader);
         
+        bindPagerAndSearchField(reportsSearchField, reportsPager);
+        
         addSelectionHandler(new SelectionHandler<Tab>() {            
             @Override
             public void onSelection(SelectionEvent<Tab> event) {
                 refresh();                
+            }
+        });
+    }
+    
+    private void bindPagerAndSearchField(SearchField searchField, final PagingToolBar pager) {
+        searchField.addFilterChangeHandler(new FilterHandler<String>() {
+            @Override
+            public void onFilter(FilterEvent<String> event) {
+                Scheduler.get().scheduleDeferred(new ScheduledCommand() {
+                    @Override
+                    public void execute() {
+                        pager.first();
+                    }
+                });
             }
         });
     }

@@ -590,7 +590,7 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
     
                     FilterConfig filter = new FilterConfigBean();
                     filter.setComparison("contains");
-                    filter.setField("text");
+                    filter.setField("text or groupName");
                     filter.setType("string");
                     filter.setValue(filterValue);
     

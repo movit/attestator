@@ -1,0 +1,6 @@
+@CHARSET "UTF-8";
+
+.x-filtered-column {
+    font-style: italic !important;
+    font-weight: bold !important;
+}

@@ -21,22 +21,6 @@
 		<ui:attributes width="1" height="1" />
 	</ui:with>
 
-	<ui:with
-		type="com.sencha.gxt.widget.core.client.grid.CheckBoxSelectionModel"
-		field="reportsSm"></ui:with>
-	<ui:with type="com.sencha.gxt.widget.core.client.grid.ColumnModel"
-		field="reportsCm"></ui:with>
-	<ui:with type="com.sencha.gxt.data.shared.ListStore" field="reportsStore"></ui:with>
-	<ui:with type="com.sencha.gxt.widget.core.client.grid.GridView"
-		field="reportsView">
-		<ui:attributes stripeRows="true" forceFit="true"
-			autoFill="true"></ui:attributes>
-	</ui:with>
-
-	<ui:with
-		type="com.attestator.admin.client.ui.widgets.ButtonFileUpload.FileUploadFieldMessages"
-		field="uploadQusetionsMessages" />
-
 	<row:VerticalLayoutContainer ui:field="top">
 		<row:child layoutData="{maxWidthMinHeightVLData}">
 			<toolbar:ToolBar>
@@ -45,17 +29,19 @@
 				<toolbar:SeparatorToolItem />
 				<button:TextButton ui:field="deleteReportsButton"
 					text="Удалить" enabled="false" />
+                <toolbar:FillToolItem />
+                <att:SearchField ui:field="reportsSearchField"
+                    validationDelay="700" emptyText="Поиск"></att:SearchField>
 			</toolbar:ToolBar>
 		</row:child>
 		<row:child layoutData="{maxWidthMaxHeightVLData}">
-			<grid:Grid ui:field="reportsGrid" selectionModel="{reportsSm}"
-				view="{reportsView}" loadMask="true" columnReordering="true"
+			<grid:Grid ui:field="reportsGrid" loadMask="true" columnReordering="true"
 				borders="false">
 			</grid:Grid>
 		</row:child>
 		<row:child layoutData="{maxWidthMinHeightVLData}">
 			<toolbar:PagingToolBar ui:field="reportsPager"
-				pageSize="50" reuseConfig="false"></toolbar:PagingToolBar>
+				reuseConfig="false"></toolbar:PagingToolBar>
 		</row:child>
 	</row:VerticalLayoutContainer>
 </ui:UiBinder>	

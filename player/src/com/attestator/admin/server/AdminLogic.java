@@ -1,6 +1,9 @@
 package com.attestator.admin.server;
 
+import java.lang.reflect.Field;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -8,7 +11,9 @@ import org.apache.log4j.Logger;
 
 import com.attestator.common.server.CommonLogic;
 import com.attestator.common.server.helper.ReflectionHelper;
+import com.attestator.common.shared.SharedConstants;
 import com.attestator.common.shared.helper.CheckHelper;
+import com.attestator.common.shared.helper.DateHelper;
 import com.attestator.common.shared.helper.NullHelper;
 import com.attestator.common.shared.helper.StringHelper;
 import com.attestator.common.shared.helper.VOHelper;
@@ -24,6 +29,7 @@ import com.attestator.common.shared.vo.QuestionVO;
 import com.attestator.common.shared.vo.ReportVO;
 import com.attestator.common.shared.vo.UserVO;
 import com.attestator.player.server.Singletons;
+import com.google.code.morphia.query.CriteriaContainer;
 import com.google.code.morphia.query.Query;
 import com.google.code.morphia.query.UpdateOperations;
 import com.sencha.gxt.data.shared.SortDir;
@@ -38,6 +44,10 @@ import com.sencha.gxt.data.shared.loader.PagingLoadResultBean;
 public class AdminLogic extends CommonLogic {
     private static final Logger logger = Logger.getLogger(AdminLogic.class);
 
+    private final static Pattern OR_REGEX  = Pattern.compile("(?i)\\s+or\\s+");
+    private final static Pattern AND_REGEX = Pattern.compile("(?i)\\s+and\\s+");    
+    private final static Pattern NOT_ALNUM_REGEX = Pattern.compile("[^\\p{L}\\d]+");
+    
     public List<GroupVO> loadAllGroups() {
         Query<GroupVO> q = Singletons.ds().createQuery(GroupVO.class).order("name, _id");
         List<GroupVO> result = q.asList();
@@ -118,6 +128,11 @@ public class AdminLogic extends CommonLogic {
         if (excludFields != null) {
             q.retrievedFields(false, excludFields);
         }
+        
+        // Add filters
+        if (!NullHelper.nullSafeIsEmpty(loadConfig.getFilters())) {
+            addFilters(q, loadConfig.getFilters());
+        }        
         
         // Add order
         if (!NullHelper.nullSafeIsEmpty(loadConfig.getSortInfo())) {
@@ -454,7 +469,7 @@ public class AdminLogic extends CommonLogic {
     	}
     	return result;
     }
-
+    
     private <T> void addOrders(Query<T> q, List<? extends SortInfo> orders) {
         StringBuilder sb = new StringBuilder();
         int i = 0;
@@ -490,34 +505,138 @@ public class AdminLogic extends CommonLogic {
         q.order(sb.toString());
     }
 
-    private <T> void addFilters(Query<T> q, List<FilterConfig> filters) {
+    private <T> Object getNatveFilterValue(Class<T> clazz, String filterFieldName, String stringFilterValue) {
+        try {
+            Field nativeField = clazz.getDeclaredField(filterFieldName);
+            if (Integer.class.isAssignableFrom(nativeField.getType())) {
+                return new Integer(stringFilterValue);
+            }
+            else if (Long.class.isAssignableFrom(nativeField.getType())) {
+                return new Long(stringFilterValue);
+            }
+            else if (Double.class.isAssignableFrom(nativeField.getType())) {
+                return new Double(stringFilterValue);
+            }
+            else if (Boolean.class.isAssignableFrom(nativeField.getType())) {
+                return new Boolean(stringFilterValue);
+            }
+            else if (Date.class.isAssignableFrom(nativeField.getType())) {
+                return (new SimpleDateFormat(SharedConstants.DATE_TRANSFER_FORMAT)).parse(stringFilterValue);
+            }
+            return stringFilterValue;
+        }
+        catch (Throwable e) {
+            logger.warn(e.getMessage(), e);
+            return null;
+        }
+    }
+    
+    private <T> void addFilters(Query<T> q, List<FilterConfig> filters) {        
+        Class<T> clazz = q.getEntityClass();
+        
         for (FilterConfig filter: filters) {
+            
             if (StringHelper.isEmptyOrNull(filter.getValue())
             ||  StringHelper.isEmptyOrNull(filter.getField())) {
                 logger.warn("Incorrect FilterConfig");
                 continue;
             }
             
-            if ("contains".equals(filter.getComparison())) {
-                String filterValue = filter.getValue();
-                //Replace NON unicode letters or digits to spaces 
-                filterValue = filterValue.replaceAll("[^\\p{L}\\d]+", " ");  
-                filterValue = StringHelper.escapeRegexpLiteral(filterValue);
-                
-                String[] keywords = filterValue.split("\\s+");
-                List<Pattern> keywordPatterns = new ArrayList<Pattern>();
-                for (String keyword: keywords) {
-                    if (StringHelper.isEmptyOrNull(keyword)) {
-                        continue;
-                    }
-                    keywordPatterns.add(Pattern.compile(keyword, Pattern.CASE_INSENSITIVE));                    
-                }
-                q.field(filter.getField()).hasAllOf(keywordPatterns);
+            CriteriaContainer juntion = null;
+            String[] fields = null;
+            if (OR_REGEX.matcher(filter.getField()).find()) {
+                juntion = q.or();
+                fields = OR_REGEX.split(filter.getField());
             }
-            else if ("notIn".equals(filter.getComparison())) {
-                List<String> values = StringHelper.splitBySeparatorToList(filter.getValue(), ", ");
-                if (!NullHelper.isEmptyOrNull(values)) {
-                    q.field(filter.getField()).notIn(values);
+            else if (AND_REGEX.matcher(filter.getField()).find()) {
+                juntion = q.and();
+                fields = AND_REGEX.split(filter.getField());
+            }            
+            else {
+                fields = new String[] {filter.getField()};
+            }
+            
+            CriteriaContainer container = null;
+            if (juntion != null) {
+                container = juntion;
+            }
+            else {
+                container = (CriteriaContainer)q;
+            }
+            
+            for (String field: fields) {
+                Object filterValue = getNatveFilterValue(clazz, field, filter.getValue());                
+                
+                if (filterValue == null) {
+                    continue;
+                }
+                
+                if (filter.getComparison() == null 
+                || "eq".equals(filter.getComparison())) {
+                    if (Boolean.FALSE.equals(filterValue)) {
+                        container.or(
+                            container.criteria(field).equal(filterValue),
+                            container.criteria(field).doesNotExist()
+                        );
+                    }
+                    else {
+                        container.criteria(field).equal(filterValue);
+                    }
+                }
+                if ("before".equals(filter.getComparison())) {
+                    container.criteria(field).lessThan(filterValue);
+                }
+                else if ("after".equals(filter.getComparison())) {
+                    if (filterValue instanceof Date) {
+                        filterValue = new Date(((Date) filterValue).getTime() + DateHelper.MILLISECONDS_IN_DAY);
+                    }
+                    container.criteria(field).greaterThan(filterValue);
+                }
+                else if ("on".equals(filter.getComparison())) {                    
+                    if (filterValue instanceof Date) {
+                        Date fromTime = (Date)filterValue;
+                        Date toTime = new Date(((Date) filterValue).getTime() + DateHelper.MILLISECONDS_IN_DAY);
+                        container.and(
+                            container.criteria(field).greaterThan(fromTime),
+                            container.criteria(field).lessThan(toTime)
+                        );
+                    }
+                    else {
+                        container.criteria(field).equal(filterValue);
+                    }
+                }
+                else if ("lt".equals(filter.getComparison())) {                    
+                    container.criteria(field).lessThan(filterValue);
+                }
+                else if ("gt".equals(filter.getComparison())) {                    
+                    container.criteria(field).greaterThan(filterValue);
+                }
+                else if ("contains".equals(filter.getComparison())) {
+                    String strFilterValue = (String)filterValue;
+                    //Replace NON unicode letters or digits to spaces 
+                    strFilterValue = strFilterValue.trim().toLowerCase();
+                    strFilterValue = NOT_ALNUM_REGEX.matcher(strFilterValue).replaceAll(" ");  
+                    strFilterValue = StringHelper.escapeRegexpLiteral(strFilterValue);
+                    
+                    String[] keywords = strFilterValue.split("\\s+");
+                    List<Pattern> keywordPatterns = new ArrayList<Pattern>();
+                    for (String keyword: keywords) {
+                        if (StringHelper.isEmptyOrNull(keyword)) {
+                            continue;
+                        }
+                        keywordPatterns.add(Pattern.compile(keyword, Pattern.CASE_INSENSITIVE));                    
+                    }
+                    
+                    if (!keywordPatterns.isEmpty()) {
+                        container.criteria(field).hasAllOf(keywordPatterns);
+                    }
+                }
+                else if ("notIn".equals(filter.getComparison())) {
+                    List<String> values = StringHelper.splitBySeparatorToList(filter.getValue(), ", ");
+                    
+                    if (!NullHelper.isEmptyOrNull(values)) {
+                        container.criteria(field).notIn(values);
+                    }
                 }
             }
         }

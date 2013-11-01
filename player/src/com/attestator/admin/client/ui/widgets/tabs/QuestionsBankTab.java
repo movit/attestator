@@ -200,7 +200,7 @@ public class QuestionsBankTab extends Tab {
 
                     FilterConfig textFilter = new FilterConfigBean();
                     textFilter.setComparison("contains");
-                    textFilter.setField("text");
+                    textFilter.setField("text or groupName");
                     textFilter.setType("string");
                     textFilter.setValue(filterValue);
 
