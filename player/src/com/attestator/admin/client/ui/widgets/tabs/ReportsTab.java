@@ -13,6 +13,7 @@ import com.attestator.admin.client.ui.event.FilterEvent.FilterHandler;
 import com.attestator.admin.client.ui.widgets.PageringGridFilters;
 import com.attestator.admin.client.ui.widgets.SearchField;
 import com.attestator.common.client.helper.DateFilterHandler;
+import com.attestator.common.shared.SharedConstants;
 import com.attestator.common.shared.helper.NullHelper;
 import com.attestator.common.shared.helper.StringHelper;
 import com.attestator.common.shared.helper.VOHelper;
@@ -58,6 +59,7 @@ import com.sencha.gxt.widget.core.client.grid.CheckBoxSelectionModel;
 import com.sencha.gxt.widget.core.client.grid.ColumnConfig;
 import com.sencha.gxt.widget.core.client.grid.ColumnModel;
 import com.sencha.gxt.widget.core.client.grid.Grid;
+import com.sencha.gxt.widget.core.client.grid.GridSelectionModel;
 import com.sencha.gxt.widget.core.client.grid.filters.BooleanFilter;
 import com.sencha.gxt.widget.core.client.grid.filters.DateFilter;
 import com.sencha.gxt.widget.core.client.grid.filters.GridFilters;
@@ -80,10 +82,11 @@ public class ReportsTab extends Tab {
     Grid<ReportVO> reportsGrid;
     Grid<ReportVO> createReportsGrid(
             final PagingLoader<FilterPagingLoadConfig, PagingLoadResult<ReportVO>> loader,
-            final ListStore<ReportVO> store, ColumnModel<ReportVO> cm) {
+            final ListStore<ReportVO> store, ColumnModel<ReportVO> cm, GridSelectionModel<ReportVO> sm) {
         
         Grid<ReportVO> result = new Grid<ReportVO>(store, cm);        
         result.setLoader(loader);
+        result.setSelectionModel(sm);
         result.getView().setForceFit(true);
         result.getView().setAutoFill(true);
         result.getView().setStripeRows(true);
@@ -163,8 +166,8 @@ public class ReportsTab extends Tab {
     }
 
     GridFilters<ReportVO> reportsGf;
-    GridFilters<ReportVO> createReportsGf(Grid<ReportVO> grid, Loader<FilterPagingLoadConfig, ?> loader, final SearchField searchField, PagingToolBar pager) {
-        GridFilters<ReportVO> result = new PageringGridFilters<ReportVO>(loader, pager);
+    GridFilters<ReportVO> createReportsGf(final Grid<ReportVO> grid, Loader<FilterPagingLoadConfig, ?> loader, final SearchField searchField, PagingToolBar pager) {
+        final GridFilters<ReportVO> result = new PageringGridFilters<ReportVO>(loader, pager);
         result.initPlugin(grid);
         
         DateFilter<ReportVO> startFilter = new DateFilter<ReportVO>(reportProperties.start());
@@ -205,6 +208,90 @@ public class ReportsTab extends Tab {
                 }
             }
         });
+        
+        loader.addBeforeLoadHandler(new BeforeLoadHandler<FilterPagingLoadConfig>() {
+            private String filterComparisonMarker(String comparison) {
+                if ("eq".equals(comparison)) {
+                    return "=";
+                }
+                else if ("on".equals(comparison)) {
+                    return "=";
+                }
+                else if ("gt".equals(comparison)) {
+                    return ">";
+                }
+                else if ("after".equals(comparison)) {
+                    return ">";
+                }
+                else if ("lt".equals(comparison)) {
+                    return "<";
+                }
+                else if ("before".equals(comparison)) {
+                    return "<";
+                }
+                return "";
+            }
+            
+            //TODO should be abstract method
+            private String filterComaprisonValue(String field, String value) {
+                if ("start".equals(field) || "end".equals(field)) {
+                    Date dateValue = DateTimeFormat.getFormat(SharedConstants.DATE_TRANSFER_FORMAT).parse(value);
+                    return DateTimeFormat.getFormat(PredefinedFormat.DATE_SHORT).format(dateValue);                    
+                }
+                else if ("finished".equals(field)) {
+                    Boolean booleanValue = Boolean.parseBoolean(value);
+                    return (booleanValue) ? "да" : "нет";
+                }
+                return value;
+            }
+            
+            @Override
+            public void onBeforeLoad(
+                    BeforeLoadEvent<FilterPagingLoadConfig> event) {
+                
+                
+                for(ColumnConfig<ReportVO, ?> cc: grid.getColumnModel().getColumns()) {
+                    if (cc.getHeader() == null) {
+                        continue;
+                    }
+                    
+                    List<String> filterTooltips = new ArrayList<String>();
+                    for (FilterConfig fc:  event.getLoadConfig().getFilters()) {
+                        if (!fc.getField().equals(cc.getPath())) {
+                            continue;
+                        }
+                        
+                        String value = filterComaprisonValue(fc.getField(), fc.getValue());
+                        if (StringHelper.isEmptyOrNull(value)) {
+                            continue;
+                        }
+                        
+                        String marker = filterComparisonMarker(fc.getComparison());                        
+                        
+                        filterTooltips.add(marker + value);
+                    }
+                    
+                    String   oldHeader = cc.getHeader().asString();
+                    String[] oldHeaderParts = oldHeader.split(" \\(", 2);
+                    String   fieldDisplayName = oldHeaderParts[0];
+                    
+                    StringBuilder newHeaderSb = new StringBuilder();
+                    newHeaderSb.append(fieldDisplayName);
+                    
+                    if (filterTooltips.size() > 0) {
+                        newHeaderSb.append(" (");
+                        newHeaderSb.append(StringHelper.concatAll(", ", filterTooltips));
+                        newHeaderSb.append(")"); 
+                    }
+                    
+                    cc.setHeader(newHeaderSb.toString());
+                }
+                
+                grid.getView().getHeader().refresh();
+                result.updateColumnHeadings();
+            }
+        });
+        
         
         return result;
     }
@@ -283,7 +370,7 @@ public class ReportsTab extends Tab {
         reportsStore = createReportsStore();
         reportsLoader = createReportsLoader(reportsStore, reportsSearchField);
         reportsPager = createReportsPager(50);
-        reportsGrid = createReportsGrid(reportsLoader, reportsStore, reportsCm);
+        reportsGrid = createReportsGrid(reportsLoader, reportsStore, reportsCm, reportsSm);
         reportsGf = createReportsGf(reportsGrid, reportsLoader, reportsSearchField, reportsPager);
 
         // Create UI
