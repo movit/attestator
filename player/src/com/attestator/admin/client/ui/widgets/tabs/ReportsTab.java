@@ -10,6 +10,7 @@ import com.attestator.admin.client.rpc.AdminAsyncCallback;
 import com.attestator.admin.client.ui.ReportWindow;
 import com.attestator.admin.client.ui.event.FilterEvent;
 import com.attestator.admin.client.ui.event.FilterEvent.FilterHandler;
+import com.attestator.admin.client.ui.widgets.DateFilterExt;
 import com.attestator.admin.client.ui.widgets.PageringGridFilters;
 import com.attestator.admin.client.ui.widgets.SearchField;
 import com.attestator.common.client.helper.DateFilterHandler;
@@ -61,7 +62,6 @@ import com.sencha.gxt.widget.core.client.grid.ColumnModel;
 import com.sencha.gxt.widget.core.client.grid.Grid;
 import com.sencha.gxt.widget.core.client.grid.GridSelectionModel;
 import com.sencha.gxt.widget.core.client.grid.filters.BooleanFilter;
-import com.sencha.gxt.widget.core.client.grid.filters.DateFilter;
 import com.sencha.gxt.widget.core.client.grid.filters.GridFilters;
 import com.sencha.gxt.widget.core.client.grid.filters.NumericFilter;
 import com.sencha.gxt.widget.core.client.toolbar.PagingToolBar;
@@ -170,11 +170,11 @@ public class ReportsTab extends Tab {
         final GridFilters<ReportVO> result = new PageringGridFilters<ReportVO>(loader, pager);
         result.initPlugin(grid);
         
-        DateFilter<ReportVO> startFilter = new DateFilter<ReportVO>(reportProperties.start());
+        DateFilterExt<ReportVO> startFilter = new DateFilterExt<ReportVO>(reportProperties.start());
         startFilter.setHandler(new DateFilterHandler());        
         result.addFilter(startFilter);
         
-        DateFilter<ReportVO> endFilter = new DateFilter<ReportVO>(reportProperties.end());
+        DateFilterExt<ReportVO> endFilter = new DateFilterExt<ReportVO>(reportProperties.end());
         endFilter.setHandler(new DateFilterHandler());        
         result.addFilter(endFilter);
         

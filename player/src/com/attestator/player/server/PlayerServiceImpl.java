@@ -191,7 +191,7 @@ public class PlayerServiceImpl extends RemoteServiceServlet implements
             }
 
             // Active publication found. Generate new test
-            List<QuestionVO> questions = Singletons.pl().getQuestions(publication);
+            List<QuestionVO> questions = Singletons.pl().generateQuestionList(publication);
             
             ReportVO result = new ReportVO();
             result.setPublication(publication);

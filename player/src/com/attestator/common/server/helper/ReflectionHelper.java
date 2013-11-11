@@ -33,6 +33,65 @@ public class ReflectionHelper {
     }
 
     /**
+     * Returns a <code>Field</code> object that reflects the specified declared
+     * field of the class or interface represented by this <code>Class</code>
+     * object. The <code>name</code> parameter is a <code>String</code> that
+     * specifies the simple name of the desired field.  Note that this method
+     * will not reflect the <code>length</code> field of an array class.
+     *
+     * @param name the name of the field
+     * @param recursively look in superclasses too
+     * @return the <code>Field</code> object for the specified field in this
+     * class
+     * @exception NoSuchFieldException if a field with the specified name is
+     *              not found.
+     * @exception NullPointerException if <code>name</code> is <code>null</code>
+     * @exception  SecurityException
+     *             If a security manager, <i>s</i>, is present and any of the
+     *             following conditions is met:
+     *
+     *             <ul>
+     *
+     *             <li> invocation of 
+     *             <tt>{@link SecurityManager#checkMemberAccess
+     *             s.checkMemberAccess(this, Member.DECLARED)}</tt> denies
+     *             access to the declared field
+     *
+     *             <li> the caller's class loader is not the same as or an
+     *             ancestor of the class loader for the current class and
+     *             invocation of <tt>{@link SecurityManager#checkPackageAccess
+     *             s.checkPackageAccess()}</tt> denies access to the package
+     *             of this class
+     *
+     *             </ul>
+     *
+     * @since JDK1.1
+     */
+    public static Field getDeclaredField(Class clazz, String name, boolean recursively) throws NoSuchFieldException {        
+        Field field = null;
+        try {
+            field = clazz.getDeclaredField(name);
+        }
+        catch (NoSuchFieldException e) {
+            if (!recursively) {
+                throw e;
+            }
+        }
+        
+        if (field == null) {
+            Class superClazz = clazz.getSuperclass();
+            if (superClazz != null) {
+                return getDeclaredField(superClazz, name, recursively);
+            }
+            else {
+                throw new NoSuchFieldException(name);
+            }
+        }
+        
+        return field;
+    }
+    
+    /**
      * Retrieving fields list of specified class If recursively is true,
      * retrieving fields from all class hierarchy
      * 

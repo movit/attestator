@@ -507,7 +507,12 @@ public class AdminLogic extends CommonLogic {
 
     private <T> Object getNatveFilterValue(Class<T> clazz, String filterFieldName, String stringFilterValue) {
         try {
-            Field nativeField = clazz.getDeclaredField(filterFieldName);
+            if ("_id".equals(filterFieldName)) {
+                filterFieldName = "id";
+            }
+            
+            Field nativeField = ReflectionHelper.getDeclaredField(clazz, filterFieldName, true);
+            
             if (Integer.class.isAssignableFrom(nativeField.getType())) {
                 return new Integer(stringFilterValue);
             }

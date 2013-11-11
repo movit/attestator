@@ -1,12 +1,8 @@
 package com.attestator.player.server;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.log4j.Logger;
 
@@ -19,41 +15,17 @@ import com.attestator.common.shared.vo.BaseVO;
 import com.attestator.common.shared.vo.CacheType;
 import com.attestator.common.shared.vo.ChangeMarkerVO;
 import com.attestator.common.shared.vo.InterruptionCauseEnum;
-import com.attestator.common.shared.vo.MTEGroupVO;
-import com.attestator.common.shared.vo.MTEQuestionVO;
-import com.attestator.common.shared.vo.MetaTestEntryVO;
 import com.attestator.common.shared.vo.MetaTestVO;
 import com.attestator.common.shared.vo.PublicationVO;
 import com.attestator.common.shared.vo.QuestionVO;
 import com.attestator.common.shared.vo.ReportVO;
-import com.attestator.common.shared.vo.SingleChoiceQuestionVO;
 import com.google.code.morphia.query.Query;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 
 public class PlayerLogic extends CommonLogic{
+    @SuppressWarnings("unused")
     private static final Logger logger = Logger.getLogger(PlayerLogic.class);
-    
-    public List<String> getQuestionIdsByGroupId(String groupId) {
-        CheckHelper.throwIfNullOrEmpty(groupId, "groupId");        
-        
-        List<String>      result = new ArrayList<String>();
-        Query<QuestionVO> q      = Singletons.ds().createQuery(QuestionVO.class);
-        
-        if (groupId != null) {
-            q.field("groupId").equal(groupId);
-        }
-        else {
-            q.field("groupId").doesNotExist();
-        }
-        
-        List<QuestionVO> questions = q.asList();
-        for (QuestionVO question: questions) {
-            result.add(question.getId());
-        }
-        
-        return result;
-    }
     
     public PublicationVO getActivePublication(String id) {
         CheckHelper.throwIfNullOrEmpty(id, "id");
@@ -190,25 +162,7 @@ public class PlayerLogic extends CommonLogic{
         }
     }
     
-    private void prepare(List<QuestionVO> questions, PublicationVO publication) {
-        for (QuestionVO question: questions) {
-            prepare(question);
-        }
-        
-        if (publication.isThisRandomQuestionsOrder()) {
-            Collections.shuffle(questions);
-        }
-    }
-
-    private void prepare(QuestionVO question) {
-        if (question instanceof SingleChoiceQuestionVO) {
-            if (((SingleChoiceQuestionVO) question).isThisRandomChoiceOrder()) {
-                Collections.shuffle(((SingleChoiceQuestionVO) question).getChoices());
-            }
-        }
-    }
-
-    public List<QuestionVO> getQuestions(PublicationVO publication) {
+    public List<QuestionVO> generateQuestionList(PublicationVO publication) {
         CheckHelper.throwIfNull(publication, "publication");
         
         if (publication.getMetatestId() == null) {
@@ -220,74 +174,7 @@ public class PlayerLogic extends CommonLogic{
             throw new IllegalStateException("Metatest with " + publication.getMetatestId() + " not found");
         }        
         
-        List<QuestionVO> result = new ArrayList<QuestionVO>();
-        
-        // Prepare question by group mapping
-        Map<String, List<String>> questionsIdsByGroup = new HashMap<String, List<String>>();
-        for (MetaTestEntryVO mte: metatest.getEntries()) {
-            if (mte instanceof MTEGroupVO) {
-                String mteGroupId = ((MTEGroupVO) mte).getGroupId();
-                if (questionsIdsByGroup.get(mteGroupId) == null) {
-                    List<String> mteGroupQuestions = getQuestionIdsByGroupId(mteGroupId);
-                    Collections.shuffle(mteGroupQuestions);
-                    questionsIdsByGroup.put(mteGroupId, mteGroupQuestions);
-                }
-            }
-        }
-        
-        // Fill questions in the test
-        for (MetaTestEntryVO mte: metatest.getEntries()) {
-            if (mte instanceof MTEQuestionVO) {
-                String mteQuestionId = ((MTEQuestionVO) mte).getQuestionId();
-                if (mteQuestionId == null) {
-                    continue;
-                }
-                //TODO do we allow question duplication if user add one question to test several times
-//                if (testQuestionIds.contains(mteQuestionId)) {
-//                    continue;
-//                }
-                
-                QuestionVO question = getById(QuestionVO.class, mteQuestionId); 
-                if (question == null) {
-                    continue;
-                }                
-                
-                // Remove question from available group source
-                if (question.getGroupId() != null) {
-                    List<String> availableGroupQuestions = questionsIdsByGroup.get(question.getGroupId());
-                    if (availableGroupQuestions != null) {
-                        availableGroupQuestions.remove(question.getId());
-                    }
-                }
-                
-                result.add(question);
-            } 
-            else if (mte instanceof MTEGroupVO) {
-                MTEGroupVO      mteGroup   = ((MTEGroupVO) mte);
-                List<String>    availableGroupQuestions = questionsIdsByGroup.get(mteGroup.getGroupId());
-                
-                int numOfQuestionsToAdd = 0;
-                if (mteGroup.getNumberOfQuestions() != null) {
-                    numOfQuestionsToAdd = Math.min(mteGroup.getNumberOfQuestions(), availableGroupQuestions.size()); 
-                }
-                else {
-                    numOfQuestionsToAdd = availableGroupQuestions.size();
-                }
-                        
-                for (int i = numOfQuestionsToAdd - 1; i >= 0; i--) {
-                    String     questionId  = availableGroupQuestions.remove(i);                    
-                    QuestionVO question    = getById(QuestionVO.class, questionId);
-                    
-                    result.add(question);
-                }   
-            }
-            else {
-                logger.warn("Unsupported metatest entry " + mte.getClass().getName() + " skip for now.");
-            }
-        }
-        
-        // Shuffle questions, choices etc
-        prepare(result, publication);
+        List<QuestionVO> result = generateQuestionsList(metatest, publication.isThisRandomQuestionsOrder());
         
         return result;
     }

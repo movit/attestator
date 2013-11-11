@@ -54,6 +54,11 @@
     <servlet-name>uploadQuestionsServlet</servlet-name>
     <servlet-class>com.attestator.admin.server.UploadQuestionsServlet</servlet-class>
   </servlet>
+  
+  <servlet>
+    <servlet-name>printTestServlet</servlet-name>
+    <servlet-class>com.attestator.admin.server.PrintTestServlet</servlet-class>
+  </servlet>
 
   <servlet>
     <servlet-name>playerServiceServlet</servlet-name>
@@ -68,6 +73,11 @@
   <servlet-mapping>
     <servlet-name>uploadQuestionsServlet</servlet-name>
     <url-pattern>/admin/uploadquestions</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>printTestServlet</servlet-name>
+    <url-pattern>/admin/printtest</url-pattern>
   </servlet-mapping>
   
   <servlet-mapping>

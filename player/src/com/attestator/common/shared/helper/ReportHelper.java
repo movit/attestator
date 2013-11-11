@@ -1,6 +1,7 @@
 package com.attestator.common.shared.helper;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -220,7 +221,7 @@ public class ReportHelper {
                 if (choice.getId().equals(((SCQAnswerVO)answer).getChoiceId())) {
                     hb.startTable(0, 0, null, "0", "100%");
                     hb.startTag("tr");
-                    hb.startTag("th", "reportChoiceNo").appendText(i + ".").endTag("th");
+                    hb.startTag("th", "reportChoiceNo").appendText(getLatinBullet(i) + ")").endTag("th");
                     hb.startTag("td", "reportChoice").appendText(choice.getText()).endTag("td");
                     hb.endTag("tr");
                     hb.endTable();
@@ -253,7 +254,7 @@ public class ReportHelper {
             int i = 1;            
             for (ChoiceVO choice: ((SingleChoiceQuestionVO) question).getChoices()) {
                 hb.startTag("tr");
-                hb.startTag("th", "reportChoiceNo").appendText(i + ".").endTag("th");
+                hb.startTag("th", "reportChoiceNo").appendText(getLatinBullet(i) + ")").endTag("th");
                 hb.startTag("td", "reportChoice").appendText(choice.getText()).endTag("td");
                 hb.endTag("tr");
                 i++;
@@ -358,5 +359,25 @@ public class ReportHelper {
         }
         
         return true;
+    }
+    
+    public static String getLatinBullet(int i) {
+        int div = (i - 1) / 26;
+        int mod = (i - 1) % 26;
+        char c = (char)('a' + mod);
+        char[] result = new char[div + 1];
+        Arrays.fill(result, c);        
+        return new String(result);
+    }
+    
+    public static Integer getRightAnswerIndex(SingleChoiceQuestionVO question) {
+        int i = 0;
+        for (ChoiceVO choice: question.getChoices()) {
+            if (choice.isThisRight()) {
+                return i;
+            }
+            i++;
+        }
+        return null;
     }
 }
