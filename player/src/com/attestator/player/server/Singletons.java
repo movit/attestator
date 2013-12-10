@@ -61,6 +61,7 @@ public class Singletons {
                 throw new LoginException("Can't authenticate to mongo.");
             }
         }
+        
         morphia = new Morphia();
         rawDs   = morphia.createDatastore(mongo, "attestator");
         ds      = (Datastore) Proxy.newProxyInstance(Datastore.class.getClassLoader(), new Class[] {Datastore.class}, new DatastoreInvocationHandler(rawDs)); 
@@ -68,6 +69,7 @@ public class Singletons {
         morphia.getMapper().addInterceptor(new Interceptor());
         pl      = new PlayerLogic();
         al      = new AdminLogic();
+               
         DatabaseUpdater.updateDatabase();
     }    
     

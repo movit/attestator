@@ -180,7 +180,7 @@
 													icon="{icons.next16x16}" iconAlign="RIGHT" text="Добавить в тест" />
 												<toolbar:FillToolItem />
 												<att:SearchField ui:field="groupsSearchField"
-													validationDelay="700" emptyText="Поиск" />
+													validationDelay="700" emptyText="поиск / фильтр" />
 											</toolbar:ToolBar>
 										</row:child>
 										<row:child layoutData="{maxWidthMaxHeightVLData}">
@@ -202,7 +202,7 @@
                                                     icon="{icons.next16x16}" iconAlign="RIGHT" text="Добавить в тест" />
                                                 <toolbar:FillToolItem />
                                                 <att:SearchField ui:field="questionsSearchField"
-                                                    validationDelay="700" emptyText="Поиск" />
+                                                    validationDelay="700" emptyText="поиск / фильтр" />
                                             </toolbar:ToolBar>
                                         </row:child>
                                         <row:child layoutData="{maxWidthMaxHeightVLData}">

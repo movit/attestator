@@ -44,7 +44,7 @@ public class LoginManager implements Filter {
             session.removeAttribute(USER_ATTR_NAME);
         }
         
-        loggedUser.set(user);
+        loggedUser.set(user);        
         
         return user;
     }

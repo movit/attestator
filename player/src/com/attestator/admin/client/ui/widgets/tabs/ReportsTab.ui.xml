@@ -31,7 +31,7 @@
 					text="Удалить" enabled="false" />
                 <toolbar:FillToolItem />
                 <att:SearchField ui:field="reportsSearchField"
-                    validationDelay="700" emptyText="Поиск"></att:SearchField>
+                    validationDelay="700" emptyText="поиск / фильтр"></att:SearchField>
 			</toolbar:ToolBar>
 		</row:child>
 		<row:child layoutData="{maxWidthMaxHeightVLData}">

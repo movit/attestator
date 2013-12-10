@@ -1,8 +1,6 @@
 package com.attestator.admin.server;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -12,10 +10,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.log4j.Logger;
 
 import com.attestator.admin.server.helper.PrintHelper;
-import com.attestator.common.shared.helper.HtmlBuilder;
-import com.attestator.common.shared.helper.HtmlBuilder.Attribute;
+import com.attestator.admin.server.helper.PrintHelper.Mode;
 import com.attestator.common.shared.vo.MetaTestVO;
-import com.attestator.common.shared.vo.QuestionVO;
 import com.attestator.player.server.Singletons;
 
 public class PrintTestServlet extends HttpServlet {
@@ -42,15 +38,8 @@ public class PrintTestServlet extends HttpServlet {
         boolean randomQuestionsOrder = 
                 Boolean.parseBoolean(request.getParameter("randomQuestionsOrder"));
         
-        HtmlBuilder hb = new HtmlBuilder();
+        String testHtml = PrintHelper.printTest(Mode.doublePage, metatest, randomQuestionsOrder, 15);
         
-        hb.startHead();
-        hb.startTag("meta", Arrays.asList(new Attribute("http-equiv", "content-type"), new Attribute("charset", "UTF-8"), new Attribute("content", "text/html")));
-        hb.startTag("link", Arrays.asList(new Attribute("rel", "stylesheet"), new Attribute("type", "text/css"), new Attribute("href", "../Admin.css")));
-        hb.endHead();
-        
-        PrintHelper.printTest(hb, metatest, 5);
-        
-        response.getOutputStream().write(hb.toString().getBytes());
+        response.getOutputStream().write(testHtml.getBytes());
     }    
 }

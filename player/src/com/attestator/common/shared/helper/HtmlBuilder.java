@@ -13,7 +13,7 @@ public class HtmlBuilder {
         String name;
         String value;
         
-        public Attribute(String name, String value){
+        public Attribute(String name, String value) {
             this.name = name;
             this.value = value;
         }
@@ -148,19 +148,54 @@ public class HtmlBuilder {
     public HtmlBuilder startTag(String tagName){
         return startTag(tagName, null, null, null);
     }
+    
+    public HtmlBuilder addTag(String tagName){
+        return addTag(tagName, null, null, null);
+    }
 
     public HtmlBuilder startTag(String tagName, String clazz){
         return startTag(tagName, clazz, null, null);
+    }
+    
+    public HtmlBuilder addTag(String tagName, String clazz){
+        return addTag(tagName, clazz, null, null);
     }
 
     public HtmlBuilder startTag(String tagName, List<Attribute> attributes){
         return startTag(tagName, null, null, attributes);
     }
     
+    public HtmlBuilder addTag(String tagName, List<Attribute> attributes){
+        return addTag(tagName, null, null, attributes);
+    }
+    
     public HtmlBuilder startTag(String tagName, String clazz, List<Attribute> attributes){
         return startTag(tagName, clazz, null, attributes);
     }
-
+    
+    public HtmlBuilder addTag(String tagName, String clazz, List<Attribute> attributes){
+        return addTag(tagName, clazz, null, attributes);
+    }
+    
+    public HtmlBuilder addTag(String tagName, String clazz, String id, List<Attribute> attributes){
+        sb.append("<").append(tagName);
+        if(clazz != null) {
+            sb.append(" class=\"").append(clazz).append("\"");
+        }
+        if(id != null) {
+            sb.append(" id=\"").append(id).append("\"");
+        }
+        if(attributes != null){
+            for(Attribute attribute : attributes){
+                if(attribute != null) {
+                    sb.append(" ").append(attribute.toString());
+                }
+            }
+        }
+        sb.append("/>");
+        return this;
+    }
+    
     public HtmlBuilder startTag(String tagName, String clazz, String id, List<Attribute> attributes){
         sb.append("<").append(tagName);
         if(clazz != null) {
