@@ -88,12 +88,15 @@ public class DateFilterExt<M> extends Filter<M, Date> {
   public DateFilterExt(ValueProvider<? super M, Date> valueProvider) {
     super(valueProvider);
     setHandler(new DateFilterHandler());
-
+    
+    Date now = new Date();
+    
     menu = new Menu();
     beforeItem = new CheckMenuItem();
     beforeItem.addCheckChangeHandler(handler);
 
     beforeMenu = new DateMenu();
+    beforeMenu.setDate(now);
     beforeMenu.addValueChangeHandler(handler);
     beforeItem.setSubMenu(beforeMenu);
     menu.add(beforeItem);
@@ -101,6 +104,7 @@ public class DateFilterExt<M> extends Filter<M, Date> {
     afterItem = new CheckMenuItem();
     afterItem.addCheckChangeHandler(handler);
     afterMenu = new DateMenu();
+    afterMenu.setDate(now);
     afterMenu.addValueChangeHandler(handler);
     afterItem.setSubMenu(afterMenu);
     menu.add(afterItem);
@@ -110,6 +114,7 @@ public class DateFilterExt<M> extends Filter<M, Date> {
     onItem = new CheckMenuItem();
     onItem.addCheckChangeHandler(handler);
     onMenu = new DateMenu();
+    onMenu.setDate(now);
     onMenu.addValueChangeHandler(handler);
     onItem.setSubMenu(onMenu);
     menu.add(onItem);

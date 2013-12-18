@@ -12,6 +12,8 @@ import com.attestator.admin.client.props.PublicationsTreePropertyAccess;
 import com.attestator.admin.client.rpc.AdminAsyncCallback;
 import com.attestator.admin.client.ui.EditMode;
 import com.attestator.admin.client.ui.MetatestWindow;
+import com.attestator.admin.client.ui.PrintWindow;
+import com.attestator.admin.client.ui.PrintWindow.Mode;
 import com.attestator.admin.client.ui.PublicationWindow;
 import com.attestator.admin.client.ui.event.MultyLinikSelectEvent;
 import com.attestator.admin.client.ui.event.MultyLinikSelectEvent.MultyLinikSelectHandler;
@@ -63,6 +65,8 @@ public class PublicationsTab extends Tab {
     private static final String EDIT_TEST_LINK_ID = "editTest";
     private static final String DELETE_TEST_LINK_ID = "deleteTest";
     private static final String COPY_TEST_LINK_ID = "copyTest";
+    private static final String PRINT_TEST_LINK_ID = "printTest";
+    private static final String PRINT_TO_PDF_TEST_LINK_ID = "printToPdfTest";
 
     private static final String EDIT_PUBLICATION_LINK_ID = "editPublication";
     private static final String COPY_PUBLICATION_LINK_ID = "copyPublication";
@@ -205,6 +209,8 @@ public class PublicationsTab extends Tab {
                     sb.append(createClickableElement(DELETE_PUBLICATION_LINK_ID, "удалить публикацию", Resources.ICONS.delete16x16()));
                 }
                 else {
+                    sb.append(createClickableElement(PRINT_TEST_LINK_ID, "печать теста", Resources.ICONS.print16x16()));
+                    sb.append(createClickableElement(PRINT_TO_PDF_TEST_LINK_ID, "печать теста в PDF", Resources.ICONS.pdf16x16()));
                     sb.append(createClickableElement(NEW_PUBLICATION_LINK_ID, "добавить публикацию", Resources.ICONS.addFile16x16()));
                     sb.append(createClickableElement(EDIT_TEST_LINK_ID, "изменить тест", Resources.ICONS.edit16x16()));
                     sb.append(createClickableElement(COPY_TEST_LINK_ID, "копировать тест", Resources.ICONS.copy16x16()));
@@ -243,7 +249,15 @@ public class PublicationsTab extends Tab {
                 }                
                 else if (COPY_TEST_LINK_ID.equals(event.getLinkType())) {
                     showMetatestWindow(((MetaTestVO)event.getValue()).getId(), EditMode.etCopy);
-                }                
+                }
+                else if (PRINT_TEST_LINK_ID.equals(event.getLinkType())) { 
+                    final MetaTestVO metatest = (MetaTestVO) event.getValue();
+                    PrintWindow.showWindow(metatest.getId(), Mode.print);
+                }
+                else if (PRINT_TO_PDF_TEST_LINK_ID.equals(event.getLinkType())) { 
+                    final MetaTestVO metatest = (MetaTestVO) event.getValue();
+                    PrintWindow.showWindow(metatest.getId(), Mode.saveAsPdf);
+                }
                 else if (DELETE_TEST_LINK_ID.equals(event.getLinkType())) {
                     MetaTestVO metatest = (MetaTestVO) event.getValue();
                     Admin.RPC.deleteMetatests(Arrays.asList(metatest.getId()), new AdminAsyncCallback<Void>() {
@@ -258,7 +272,7 @@ public class PublicationsTab extends Tab {
         result.setCell(cell);
         result.setHideable(false);
         result.setResizable(false);
-        result.setWidth(120);
+        result.setWidth(180);
         result.setFixed(true);
         result.setMenuDisabled(true);
         result.setSortable(false);

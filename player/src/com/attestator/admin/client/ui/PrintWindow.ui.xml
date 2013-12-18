@@ -8,18 +8,122 @@
 	xmlns:toolbar="urn:import:com.sencha.gxt.widget.core.client.toolbar"
 	xmlns:grid="urn:import:com.sencha.gxt.widget.core.client.grid"
 	xmlns:att="urn:import:com.attestator.admin.client.ui.widgets">
+
+	<ui:style>
+		.titleLabel {
+			font-weight: bold;
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis;
+		}
+	</ui:style>
 	
-	<gxt:Window ui:field="window" pixelSize="600, 600" modal="true"
-		maximizable="false" resizable="true" blinkModal="true" headingText="Отчет"
+    <ui:with type="com.sencha.gxt.core.client.util.Margins" field="marginsTopSmall">
+        <ui:attributes top="2" right="0" bottom="0" left="0" />
+    </ui:with>
+    
+    <ui:with type="com.sencha.gxt.core.client.util.Margins" field="marginsTopBig">
+        <ui:attributes top="10" right="0" bottom="0" left="0" />
+    </ui:with>
+    
+	<ui:with type="com.sencha.gxt.core.client.util.Margins" field="marginsT5B5">
+		<ui:attributes top="5" right="0" bottom="5" left="0" />
+	</ui:with>
+
+	<ui:with
+		type="com.sencha.gxt.widget.core.client.container.HorizontalLayoutContainer.HorizontalLayoutData"
+		field="minWidthMaxHeightHLData">
+		<ui:attributes width="-1" height="1" />
+	</ui:with>
+
+	<ui:with
+		type="com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData"
+		field="maxWidthMinHeightVLData">
+		<ui:attributes width="1" height="-1" />
+	</ui:with>
+    <ui:with
+        type="com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData"
+        field="minWidthMinHeightVLDataTopMarginBig">
+        <ui:attributes width="-1" height="-1"  margins="{marginsTopBig}"/>
+    </ui:with>
+     <ui:with
+        type="com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData"
+        field="minWidthMinHeightVLDataTopMarginSmall">
+        <ui:attributes width="-1" height="-1"  margins="{marginsTopSmall}"/>
+    </ui:with>
+	<ui:with
+		type="com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData"
+		field="maxWidthMinHeightVLDataVertMargins">
+		<ui:attributes width="1" height="-1" margins="{marginsT5B5}" />
+	</ui:with>
+
+	<ui:with
+		type="com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData"
+		field="propertiesLineVLData">
+		<ui:attributes width="-1" height="60" />
+	</ui:with>
+	
+    <ui:with
+        type="com.sencha.gxt.widget.core.client.container.HorizontalLayoutContainer.HorizontalLayoutData"
+        field="halfWidthMinHeightHLData">
+        <ui:attributes width="0.5" height="-1"/>
+    </ui:with>
+    
+	<gxt:Window ui:field="window" pixelSize="700, 380" modal="true" 
+		maximizable="false" resizable="false" blinkModal="true" headingText="Печать"
 		focusWidget="{cancelButton}">
 
 		<row:VerticalLayoutContainer ui:field="top">
-			<row:child>
+			<row:child layoutData="{maxWidthMinHeightVLDataVertMargins}">
+				<g:Label styleName='{style.titleLabel}' ui:field="metatestName" />
+			</row:child>
+			<row:child layoutData="{maxWidthMinHeightVLData}">
+				<form:FieldLabel labelAlign="TOP" text="Титульный лист">
+					<form:widget>
+						<att:HtmlEditorExt enableLinks="false" fontName="Verdana"
+							enableAlignments="false" enableFont="false" ui:field="titlePage" />
+					</form:widget>
+				</form:FieldLabel>
+			</row:child>
+			<row:child layoutData="{propertiesLineVLData}">
+				<row:HorizontalLayoutContainer>
+					<row:child layoutData="{halfWidthMinHeightHLData}">
+						<row:VerticalLayoutContainer>
+							<row:child layoutData="{minWidthMinHeightVLDataTopMarginSmall}">
+								<form:CheckBox ui:field="randomQuestionsOrder"
+									boxLabel="Вопросы в случайном порядке" />
+							</row:child>						
+							<row:child layoutData="{minWidthMinHeightVLDataTopMarginBig}">
+								<form:CheckBox ui:field="doublePage" boxLabel="Двусторонняя печать" />
+							</row:child>
+						</row:VerticalLayoutContainer>
+					</row:child>
+					<row:child layoutData="{halfWidthMinHeightHLData}">
+						<row:VerticalLayoutContainer>
+							<row:child>
+								<form:FieldLabel labelAlign="LEFT"
+									text="Количество вариантов" labelWidth="140">
+									<form:widget>
+										<form:SpinnerField ui:field="variantsCount"
+											width="100"/>
+									</form:widget>
+								</form:FieldLabel>
+							</row:child>
+							<row:child>
+                                <form:CheckBox ui:field="onePdfPerVariant" boxLabel="Каждый вариант в своем файле" />
+                            </row:child>
+						</row:VerticalLayoutContainer>
+					</row:child>
+				</row:HorizontalLayoutContainer>
 			</row:child>
 		</row:VerticalLayoutContainer>
 
 		<gxt:button>
-			<button:TextButton ui:field="cancelButton" text="Закрыть" />
+			<button:TextButton ui:field="printButton" text="Печать" />
+		</gxt:button>
+
+		<gxt:button>
+			<button:TextButton ui:field="cancelButton" text="Отмена" />
 		</gxt:button>
 
 	</gxt:Window>

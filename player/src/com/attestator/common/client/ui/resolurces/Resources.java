@@ -47,6 +47,8 @@ public class Resources {
         ImageResource edit16x16();
         ImageResource copy16x16();
         ImageResource filter16x16();
+        ImageResource print16x16();
+        ImageResource pdf16x16();
         
         ImageResource checkBoxUnchecked16x16();
         ImageResource checkBoxChecked16x16();

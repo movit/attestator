@@ -24,6 +24,7 @@ import com.attestator.common.shared.vo.MTEGroupVO;
 import com.attestator.common.shared.vo.MTEQuestionVO;
 import com.attestator.common.shared.vo.MetaTestVO;
 import com.attestator.common.shared.vo.ModificationDateAwareVO;
+import com.attestator.common.shared.vo.PrintingPropertiesVO;
 import com.attestator.common.shared.vo.PublicationVO;
 import com.attestator.common.shared.vo.QuestionVO;
 import com.attestator.common.shared.vo.ReportVO;
@@ -158,7 +159,30 @@ public class AdminLogic extends CommonLogic {
         
         return result;
     }
-
+    
+    public PrintingPropertiesVO getPrintPropertiesByMetatestId(String metatestId) {
+        CheckHelper.throwIfNullOrEmpty(metatestId, "metatestId");
+        
+        Query<PrintingPropertiesVO> q = Singletons.ds().createQuery(PrintingPropertiesVO.class);
+        q.field("metatestId").equal(metatestId);
+        
+        PrintingPropertiesVO result = q.get();
+        
+        if (result == null) {
+             Query<MetaTestVO> qm = Singletons.ds().createQuery(MetaTestVO.class);
+             qm.field("_id").equal(metatestId);
+             qm.retrievedFields(false, "entries");
+             MetaTestVO metatest = qm.get();
+             if (metatest != null) {
+                 result = new PrintingPropertiesVO();
+                 result.setMetatestId(metatestId);
+                 result.setMetatest(metatest);
+             }
+        }
+        
+        return result;
+    }
+    
     public List<PublicationVO> loadPublicationsByMetatestId(String metatestId, ListLoadConfig config) {
         CheckHelper.throwIfNullOrEmpty(metatestId, "metatestId");
 

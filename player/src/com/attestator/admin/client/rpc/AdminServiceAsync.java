@@ -5,6 +5,7 @@ import java.util.List;
 import com.attestator.common.shared.vo.BaseVO;
 import com.attestator.common.shared.vo.GroupVO;
 import com.attestator.common.shared.vo.MetaTestVO;
+import com.attestator.common.shared.vo.PrintingPropertiesVO;
 import com.attestator.common.shared.vo.PublicationVO;
 import com.attestator.common.shared.vo.PublicationsTreeItem;
 import com.attestator.common.shared.vo.QuestionVO;
@@ -31,6 +32,7 @@ public interface AdminServiceAsync {
     void loadPublicationsTree(PublicationsTreeItem root, AsyncCallback<List<PublicationsTreeItem>> callback);
     void loadPublicationsByMetatestId(String metatestId, ListLoadConfig config, AsyncCallback<ListLoadResult<PublicationVO>> callback);
     
+    void getPrintPropertiesByMetatestId(String metatestId, AsyncCallback<PrintingPropertiesVO> callback);
     <T extends BaseVO> void get(String className, String id, AsyncCallback<T> callback);
     <T extends BaseVO> void copy(String className, String id, AsyncCallback<T> callback);
 

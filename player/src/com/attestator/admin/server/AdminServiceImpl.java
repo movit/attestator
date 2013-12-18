@@ -8,6 +8,7 @@ import com.attestator.admin.client.rpc.AdminService;
 import com.attestator.common.shared.vo.BaseVO;
 import com.attestator.common.shared.vo.GroupVO;
 import com.attestator.common.shared.vo.MetaTestVO;
+import com.attestator.common.shared.vo.PrintingPropertiesVO;
 import com.attestator.common.shared.vo.PublicationVO;
 import com.attestator.common.shared.vo.PublicationsTreeItem;
 import com.attestator.common.shared.vo.QuestionVO;
@@ -318,4 +319,16 @@ public class AdminServiceImpl extends RemoteServiceServlet implements
             throw new IllegalStateException(DEFAULT_ERROR_MESSAGE, e);
         }
     }
+
+    @Override
+    public PrintingPropertiesVO getPrintPropertiesByMetatestId(String metatestId)
+            throws IllegalStateException {
+        try {
+            return Singletons.al().getPrintPropertiesByMetatestId(metatestId);
+        }
+        catch (Throwable e) {
+            logger.error("Error: ", e);
+            throw new IllegalStateException(DEFAULT_ERROR_MESSAGE, e);
+        }
+     }
 }

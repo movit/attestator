@@ -5,6 +5,7 @@ import java.util.List;
 import com.attestator.common.shared.vo.BaseVO;
 import com.attestator.common.shared.vo.GroupVO;
 import com.attestator.common.shared.vo.MetaTestVO;
+import com.attestator.common.shared.vo.PrintingPropertiesVO;
 import com.attestator.common.shared.vo.PublicationVO;
 import com.attestator.common.shared.vo.PublicationsTreeItem;
 import com.attestator.common.shared.vo.QuestionVO;
@@ -34,6 +35,8 @@ public interface AdminService extends RemoteService {
     List<PublicationsTreeItem> loadPublicationsTree(PublicationsTreeItem root) throws IllegalStateException;
 
     List<GroupVO> loadGroups() throws IllegalStateException;
+    
+    PrintingPropertiesVO getPrintPropertiesByMetatestId(String metatestId) throws IllegalStateException;
     
     <T extends BaseVO> T get(String className, String id);
     <T extends BaseVO> T copy(String className, String id);
