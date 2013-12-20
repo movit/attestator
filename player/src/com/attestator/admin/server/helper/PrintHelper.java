@@ -330,7 +330,9 @@ public class PrintHelper {
         }
         finally {
             try {
-                in.close();
+                if (in != null) {
+                    in.close();
+                }
             }
             catch (IOException e) {               
             }
