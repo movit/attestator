@@ -9,6 +9,7 @@ import java.util.regex.Pattern;
 
 import org.apache.log4j.Logger;
 
+import com.attestator.admin.server.helper.PrintHelper;
 import com.attestator.common.server.CommonLogic;
 import com.attestator.common.server.helper.ReflectionHelper;
 import com.attestator.common.shared.SharedConstants;
@@ -236,6 +237,12 @@ public class AdminLogic extends CommonLogic {
         addDefaultOrder(PublicationVO.class, q);
         List<PublicationVO> qRes = q.asList();        
         return qRes;
+    }
+    
+    public void savePrintigProperties(PrintingPropertiesVO properties) {
+        CheckHelper.throwIfNull(properties, "properties");
+        properties.setPrintAttempt(properties.getPrintAttempt() + 1);
+        Singletons.ds().save(properties);
     }
 
     public void saveMetatest(MetaTestVO metatest) {
@@ -695,5 +702,13 @@ public class AdminLogic extends CommonLogic {
         return result;
     }
     
-    
+    public String getHtmlForPrinting(String printingPropertiesId) {
+        CheckHelper.throwIfNullOrEmpty(printingPropertiesId, "printingPropertiesId");
+        
+        PrintingPropertiesVO properties = get(PrintingPropertiesVO.class, printingPropertiesId);
+        MetaTestVO metatest = get(MetaTestVO.class, properties.getMetatestId());
+        String result = PrintHelper.printTest(metatest, properties);
+        
+        return result;
+    }
 }

@@ -37,6 +37,7 @@ public interface AdminService extends RemoteService {
     List<GroupVO> loadGroups() throws IllegalStateException;
     
     PrintingPropertiesVO getPrintPropertiesByMetatestId(String metatestId) throws IllegalStateException;
+    String getHtmlForPrinting(String printingPropertiesId) throws IllegalStateException;
     
     <T extends BaseVO> T get(String className, String id);
     <T extends BaseVO> T copy(String className, String id);
@@ -46,6 +47,7 @@ public interface AdminService extends RemoteService {
     void saveGroups(List<GroupVO> groups) throws IllegalStateException;
     void saveQuestion(QuestionVO question) throws IllegalStateException;
     void saveMetatest(MetaTestVO metatest) throws IllegalStateException;
+    void savePrintingProperties(PrintingPropertiesVO properties) throws IllegalStateException;
     void setPublicationsForMetatest(String metatestId, List<PublicationVO> publication) throws IllegalStateException;
     
     void deleteQuestions(List<String> questionIds) throws IllegalStateException;

@@ -1,14 +1,19 @@
 package com.attestator.admin.client.ui;
 
+import br.com.freller.tool.client.Print;
+
 import com.attestator.admin.client.Admin;
 import com.attestator.admin.client.props.IntegerGreaterZerroPropertyEditor;
 import com.attestator.admin.client.rpc.AdminAsyncCallback;
+import com.attestator.admin.client.rpc.AdminAsyncUnmaskCallback;
+import com.attestator.common.client.helper.WindowHelper;
 import com.attestator.common.shared.vo.PrintingPropertiesVO;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.core.client.Scheduler;
 import com.google.gwt.core.client.Scheduler.ScheduledCommand;
 import com.google.gwt.editor.client.Editor;
 import com.google.gwt.editor.client.SimpleBeanEditorDriver;
+import com.google.gwt.editor.client.adapters.SimpleEditor;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.uibinder.client.UiBinder;
@@ -51,23 +56,24 @@ public class PrintWindow implements IsWidget, Editor<PrintingPropertiesVO>{
     @UiField
     Label metatestName;
     
+    SimpleEditor<String> metatestId;
+    
+    SimpleEditor<Integer> printAttempt;
+    
     @UiField
     CheckBox randomQuestionsOrder;
     
     @UiField
-    @Ignore
     CheckBox doublePage;
     
     @UiField
-    @Ignore
     CheckBox onePdfPerVariant;
     
     @UiField
     @Ignore
     TextButton printButton;
     
-    @UiField(provided = true)
-    @Ignore    
+    @UiField(provided = true) 
     SpinnerField<Integer> variantsCount = createVariantsCount();
     private SpinnerField<Integer> createVariantsCount() {
         NumberPropertyEditor<Integer> integerPropertyEditor = new IntegerGreaterZerroPropertyEditor();
@@ -113,6 +119,30 @@ public class PrintWindow implements IsWidget, Editor<PrintingPropertiesVO>{
     protected void cancelButtonClick(SelectEvent event) {
         window.hide();
     }
+    
+    @UiHandler("printButton")
+    protected void printButtonClick(SelectEvent event) {
+        final PrintingPropertiesVO properties = driver.flush();
+        
+        WindowHelper.mask("Подготовка к печати ...");
+        Admin.RPC.savePrintingProperties(properties, new AdminAsyncUnmaskCallback<Void>() {            
+            @Override
+            public void onSuccess(Void result) {                
+                if (mode == Mode.print) {
+                    Admin.RPC.getHtmlForPrinting(properties.getId(), new AdminAsyncUnmaskCallback<String>() {
+                        @Override
+                        public void onSuccess(String result) {
+                            super.onSuccess(result);
+                            Print.it(result);                       
+                        }
+                    });
+                }                
+            }            
+        });
+        
+        window.hide();
+    }
+
     
     @Override
     public Window asWidget() {

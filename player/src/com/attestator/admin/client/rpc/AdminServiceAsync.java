@@ -33,6 +33,8 @@ public interface AdminServiceAsync {
     void loadPublicationsByMetatestId(String metatestId, ListLoadConfig config, AsyncCallback<ListLoadResult<PublicationVO>> callback);
     
     void getPrintPropertiesByMetatestId(String metatestId, AsyncCallback<PrintingPropertiesVO> callback);
+    void getHtmlForPrinting(String printingPropertiesId,  AsyncCallback<String> callback);
+    
     <T extends BaseVO> void get(String className, String id, AsyncCallback<T> callback);
     <T extends BaseVO> void copy(String className, String id, AsyncCallback<T> callback);
 
@@ -48,6 +50,7 @@ public interface AdminServiceAsync {
     
     void saveQuestion(QuestionVO question, AsyncCallback<Void> callback);
     void saveMetatest(MetaTestVO metatest, AsyncCallback<Void> callback);
+    void savePrintingProperties(PrintingPropertiesVO properties, AsyncCallback<Void> callback);
     void savePublication(PublicationVO publication, AsyncCallback<Void> callback);
     void setPublicationsForMetatest(String metatestId, List<PublicationVO> publications, AsyncCallback<Void> callback);
     void saveGroup(GroupVO question, AsyncCallback<Void> callback);

@@ -204,15 +204,15 @@ public class PublicationsTab extends Tab {
                     PublicationsTreeItem value, SafeHtmlBuilder sb) {
                 sb.appendHtmlConstant("<div style='text-align: right;'>");
                 if (value instanceof PublicationVO) {
-                    sb.append(createClickableElement(EDIT_PUBLICATION_LINK_ID, "изменить публикацию", Resources.ICONS.edit16x16()));
+                    sb.append(createClickableElement(EDIT_PUBLICATION_LINK_ID, "редактировать публикацию", Resources.ICONS.edit16x16()));
                     sb.append(createClickableElement(COPY_PUBLICATION_LINK_ID, "копировать публикацию", Resources.ICONS.copy16x16()));
                     sb.append(createClickableElement(DELETE_PUBLICATION_LINK_ID, "удалить публикацию", Resources.ICONS.delete16x16()));
                 }
                 else {
                     sb.append(createClickableElement(PRINT_TEST_LINK_ID, "печать теста", Resources.ICONS.print16x16()));
-                    sb.append(createClickableElement(PRINT_TO_PDF_TEST_LINK_ID, "печать теста в PDF", Resources.ICONS.pdf16x16()));
+                    //sb.append(createClickableElement(PRINT_TO_PDF_TEST_LINK_ID, "печать теста в PDF", Resources.ICONS.pdf16x16()));
                     sb.append(createClickableElement(NEW_PUBLICATION_LINK_ID, "добавить публикацию", Resources.ICONS.addFile16x16()));
-                    sb.append(createClickableElement(EDIT_TEST_LINK_ID, "изменить тест", Resources.ICONS.edit16x16()));
+                    sb.append(createClickableElement(EDIT_TEST_LINK_ID, "редактировать тест", Resources.ICONS.edit16x16()));
                     sb.append(createClickableElement(COPY_TEST_LINK_ID, "копировать тест", Resources.ICONS.copy16x16()));
                     sb.append(createClickableElement(DELETE_TEST_LINK_ID, "удалить тест", Resources.ICONS.delete16x16()));
                 }

@@ -2,13 +2,13 @@ package com.attestator.player.client.ui;
 
 import java.util.List;
 
+import com.attestator.common.client.helper.WindowHelper;
 import com.attestator.common.client.ui.resolurces.Resources;
 import com.attestator.common.shared.helper.HtmlBuilder;
 import com.attestator.common.shared.helper.NullHelper;
 import com.attestator.player.client.MainScreen;
 import com.attestator.player.client.Player;
 import com.attestator.player.client.helper.HistoryHelper.HistoryToken;
-import com.attestator.player.client.helper.WindowHelper;
 import com.attestator.player.client.rpc.PlayerAsyncCallback;
 import com.attestator.player.shared.dto.ActivePublicationDTO;
 import com.google.gwt.dom.client.Style.Unit;

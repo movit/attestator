@@ -22,6 +22,7 @@ import com.attestator.common.shared.helper.ReportHelper;
 import com.attestator.common.shared.helper.StringHelper;
 import com.attestator.common.shared.vo.ChoiceVO;
 import com.attestator.common.shared.vo.MetaTestVO;
+import com.attestator.common.shared.vo.PrintingPropertiesVO;
 import com.attestator.common.shared.vo.QuestionVO;
 import com.attestator.common.shared.vo.SingleChoiceQuestionVO;
 import com.attestator.player.server.Singletons;
@@ -175,25 +176,23 @@ public class PrintHelper {
         }        
     }
     
-    public static String printTest(Mode mode, MetaTestVO metatest, boolean randomQuestionsOrder, int variantsCount) {
-        if (variantsCount <= 0) {
-            return "";
-        }
+    public static String printTest(MetaTestVO metatest, PrintingPropertiesVO properties) {
+        Mode mode = properties.isThisDoublePage() ? Mode.doublePage : Mode.singlePage;
         
         HtmlBuilder answersHb = new HtmlBuilder();
         HtmlBuilder variantsHb = new HtmlBuilder();
         
-        for (int i = 0; i < variantsCount; i++) {
-            String variant = "" + (i + 1);
-            List<QuestionVO> questions = Singletons.al().generateQuestionsList(metatest, randomQuestionsOrder);            
+        for (int i = 0; i < properties.getVariantsCount(); i++) {
+            String variant = "" + properties.getPrintAttempt() + "-" + (i + 1);
+            List<QuestionVO> questions = Singletons.al().generateQuestionsList(metatest, properties.isThisRandomQuestionsOrder());            
             
             printAnswers(answersHb, mode, questions, metatest.getName(), variant);
             printPageBreaker(answersHb);
             
-            printTitlePage(variantsHb, mode, "<div>{test}</div><div>Вариант &mdash; {variant}</div>", metatest, variant);            
+            printTitlePage(variantsHb, mode, properties.getTitlePage(), metatest, variant);            
             
             printQuestions(variantsHb, mode, questions, metatest.getName(), variant);
-            if (i < (variantsCount - 1)) {
+            if (i < (properties.getVariantsCount() - 1)) {
                 printPageBreaker(variantsHb);
             }
         }

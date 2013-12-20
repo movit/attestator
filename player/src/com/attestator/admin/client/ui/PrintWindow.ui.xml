@@ -69,7 +69,7 @@
         <ui:attributes width="0.5" height="-1"/>
     </ui:with>
     
-	<gxt:Window ui:field="window" pixelSize="700, 380" modal="true" 
+	<gxt:Window ui:field="window" pixelSize="640, 380" modal="true" 
 		maximizable="false" resizable="false" blinkModal="true" headingText="Печать"
 		focusWidget="{cancelButton}">
 
@@ -80,8 +80,8 @@
 			<row:child layoutData="{maxWidthMinHeightVLData}">
 				<form:FieldLabel labelAlign="TOP" text="Титульный лист">
 					<form:widget>
-						<att:HtmlEditorExt enableLinks="false" fontName="Verdana"
-							enableAlignments="false" enableFont="false" ui:field="titlePage" />
+						<att:HtmlEditorExt enableLinks="false" fontName="Verdana" enableAlignments="true"
+							enableFont="false" ui:field="titlePage" />
 					</form:widget>
 				</form:FieldLabel>
 			</row:child>

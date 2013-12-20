@@ -10,8 +10,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.log4j.Logger;
 
 import com.attestator.admin.server.helper.PrintHelper;
-import com.attestator.admin.server.helper.PrintHelper.Mode;
 import com.attestator.common.shared.vo.MetaTestVO;
+import com.attestator.common.shared.vo.PrintingPropertiesVO;
 import com.attestator.player.server.Singletons;
 
 public class PrintTestServlet extends HttpServlet {
@@ -25,20 +25,22 @@ public class PrintTestServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request,
             HttpServletResponse response) throws ServletException, IOException {        
         
-        String  metatestId = request.getParameter("metatestId");
-        if (metatestId == null) {
-            throw new ServletException("metatestId not specified");
+        String id = request.getParameter("id");
+        if (id == null) {
+            throw new ServletException("PrintingProperties id not specified");
         }
         
-        MetaTestVO metatest = Singletons.al().get(MetaTestVO.class, metatestId);
+        PrintingPropertiesVO properties = Singletons.al().get(PrintingPropertiesVO.class, id);
+        if (properties == null) {
+            throw new ServletException("Unalble to load PrintingProperties with id: " + id);
+        }
+        
+        MetaTestVO metatest = Singletons.al().get(MetaTestVO.class, properties.getMetatestId());
         if (metatest == null) {
-            throw new ServletException("Unalble to load metatest with id: " + metatestId);
+            throw new ServletException("Unalble to load Metatest with id: " + id);
         }
-        
-        boolean randomQuestionsOrder = 
-                Boolean.parseBoolean(request.getParameter("randomQuestionsOrder"));
-        
-        String testHtml = PrintHelper.printTest(Mode.doublePage, metatest, randomQuestionsOrder, 15);
+                
+        String testHtml = PrintHelper.printTest(metatest, properties);
         
         response.getOutputStream().write(testHtml.getBytes());
     }    

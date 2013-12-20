@@ -331,4 +331,28 @@ public class AdminServiceImpl extends RemoteServiceServlet implements
             throw new IllegalStateException(DEFAULT_ERROR_MESSAGE, e);
         }
      }
+
+    @Override
+    public void savePrintingProperties(PrintingPropertiesVO properties)
+            throws IllegalStateException {
+        try {
+            Singletons.al().savePrintigProperties(properties);
+        }
+        catch (Throwable e) {
+            logger.error("Error: ", e);
+            throw new IllegalStateException(DEFAULT_ERROR_MESSAGE, e);
+        }
+    }
+
+    @Override
+    public String getHtmlForPrinting(String printingPropertiesId)
+            throws IllegalStateException {
+        try {
+            return Singletons.al().getHtmlForPrinting(printingPropertiesId);
+        }
+        catch (Throwable e) {
+            logger.error("Error: ", e);
+            throw new IllegalStateException(DEFAULT_ERROR_MESSAGE, e);
+        }
+    }
 }

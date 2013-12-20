@@ -1,12 +1,12 @@
 package com.attestator.player.client.ui;
 
+import com.attestator.common.client.helper.WindowHelper;
 import com.attestator.common.shared.helper.ReportHelper;
 import com.attestator.common.shared.helper.ReportHelper.ReportType;
 import com.attestator.common.shared.vo.ReportVO;
 import com.attestator.player.client.MainScreen;
 import com.attestator.player.client.Player;
 import com.attestator.player.client.helper.HistoryHelper.HistoryToken;
-import com.attestator.player.client.helper.WindowHelper;
 import com.attestator.player.client.rpc.PlayerAsyncCallback;
 import com.google.gwt.dom.client.Style.Unit;
 import com.google.gwt.user.client.ui.HTML;

@@ -747,7 +747,7 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
             public void render(Context context,
                     PublicationVO value, SafeHtmlBuilder sb) {
                 sb.appendHtmlConstant("<div style='text-align: right;'>");
-                sb.append(createClickableElement(EDIT_PUBLICATION_LINK_ID, "изменить публикацию", Resources.ICONS.edit16x16()));
+                sb.append(createClickableElement(EDIT_PUBLICATION_LINK_ID, "редактировать публикацию", Resources.ICONS.edit16x16()));
                 sb.append(createClickableElement(COPY_PUBLICATION_LINK_ID, "копировать публикацию", Resources.ICONS.copy16x16()));
                 sb.append(createClickableElement(DELETE_PUBLICATION_LINK_ID, "удалить публикацию", Resources.ICONS.delete16x16()));
                 sb.appendHtmlConstant("</div>");

@@ -10,6 +10,7 @@
     <inherits name="com.kfuntak.gwt.json.serialization.GWTProJsonSerializer" />
     <inherits name="org.dellroad.lzma.LZMA"/>
     <inherits name="com.google.common.collect.Collect"/>
+    <inherits name="br.com.freller.tool.PrintIt"/>
     
 	<extend-property name="locale" values="ru"/>
 	<set-property name="locale" value="ru"/>
