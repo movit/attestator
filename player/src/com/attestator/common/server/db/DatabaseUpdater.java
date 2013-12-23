@@ -34,7 +34,7 @@ import com.metapossum.utils.scanner.reflect.ClassesInPackageScanner;
 public class DatabaseUpdater {
     private static Logger logger = Logger.getLogger(DatabaseUpdater.class);
     
-    public static final int DB_VERSION = 23;
+    public static final int DB_VERSION = 24;
     
     @SuppressWarnings({"unchecked", "rawtypes"})
     public static void updateDatabase() {
