@@ -5,7 +5,8 @@ import javax.servlet.ServletContextListener;
 
 import org.apache.log4j.Logger;
 
-import com.attestator.admin.server.protocol.ProtocolHandlers;
+import com.attestator.admin.server.protocol.ExtendedURLStreamHandlerFactory;
+import com.attestator.admin.server.protocol.membuffer.MembufferURLStreamHandler;
 
 public final class PlayerWebApplication implements ServletContextListener {
     private static Logger logger = Logger.getLogger(PlayerWebApplication.class);
@@ -13,9 +14,8 @@ public final class PlayerWebApplication implements ServletContextListener {
     @Override
     public void contextInitialized(ServletContextEvent sce) {
         try {
-            ProtocolHandlers.register();
-            Singletons.initialize(sce.getServletContext());            
-                               
+            ExtendedURLStreamHandlerFactory.getInstance().registerURLStreamHandler(MembufferURLStreamHandler.class);
+            Singletons.initialize(sce.getServletContext());                               
         } catch (Exception ex) {
             logger.error("Application cannot be started.", ex);
         }

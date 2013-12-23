@@ -7,10 +7,10 @@ import java.net.URL;
 import java.net.URLConnection;
 
 
-class Connection extends URLConnection {
+class MembufferConnection extends URLConnection {
     private static MembufferManager cache = new MembufferManager();
     
-    protected Connection(URL url) {
+    protected MembufferConnection(URL url) {
         super(url);        
     }
 
