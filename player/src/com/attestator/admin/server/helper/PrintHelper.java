@@ -28,6 +28,7 @@ import com.attestator.common.shared.vo.SingleChoiceQuestionVO;
 import com.attestator.player.server.Singletons;
 
 public class PrintHelper {
+    
     private static final int PRINTER_PAGE_WIDTH  = 620;
     private static final int PRINTER_PAGE_HEIGHT = 820;
     private static final String CSS = getPrintCss();
