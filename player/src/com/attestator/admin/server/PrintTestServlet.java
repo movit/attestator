@@ -9,11 +9,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
 
-import com.attestator.admin.server.helper.PrintHelper;
-import com.attestator.common.shared.vo.MetaTestVO;
-import com.attestator.common.shared.vo.PrintingPropertiesVO;
-import com.attestator.player.server.Singletons;
-
 public class PrintTestServlet extends HttpServlet {
     
     private static final long serialVersionUID = 8097344922644172597L;
@@ -23,25 +18,29 @@ public class PrintTestServlet extends HttpServlet {
     
     @Override
     protected void doGet(HttpServletRequest request,
-            HttpServletResponse response) throws ServletException, IOException {        
+            HttpServletResponse response) throws ServletException, IOException {
         
-        String id = request.getParameter("id");
-        if (id == null) {
-            throw new ServletException("PrintingProperties id not specified");
-        }
+        response.getOutputStream().write("<body>This feature is disabled</body>".getBytes());
+        return;
         
-        PrintingPropertiesVO properties = Singletons.al().get(PrintingPropertiesVO.class, id);
-        if (properties == null) {
-            throw new ServletException("Unalble to load PrintingProperties with id: " + id);
-        }
-        
-        MetaTestVO metatest = Singletons.al().get(MetaTestVO.class, properties.getMetatestId());
-        if (metatest == null) {
-            throw new ServletException("Unalble to load Metatest with id: " + id);
-        }
-                
-        String testHtml = PrintHelper.printTest(metatest, properties);
-        
-        response.getOutputStream().write(testHtml.getBytes());
+//        String pathInfo = request.getPathInfo();
+//        if (!StringHelper.isEmptyOrNull(pathInfo)) {
+//            pathInfo = pathInfo.replaceAll("[/\\\\]", "");
+//        }       
+//       
+//        if (!StringHelper.isEmptyOrNull(pathInfo)) {
+//            URLConnection membufferConnection = (new URL("membuffer://" + pathInfo)).openConnection();
+//            InputStream in = membufferConnection.getInputStream();
+//            OutputStream out = response.getOutputStream();
+//            
+//            byte[] buffer = new byte[1024];
+//            int len = in.read(buffer);
+//            while (len != -1) {
+//                out.write(buffer, 0, len);
+//                len = in.read(buffer);
+//            }
+//            
+//            out.close();
+//        }        
     }    
 }

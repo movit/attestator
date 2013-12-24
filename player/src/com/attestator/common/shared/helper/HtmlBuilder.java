@@ -157,22 +157,22 @@ public class HtmlBuilder {
         return startTag(tagName, clazz, null, null);
     }
     
-    public HtmlBuilder addTag(String tagName, String clazz){
-        return addTag(tagName, clazz, null, null);
-    }
-
     public HtmlBuilder startTag(String tagName, List<Attribute> attributes){
         return startTag(tagName, null, null, attributes);
-    }
-    
-    public HtmlBuilder addTag(String tagName, List<Attribute> attributes){
-        return addTag(tagName, null, null, attributes);
     }
     
     public HtmlBuilder startTag(String tagName, String clazz, List<Attribute> attributes){
         return startTag(tagName, clazz, null, attributes);
     }
     
+    public HtmlBuilder addTag(String tagName, String clazz){
+        return addTag(tagName, clazz, null, null);
+    }
+
+    public HtmlBuilder addTag(String tagName, List<Attribute> attributes){
+        return addTag(tagName, null, null, attributes);
+    }
+
     public HtmlBuilder addTag(String tagName, String clazz, List<Attribute> attributes){
         return addTag(tagName, clazz, null, attributes);
     }
@@ -231,4 +231,5 @@ public class HtmlBuilder {
     public String toString(){
         return sb.toString();
     }
+
 }

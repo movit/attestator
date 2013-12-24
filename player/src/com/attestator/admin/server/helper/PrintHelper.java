@@ -346,16 +346,18 @@ public class PrintHelper {
             URL url = new URL("membuffer://" + UUID.randomUUID().toString());
             
             URLConnection connection = url.openConnection();
-            OutputStream  out = connection.getOutputStream();
+            OutputStream out = connection.getOutputStream();
                            
             out.write(html.getBytes("UTF-8"));
-            out.close();
+            out.close();            
             
             BufferedImage image = Graphics2DRenderer.renderToImageAutoSize(url.toString(), PRINTER_PAGE_WIDTH);
-            int result = image.getHeight();
+            int result = image.getHeight();            
             
-            //File file = new File("C:\\test\\" + System.currentTimeMillis() + ".png");
-            //ImageIO.write(image, "png", file);
+//            URL imageUrl = new URL("membuffer://1.png");
+//            OutputStream imageOut = imageUrl.openConnection().getOutputStream();
+//            ImageIO.write(image, "png", imageOut);
+//            imageOut.close();
             
             return result;
         }

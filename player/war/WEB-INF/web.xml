@@ -77,7 +77,7 @@
 
   <servlet-mapping>
     <servlet-name>printTestServlet</servlet-name>
-    <url-pattern>/admin/printtest</url-pattern>
+    <url-pattern>/admin/printtest/*</url-pattern>
   </servlet-mapping>
   
   <servlet-mapping>

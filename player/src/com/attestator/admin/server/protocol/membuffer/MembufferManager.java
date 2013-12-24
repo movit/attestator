@@ -8,7 +8,7 @@ import com.google.common.cache.CacheBuilder;
 
 class MembufferManager {
     
-    private Cache<String, ByteArrayOutputStream> cache = CacheBuilder.from("maximumSize=10000, expireAfterWrite=10s").build();
+    private Cache<String, ByteArrayOutputStream> cache = CacheBuilder.from("maximumSize=1000, expireAfterWrite=10s").build();
     
     public byte[] getBytes(String key) {
         ByteArrayOutputStream out = cache.getIfPresent(key);

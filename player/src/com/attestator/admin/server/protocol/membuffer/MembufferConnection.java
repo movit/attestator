@@ -7,8 +7,8 @@ import java.net.URL;
 import java.net.URLConnection;
 
 
-class MembufferConnection extends URLConnection {
-    private static MembufferManager cache = new MembufferManager();
+public class MembufferConnection extends URLConnection {
+    private static MembufferManager membufferManager = new MembufferManager();
     
     protected MembufferConnection(URL url) {
         super(url);        
@@ -20,11 +20,15 @@ class MembufferConnection extends URLConnection {
     
     @Override
     public OutputStream getOutputStream() throws IOException {
-        return cache.getOutputStream(getURL().toString());
+        return membufferManager.getOutputStream(getURL().toString());
     }
     
     @Override
     public InputStream getInputStream() throws IOException {
-        return cache.getInputStream(getURL().toString());
+        return membufferManager.getInputStream(getURL().toString());
+    }
+    
+    public static MembufferManager getMembufferManager() {
+        return membufferManager;
     }
 }
