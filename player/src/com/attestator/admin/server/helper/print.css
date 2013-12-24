@@ -8,8 +8,10 @@
 }
 
 body {
-    font-family: Arial, Verdana, Sans Serif;
-    font-size:   16px;
+    /*font-family: Arial, Verdana, Sans Serif;*/
+     /*font-family: Georgia, 'Times New Roman', Times, serif;*/
+    font-family: serif;
+    font-size:   14px;
 }
 
 .header {
@@ -17,12 +19,12 @@ body {
     text-overflow:  ellipsis;
     white-space:    nowrap;
     overflow:       hidden;
-    margin-bottom:  16px;
+    margin-bottom:  14px;
 }
 
 .question {
-    padding-top:   16px;
-    margin-bottom: 32px;
+    padding-top:   14px;
+    margin-bottom: 28px;
     page-break-inside: avoid;   
 }
 
@@ -39,20 +41,24 @@ body {
 
 }
 
+.question-text {
+    margin-bottom: 12px;
+}
+
 .question-description {
     font-style:    italic;
-    font-size:     11px;   
-    margin-top:    11px;
-    margin-bottom: 11px;
+    font-size:     12px;   
+    margin-top:    12px;
+    margin-bottom: 12px;
 }
 
 .questions-area {
-    height:   850px;
+    height:   840px;
     overflow: hidden;
 }
 
 .question-choice {  
-    margin-bottom: 11px;
+    margin-bottom: 8px;
 }
 
 .title-page {
@@ -70,6 +76,6 @@ body {
 .scq-answer {
     font-size:   150%;
     display:     inline-block;
-    width:       80px;
+    width:       70px;
     white-space: nowrap;
 }

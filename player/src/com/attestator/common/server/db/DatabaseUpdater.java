@@ -20,6 +20,7 @@ import com.attestator.common.shared.vo.MTEGroupVO;
 import com.attestator.common.shared.vo.MTEQuestionVO;
 import com.attestator.common.shared.vo.MetaTestVO;
 import com.attestator.common.shared.vo.ModificationDateAwareVO;
+import com.attestator.common.shared.vo.PrintingPropertiesVO;
 import com.attestator.common.shared.vo.PublicationVO;
 import com.attestator.common.shared.vo.QuestionVO;
 import com.attestator.common.shared.vo.ReportVO;
@@ -34,7 +35,7 @@ import com.metapossum.utils.scanner.reflect.ClassesInPackageScanner;
 public class DatabaseUpdater {
     private static Logger logger = Logger.getLogger(DatabaseUpdater.class);
     
-    public static final int DB_VERSION = 24;
+    public static final int DB_VERSION = 25;
     
     @SuppressWarnings({"unchecked", "rawtypes"})
     public static void updateDatabase() {
@@ -132,6 +133,11 @@ public class DatabaseUpdater {
 
         if (version.getVersion() < 22) {
             loadAndSave(MetaTestVO.class);
+        }
+        
+        if (version.getVersion() < 25) {
+            Query<PrintingPropertiesVO> q = Singletons.rawDs().createQuery(PrintingPropertiesVO.class);            
+            Singletons.rawDs().delete(q);
         }
         
         if (version.getVersion() < DB_VERSION) {

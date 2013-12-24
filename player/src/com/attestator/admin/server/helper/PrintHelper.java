@@ -29,7 +29,7 @@ import com.attestator.player.server.Singletons;
 
 public class PrintHelper {
     private static final int PRINTER_PAGE_WIDTH  = 620;
-    private static final int PRINTER_PAGE_HEIGHT = 860;
+    private static final int PRINTER_PAGE_HEIGHT = 820;
     private static final String CSS = getPrintCss();
     
     public static enum Mode {
@@ -51,7 +51,7 @@ public class PrintHelper {
     }
     
     public static class AnswersPagesIterator extends PagesIterator {
-        public static int ANSWERS_PER_PAGE = 100;
+        public static int ANSWERS_PER_PAGE = 200;
         private List<QuestionVO> questions;
         private String variant;
         private String testName;
@@ -269,9 +269,12 @@ public class PrintHelper {
     public static void printQuestion(HtmlBuilder hb, Mode mode, QuestionVO question, int no, String variant) {
         hb.startTag("div", "question");
         
+        hb.startTag("div", "question-text");
         hb.startTag("span", "question-no").appendText(no + " ").endTag("span");  
         hb.appendText(question.getText());
-        hb.startTag("div", "question-description").appendText(question.getTaskDescription()).endTag("div");
+        hb.endTag("div");
+        
+        //hb.startTag("div", "question-description").appendText(question.getTaskDescription()).endTag("div");
         
         if (question instanceof SingleChoiceQuestionVO) {
             int j = 1;
