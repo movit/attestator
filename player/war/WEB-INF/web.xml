@@ -1,99 +1,108 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://java.sun.com/xml/ns/javaee 
+	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee 
               http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
-         version="2.5"
-         xmlns="http://java.sun.com/xml/ns/javaee">
+	version="2.5" xmlns="http://java.sun.com/xml/ns/javaee">
 
-  <filter>
-      <filter-name>LoginManager</filter-name>
-      <filter-class>com.attestator.admin.server.LoginManager</filter-class>
-  </filter>
-  
-  <filter-mapping>
-      <filter-name>LoginManager</filter-name>
-      <url-pattern>/*</url-pattern>
-  </filter-mapping>
-         
-  <filter>
-      <filter-name>ClientIdFilter</filter-name>
-      <filter-class>com.attestator.player.server.ClientIdManager</filter-class>
-  </filter>
-  
-  <filter-mapping>
-      <filter-name>ClientIdFilter</filter-name>
-      <url-pattern>/*</url-pattern>
-  </filter-mapping>
-         
-  <listener>
-      <listener-class>com.attestator.player.server.PlayerWebApplication</listener-class>
-  </listener>
+	<filter>
+		<filter-name>LoginManager</filter-name>
+		<filter-class>com.attestator.admin.server.LoginManager</filter-class>
+	</filter>
 
-  <context-param>
-    <param-name>mongo.host</param-name>
-    <param-value>localhost</param-value>
-  </context-param>
+	<filter-mapping>
+		<filter-name>LoginManager</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
 
-  <context-param>
-    <param-name>mongo.auth</param-name>
-    <param-value>false</param-value>
-  </context-param>
+	<filter>
+		<filter-name>ClientIdFilter</filter-name>
+		<filter-class>com.attestator.player.server.ClientIdManager</filter-class>
+	</filter>
 
-  <context-param>
-    <param-name>mongo.login</param-name>
-    <param-value>false</param-value>
-  </context-param>
-  
-  <context-param>
-    <param-name>mongo.password</param-name>
-    <param-value>false</param-value>
-  </context-param>
-  
-  <!-- Servlets -->
-  <servlet>
-    <servlet-name>uploadQuestionsServlet</servlet-name>
-    <servlet-class>com.attestator.admin.server.UploadQuestionsServlet</servlet-class>
-  </servlet>
-  
-  <servlet>
-    <servlet-name>printTestServlet</servlet-name>
-    <servlet-class>com.attestator.admin.server.PrintTestServlet</servlet-class>
-  </servlet>
+	<filter-mapping>
+		<filter-name>ClientIdFilter</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
 
-  <servlet>
-    <servlet-name>playerServiceServlet</servlet-name>
-    <servlet-class>com.attestator.player.server.PlayerServiceImpl</servlet-class>
-  </servlet>
+	<listener>
+		<listener-class>com.attestator.player.server.PlayerWebApplication</listener-class>
+	</listener>
 
-  <servlet>
-    <servlet-name>adminServiceServlet</servlet-name>
-    <servlet-class>com.attestator.admin.server.AdminServiceImpl</servlet-class>
-  </servlet>
-  
-  <servlet-mapping>
-    <servlet-name>uploadQuestionsServlet</servlet-name>
-    <url-pattern>/admin/uploadquestions</url-pattern>
-  </servlet-mapping>
+	<context-param>
+		<param-name>mongo.host</param-name>
+		<param-value>localhost</param-value>
+	</context-param>
 
-  <servlet-mapping>
-    <servlet-name>printTestServlet</servlet-name>
-    <url-pattern>/admin/printtest/*</url-pattern>
-  </servlet-mapping>
-  
-  <servlet-mapping>
-    <servlet-name>playerServiceServlet</servlet-name>
-    <url-pattern>/player/playerservice</url-pattern>
-  </servlet-mapping>
+	<context-param>
+		<param-name>mongo.auth</param-name>
+		<param-value>false</param-value>
+	</context-param>
 
-  <servlet-mapping>
-    <servlet-name>adminServiceServlet</servlet-name>
-    <url-pattern>/admin/adminservice</url-pattern>
-  </servlet-mapping>
-  
-  <!-- Default page to serve -->
-  <welcome-file-list>
-    <welcome-file>Admin.html</welcome-file>
-	<welcome-file>Player.html</welcome-file>
-  </welcome-file-list>
+	<context-param>
+		<param-name>mongo.login</param-name>
+		<param-value>false</param-value>
+	</context-param>
+
+	<context-param>
+		<param-name>mongo.password</param-name>
+		<param-value>false</param-value>
+	</context-param>
+
+	<!-- Servlets -->
+	<servlet>
+		<servlet-name>uploadQuestionsServlet</servlet-name>
+		<servlet-class>com.attestator.admin.server.UploadQuestionsServlet</servlet-class>
+	</servlet>
+
+	<servlet>
+		<servlet-name>printTestServlet</servlet-name>
+		<servlet-class>com.attestator.admin.server.PrintTestServlet</servlet-class>
+	</servlet>
+
+	<servlet>
+		<servlet-name>downloadPdfServlet</servlet-name>
+		<servlet-class>com.attestator.admin.server.DownloadPdfServlet</servlet-class>
+	</servlet>
+
+	<servlet>
+		<servlet-name>playerServiceServlet</servlet-name>
+		<servlet-class>com.attestator.player.server.PlayerServiceImpl</servlet-class>
+	</servlet>
+
+	<servlet>
+		<servlet-name>adminServiceServlet</servlet-name>
+		<servlet-class>com.attestator.admin.server.AdminServiceImpl</servlet-class>
+	</servlet>
+
+	<servlet-mapping>
+		<servlet-name>uploadQuestionsServlet</servlet-name>
+		<url-pattern>/admin/uploadquestions</url-pattern>
+	</servlet-mapping>
+
+	<servlet-mapping>
+		<servlet-name>printTestServlet</servlet-name>
+		<url-pattern>/admin/printtest/*</url-pattern>
+	</servlet-mapping>
+
+	<servlet-mapping>
+		<servlet-name>downloadPdfServlet</servlet-name>
+		<url-pattern>/admin/downloadpdf</url-pattern>
+	</servlet-mapping>
+
+	<servlet-mapping>
+		<servlet-name>playerServiceServlet</servlet-name>
+		<url-pattern>/player/playerservice</url-pattern>
+	</servlet-mapping>
+
+	<servlet-mapping>
+		<servlet-name>adminServiceServlet</servlet-name>
+		<url-pattern>/admin/adminservice</url-pattern>
+	</servlet-mapping>
+
+	<!-- Default page to serve -->
+	<welcome-file-list>
+		<welcome-file>Admin.html</welcome-file>
+		<welcome-file>Player.html</welcome-file>
+	</welcome-file-list>
 
 </web-app>

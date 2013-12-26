@@ -1,20 +1,22 @@
-package com.attestator.admin.server.helper;
+package com.attestator.admin.server.helper.print;
 
-import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
-import java.net.URLConnection;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
-import java.util.UUID;
 
-import org.xhtmlrenderer.simple.Graphics2DRenderer;
+import org.apache.commons.io.IOUtils;
+import org.apache.log4j.Logger;
+import org.xhtmlrenderer.pdf.ITextRenderer;
+import org.xhtmlrenderer.pdf.ITextUserAgent;
 
+import com.attestator.common.server.helper.ServerHelper;
 import com.attestator.common.shared.helper.HtmlBuilder;
 import com.attestator.common.shared.helper.HtmlBuilder.Attribute;
 import com.attestator.common.shared.helper.MathHelper;
@@ -26,11 +28,15 @@ import com.attestator.common.shared.vo.PrintingPropertiesVO;
 import com.attestator.common.shared.vo.QuestionVO;
 import com.attestator.common.shared.vo.SingleChoiceQuestionVO;
 import com.attestator.player.server.Singletons;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+import com.lowagie.text.pdf.PdfReader;
+
 
 public class PrintHelper {
+    private static final Logger logger = Logger
+            .getLogger(PrintHelper.class);
     
-    private static final int PRINTER_PAGE_WIDTH  = 620;
-    private static final int PRINTER_PAGE_HEIGHT = 820;
     private static final String CSS = getPrintCss();
     
     public static enum Mode {
@@ -125,7 +131,7 @@ public class PrintHelper {
             return start < questions.size() || (MathHelper.isOdd(page) && mode == Mode.doublePage);
         }
         
-        private String makePage(String content) {
+        private String makePage(String content, boolean finalPage) {
             if (StringHelper.isEmptyOrNull(content)) {
                 return "";
             }
@@ -133,10 +139,14 @@ public class PrintHelper {
             String footerText = "" + (page + 1);
             HtmlBuilder hb = new HtmlBuilder();            
             printPageHeader(hb, headerText);
-            hb.startTag("div", "questions-area");
+            hb.startTag("div", finalPage ? "questions-area" : "questions-area-floating-height");
             hb.appendText(content);
             hb.endTag("div");
             printPageFooter(hb, footerText);
+            if (!finalPage) {
+                // Simulate page-breaker
+                hb.startTag("div").appendText("aaa;").endTag("div");
+            }
             return hb.toString();
         }
 
@@ -148,16 +158,16 @@ public class PrintHelper {
             HtmlBuilder hb = new HtmlBuilder();
             String pageContent = "";   
             
-            for (;start < questions.size(); start++) {               
+            for (;start < questions.size(); start++) {                               
+                
                 
                 printQuestion(hb, mode, questions.get(start), start + 1, variant);
                 
-                String pageCandidat = hb.toString();
+                String pageCandidat = makePage(hb.toString(), false);
                 pageCandidat = makeHtmlDocument(pageCandidat, CSS);
                 
-                int pageHeight = getHeight(pageCandidat);
-                
-                if (pageHeight > PRINTER_PAGE_HEIGHT) {                    
+                int numberOfPagesInPdf = getNumberOfPagesInPdf(pageCandidat);
+                if (numberOfPagesInPdf > 1) {
                     break;
                 }
                 
@@ -170,32 +180,49 @@ public class PrintHelper {
                 start++;
             }
             
-            pageContent = makePage(pageContent);
+            pageContent = makePage(pageContent, true);
             
             page++;            
             return pageContent;
         }        
     }
     
+    
+    private static void printSingleTestVariant(MetaTestVO metatest, PrintingPropertiesVO properties, HtmlBuilder answersHb, HtmlBuilder variantsHb, Mode mode, String varantNo) {
+        String variant = "" + properties.getPrintAttempt() + "-" + varantNo;
+        
+        List<QuestionVO> questions = Singletons.al().generateQuestionsList(metatest, properties.isThisRandomQuestionsOrder());            
+        
+        printAnswers(answersHb, mode, questions, metatest.getName(), variant);
+        printPageBreaker(answersHb);
+        printTitlePage(variantsHb, mode, properties.getTitlePage(), metatest, variant);            
+        printQuestions(variantsHb, mode, questions, metatest.getName(), variant);
+    }
+    
     public static String printTest(MetaTestVO metatest, PrintingPropertiesVO properties) {
+        return printTest(metatest, properties, null);
+    }
+    
+    public static String printTest(MetaTestVO metatest, PrintingPropertiesVO properties, String variantNo) {
         Mode mode = properties.isThisDoublePage() ? Mode.doublePage : Mode.singlePage;
         
         HtmlBuilder answersHb = new HtmlBuilder();
         HtmlBuilder variantsHb = new HtmlBuilder();
         
-        for (int i = 0; i < properties.getVariantsCount(); i++) {
-            String variant = "" + properties.getPrintAttempt() + "-" + (i + 1);
-            List<QuestionVO> questions = Singletons.al().generateQuestionsList(metatest, properties.isThisRandomQuestionsOrder());            
+        if (variantNo == null) {
+            // Print all variants
             
-            printAnswers(answersHb, mode, questions, metatest.getName(), variant);
-            printPageBreaker(answersHb);
-            
-            printTitlePage(variantsHb, mode, properties.getTitlePage(), metatest, variant);            
-            
-            printQuestions(variantsHb, mode, questions, metatest.getName(), variant);
-            if (i < (properties.getVariantsCount() - 1)) {
-                printPageBreaker(variantsHb);
+            for (int i = 0; i < properties.getVariantsCount(); i++) {
+                printSingleTestVariant(metatest, properties, answersHb, variantsHb, mode, "" + (i + 1));
+                
+                if (i < (properties.getVariantsCount() - 1)) {
+                    printPageBreaker(variantsHb);
+                }
             }
+        }
+        else {
+            // Print single variant
+            printSingleTestVariant(metatest, properties, answersHb, variantsHb, mode, variantNo);
         }
         
         HtmlBuilder hb = new HtmlBuilder();
@@ -281,7 +308,7 @@ public class PrintHelper {
             int j = 1;
             for (ChoiceVO choice: ((SingleChoiceQuestionVO) question).getChoices()) {
                 hb.startTag("div", "question-choice");
-                hb.appendText("&#x2610;&nbsp;" + ReportHelper.getLatinBullet(j) + ")&nbsp;");
+                hb.appendText("<span class=\"square\">&#x2610;</span>&nbsp;" + ReportHelper.getLatinBullet(j) + ")&nbsp;");
                 hb.appendText(choice.getText());
                 hb.endTag("div");
                 j++;
@@ -304,8 +331,9 @@ public class PrintHelper {
         }
     }    
     
-    private static String replaceHtmlEntitiesForXmlParser(String html) {
+    public static String replaceHtmlEntitiesForXmlParser(String html) {
         html = html.replace("&nbsp;", "&#160;");
+        html = html.replaceAll("<\\s*br\\s*>", "<br/>");
         return html;
     }
     
@@ -323,6 +351,35 @@ public class PrintHelper {
         hb.endBody();
         hb.endHtml();
         return hb.toString();
+    }
+    
+    private static Cache<String, byte[]> fontCache = CacheBuilder.from("maximumSize=1000, expireAfterWrite=10s").build();
+    
+    public static byte[] getFont(String fileName) {
+        InputStream in = null;
+        try {
+            byte[] result = fontCache.getIfPresent(fileName);
+            if (result == null) {
+                in = PrintHelper.class.getResourceAsStream(fileName);
+                result = IOUtils.toByteArray(in);
+                fontCache.put(fileName, result);
+            }
+            return result;
+        }
+        catch (Throwable e) {
+            logger.error(e.getMessage(), e);
+            return null;
+        }
+        finally {
+            try {
+                if (in != null) {
+                    in.close();
+                }
+            }
+            catch (IOException e) {
+                logger.error(e.getMessage(), e);
+            }
+        }
     }
     
     private static String getPrintCss() {
@@ -343,30 +400,51 @@ public class PrintHelper {
         }
     }
     
-    private static int getHeight(String html) {
+    public static void renderToPdf(String html, OutputStream pdfOutputStream) {
         try {
             html = replaceHtmlEntitiesForXmlParser(html);
+            URL url = ServerHelper.saveToMembuffer(html.getBytes("UTF-8"));
             
-            URL url = new URL("membuffer://" + UUID.randomUUID().toString());
+            ITextRenderer renderer = new ITextRenderer();
+            ITextUserAgent callback = new ITextUserAgent(renderer.getOutputDevice()) {
+                @Override
+                public byte[] getBinaryResource(String str) {                    
+                    try {
+                        URL uri = new URL(str);
+                        byte[] result = PrintHelper.getFont(uri.getAuthority());
+                        if (result == null) {
+                            throw new IllegalArgumentException("Unable to load font: " + uri.getPath());
+                        }                                           
+                        return result;
+                    }
+                    catch (Throwable e) {
+                        logger.error(e.getMessage(), e);
+                        return null;
+                    }
+                }                
+            };
+            callback.setSharedContext(renderer.getSharedContext()); 
+            renderer.getSharedContext().setUserAgentCallback(callback);            
+            renderer.setDocument(url.toString());
+            renderer.layout();
+            renderer.createPDF(pdfOutputStream);     
+        }    
+        catch (Throwable e) {
+            throw new IllegalStateException(e);
+        }    
+    }
+    
+    private static int getNumberOfPagesInPdf(String html) {
+        try {
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            renderToPdf(html, out);
             
-            URLConnection connection = url.openConnection();
-            OutputStream out = connection.getOutputStream();
-                           
-            out.write(html.getBytes("UTF-8"));
-            out.close();            
-            
-            BufferedImage image = Graphics2DRenderer.renderToImageAutoSize(url.toString(), PRINTER_PAGE_WIDTH);
-            int result = image.getHeight();            
-            
-//            URL imageUrl = new URL("membuffer://1.png");
-//            OutputStream imageOut = imageUrl.openConnection().getOutputStream();
-//            ImageIO.write(image, "png", imageOut);
-//            imageOut.close();
-            
+            PdfReader pdfReader = new PdfReader(out.toByteArray());
+            int result = pdfReader.getNumberOfPages();
             return result;
-        }
+        }    
         catch (Throwable e) {
             throw new IllegalStateException(e);
         }
-    }
+    }    
 }

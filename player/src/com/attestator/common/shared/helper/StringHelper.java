@@ -2,15 +2,100 @@ package com.attestator.common.shared.helper;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 import java.util.Map.Entry;
+import java.util.TreeMap;
 
 @SuppressWarnings("rawtypes")
 public final class StringHelper {
+    private static final Map<Character, String> russianTranslitMap = new HashMap<Character, String>();
 
+    static {
+        russianTranslitMap.put('А', "A");
+        russianTranslitMap.put('Б', "B");
+        russianTranslitMap.put('В', "V");
+        russianTranslitMap.put('Г', "G");
+        russianTranslitMap.put('Д', "D");
+        russianTranslitMap.put('Е', "E");
+        russianTranslitMap.put('Ё', "E");
+        russianTranslitMap.put('Ж', "Zh");
+        russianTranslitMap.put('З', "Z");
+        russianTranslitMap.put('И', "I");
+        russianTranslitMap.put('Й', "I");
+        russianTranslitMap.put('К', "K");
+        russianTranslitMap.put('Л', "L");
+        russianTranslitMap.put('М', "M");
+        russianTranslitMap.put('Н', "N");
+        russianTranslitMap.put('О', "O");
+        russianTranslitMap.put('П', "P");
+        russianTranslitMap.put('Р', "R");
+        russianTranslitMap.put('С', "S");
+        russianTranslitMap.put('Т', "T");
+        russianTranslitMap.put('У', "U");
+        russianTranslitMap.put('Ф', "F");
+        russianTranslitMap.put('Х', "H");
+        russianTranslitMap.put('Ц', "C");
+        russianTranslitMap.put('Ч', "Ch");
+        russianTranslitMap.put('Ш', "Sh");
+        russianTranslitMap.put('Щ', "Sh");
+        russianTranslitMap.put('Ъ', "'");
+        russianTranslitMap.put('Ы', "Y");
+        russianTranslitMap.put('Ь', "'");
+        russianTranslitMap.put('Э', "E");
+        russianTranslitMap.put('Ю', "U");
+        russianTranslitMap.put('Я', "Ya");
+        russianTranslitMap.put('а', "a");
+        russianTranslitMap.put('б', "b");
+        russianTranslitMap.put('в', "v");
+        russianTranslitMap.put('г', "g");
+        russianTranslitMap.put('д', "d");
+        russianTranslitMap.put('е', "e");
+        russianTranslitMap.put('ё', "e");
+        russianTranslitMap.put('ж', "zh");
+        russianTranslitMap.put('з', "z");
+        russianTranslitMap.put('и', "i");
+        russianTranslitMap.put('й', "i");
+        russianTranslitMap.put('к', "k");
+        russianTranslitMap.put('л', "l");
+        russianTranslitMap.put('м', "m");
+        russianTranslitMap.put('н', "n");
+        russianTranslitMap.put('о', "o");
+        russianTranslitMap.put('п', "p");
+        russianTranslitMap.put('р', "r");
+        russianTranslitMap.put('с', "s");
+        russianTranslitMap.put('т', "t");
+        russianTranslitMap.put('у', "u");
+        russianTranslitMap.put('ф', "f");
+        russianTranslitMap.put('х', "h");
+        russianTranslitMap.put('ц', "c");
+        russianTranslitMap.put('ч', "ch");
+        russianTranslitMap.put('ш', "sh");
+        russianTranslitMap.put('щ', "sh");
+        russianTranslitMap.put('ъ', "'");
+        russianTranslitMap.put('ы', "y");
+        russianTranslitMap.put('ь', "'");
+        russianTranslitMap.put('э', "e");
+        russianTranslitMap.put('ю', "u");
+        russianTranslitMap.put('я', "ya");
+    }
+ 
+    public static String toTranslit(String text) {
+        StringBuilder transliteratedString = new StringBuilder();
+        for (int i = 0; i < text.length(); i++) {
+            Character ch = text.charAt(i);
+            String charFromMap = russianTranslitMap.get(ch);
+            if (charFromMap == null) {
+                transliteratedString.append(ch);
+            } else {
+                transliteratedString.append(charFromMap);
+            }
+        }
+        return transliteratedString.toString();
+    }
+    
     public static String capitalize(String str){
         if( isEmptyOrNull(str) ){
             return str;

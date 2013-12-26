@@ -7,6 +7,7 @@ import com.attestator.admin.client.props.IntegerGreaterZerroPropertyEditor;
 import com.attestator.admin.client.rpc.AdminAsyncCallback;
 import com.attestator.admin.client.rpc.AdminAsyncUnmaskCallback;
 import com.attestator.common.client.helper.WindowHelper;
+import com.attestator.common.shared.helper.NullHelper;
 import com.attestator.common.shared.vo.PrintingPropertiesVO;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.core.client.Scheduler;
@@ -101,18 +102,33 @@ public class PrintWindow implements IsWidget, Editor<PrintingPropertiesVO>{
         this.mode = mode;
        
         uiBinder.createAndBindUi(this);
+        driver.initialize(this);
+        driver.edit(properties);
         
         switch (mode) {
         case print:
             onePdfPerVariant.hide();
             break;
         case saveAsPdf:
-            printButton.setText("Сохранить в PDF");
+            setPrintButtonText(properties.getOnePdfPerVariant());
             break;
         }
-
-        driver.initialize(this);
-        driver.edit(properties);
+    }
+    
+    private void setPrintButtonText(Boolean onePdfPerVariant) {       
+        if (NullHelper.nullSafeTrue(onePdfPerVariant)) {
+            printButton.setText("Сохранить архив вариантов");
+        }
+        else {
+            printButton.setText("Сохранить PDF");
+        }
+       
+        window.forceLayout();
+    }
+    
+    @UiHandler("onePdfPerVariant")
+    protected void onOnePdfPerVariantValueChange(ValueChangeEvent<Boolean> event) {
+        setPrintButtonText(event.getValue());
     }
     
     @UiHandler("cancelButton")
@@ -136,7 +152,12 @@ public class PrintWindow implements IsWidget, Editor<PrintingPropertiesVO>{
                             Print.it(result);                       
                         }
                     });
-                }                
+                }
+                else if (mode == Mode.saveAsPdf) {
+                    super.onSuccess(result);
+                    String url = "/admin/downloadpdf?printingPropertiesId=" + properties.getId();
+                    WindowHelper.downloadFile(url);
+                }
             }            
         });
         

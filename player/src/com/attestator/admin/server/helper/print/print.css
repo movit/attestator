@@ -1,0 +1,121 @@
+@CHARSET "UTF-8";
+
+@page { 
+/* 	size: 8.27in 11.69in; */
+	size: 796px 1125px;
+	margin: 60px;
+}
+
+@font-face {
+	/*     font-family: "my"; font-family is ignored by Flying Saucer. CSS should use font-family name from ttf file*/
+	font-style: normal;
+	src: url("times.ttf");
+	-fs-pdf-font-embed: embed;
+	-fs-pdf-font-encoding: Identity-H;
+}
+
+@font-face {
+	font-style: italic;
+	src: url("timesi.ttf");
+	-fs-pdf-font-embed: embed;
+	-fs-pdf-font-encoding: Identity-H;
+}
+
+@font-face {
+	font-weight: bold;
+	src: url("timesbd.ttf");
+	-fs-pdf-font-embed: embed;
+	-fs-pdf-font-encoding: Identity-H;
+}
+
+@font-face {
+	font-weight: bold;
+	font-style: italic;
+	src: url("timesbi.ttf");
+	-fs-pdf-font-embed: embed;
+	-fs-pdf-font-encoding: Identity-H;
+}
+
+@font-face {
+	src: url("DejaVuSans.ttf");
+	-fs-pdf-font-embed: embed;
+	-fs-pdf-font-encoding: Identity-H;
+}
+
+body {
+	font-family: "Times New Roman";
+	font-size: 14px;
+}
+
+.header {
+	border-bottom: 1px solid black;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	overflow: hidden;
+	margin-bottom: 14px;
+}
+
+.question {
+	padding-top: 14px;
+	margin-bottom: 28px;
+	page-break-inside: avoid;
+}
+
+.footer {
+	text-align: center;
+}
+
+.question-no {
+	font-size: 200%;
+	line-height: 10%;
+}
+
+.variant-no {
+	
+}
+
+.question-text {
+	margin-bottom: 12px;
+}
+
+.question-description {
+	font-style: italic;
+	font-size: 12px;
+	margin-top: 12px;
+	margin-bottom: 12px;
+}
+
+.questions-area-floating-height {
+	
+}
+
+.questions-area { /*     height:   840px; */ /*     overflow: hidden; */
+	
+}
+
+.square {
+	font-family: "DejaVu Sans", serif;
+}
+
+.question-choice {
+	margin-bottom: 8px;
+}
+
+.title-page {
+	
+}
+
+.answers-variant-title {
+	
+}
+
+.page-breaker {
+	page-break-after: always;
+}
+
+.scq-answer {
+	font-size: 150%;
+	display: inline-block;
+	width: 70px;
+	white-space: nowrap;
+}

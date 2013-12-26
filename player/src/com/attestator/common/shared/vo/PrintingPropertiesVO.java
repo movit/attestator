@@ -15,48 +15,19 @@ public class PrintingPropertiesVO extends TenantableVO implements PublicationsTr
     @Reference(fromField = "metatestId",  excludeFields = {"entries"})
     private MetaTestVO      metatest;
 
-    private String          titlePage = "<div style=\"text-align: center;\">\r\n" + 
-    		"    <span style=\"font-family: Georgia, 'Times New Roman', Times, serif;\"><font size=\"5\"><br></font></span>\r\n" + 
-    		"</div>\r\n" + 
-    		"<div style=\"text-align: center;\">\r\n" + 
-    		"    <span style=\"font-family: Georgia, 'Times New Roman', Times, serif;\"><font size=\"5\"><br></font></span>\r\n" + 
-    		"</div>\r\n" + 
-    		"<div style=\"text-align: center;\">\r\n" + 
-    		"    <span style=\"font-family: Georgia, 'Times New Roman', Times, serif;\"><font size=\"5\">{test}</font></span>\r\n" + 
-    		"</div>\r\n" +
-    		"<div style=\"text-align: center;\">\r\n" + 
-            "    <span style=\"font-family: Georgia, 'Times New Roman', Times, serif;\"><font size=\"5\"><br></font></span>\r\n" + 
-            "</div>\r\n" +
-    		"<div style=\"text-align: center;\">\r\n" + 
-    		"    <font face=\"Georgia, 'Times New Roman', Times, serif\" size=\"4\">Вариант {variant}</font>\r\n" + 
-    		"</div>\r\n" + 
-    		"<div style=\"text-align: left;\">\r\n" + 
-    		"    <font face=\"Georgia, 'Times New Roman', Times, serif\" size=\"4\"><br></font>\r\n" + 
-    		"</div>\r\n" + 
-    		"<div style=\"text-align: left;\">\r\n" + 
-    		"    <font face=\"Georgia, 'Times New Roman', Times, serif\" size=\"4\"><br></font>\r\n" + 
-    		"</div>\r\n" + 
-    		"<div style=\"text-align: left;\">\r\n" + 
-    		"    <font face=\"Georgia, 'Times New Roman', Times, serif\" size=\"4\"><br></font>\r\n" + 
-    		"</div>\r\n" + 
-    		"<div style=\"text-align: left;\">\r\n" + 
-    		"    <font face=\"Georgia, 'Times New Roman', Times, serif\" size=\"4\"><br></font>\r\n" + 
-    		"</div>\r\n" + 
-    		"<div style=\"text-align: left;\">\r\n" + 
-    		"    <font face=\"Georgia, 'Times New Roman', Times, serif\" size=\"4\"><br></font>\r\n" + 
-    		"</div>\r\n" + 
-    		"<div style=\"text-align: left;\">\r\n" + 
-    		"    <font face=\"Georgia, 'Times New Roman', Times, serif\" size=\"4\">&nbsp;&nbsp;&nbsp;&nbsp;Фамилия<span class=\"Apple-tab-span\" style=\"white-space:pre\">\t\t<u><span class=\"Apple-tab-span\" style=\"white-space:pre\">\t\t\t\t\t\t\t\t\t\t\t\t</span></u></span></font></div>\r\n" + 
-    		"<div style=\"text-align: left;\">\r\n" + 
-    		"    <font face=\"Georgia, 'Times New Roman', Times, serif\" size=\"4\"><br></font>\r\n" + 
-    		"</div>\r\n" + 
-    		"<div style=\"text-align: left;\">\r\n" + 
-    		"    <font face=\"Georgia, 'Times New Roman', Times, serif\" size=\"4\">&nbsp;&nbsp;&nbsp;&nbsp;Имя<span class=\"Apple-tab-span\" style=\"white-space:pre\">\t\t\t<u><span class=\"Apple-tab-span\" style=\"white-space:pre\">\t\t\t\t\t\t\t\t\t\t\t\t</span></u></span></font></div>\r\n" + 
-    		"<div style=\"text-align: left;\">\r\n" + 
-    		"    <font face=\"Georgia, 'Times New Roman', Times, serif\" size=\"4\"><br></font>\r\n" + 
-    		"</div>\r\n" + 
-    		"<div style=\"text-align: left;\">\r\n" + 
-    		"    <font face=\"Georgia, 'Times New Roman', Times, serif\" size=\"4\">&nbsp;&nbsp;&nbsp;&nbsp;Отчество<span class=\"Apple-tab-span\" style=\"white-space:pre\">\t\t<u><span class=\"Apple-tab-span\" style=\"white-space:pre\">\t\t\t\t\t\t\t\t\t\t\t\t</span></u></span></font></div>";
+    private String          titlePage = "<br>\r\n" + 
+    		"<br>\r\n" + 
+    		"<br>\r\n" + 
+    		"<br>\r\n" + 
+    		"<h2 style=\"text-align: center;\">{test}</h2>\r\n" + 
+    		"<h3 style=\"text-align: center;\">Вариант {variant}</h3>\r\n" + 
+    		"<br>\r\n" + 
+    		"<br>\r\n" + 
+    		"<table><tbody>\r\n" + 
+    		"<tr><td><h3>Фамилия</h3></td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;________________________________________________________</td></tr>\r\n" + 
+    		"<tr><td><h3>Имя</h3></td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;________________________________________________________</td></tr>\r\n" + 
+    		"<tr><td><h3>Отчество</h3></td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;________________________________________________________</td></tr>\r\n" + 
+    		"</tbody></table>\r\n";
     
     private Boolean         randomQuestionsOrder;
     
