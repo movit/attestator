@@ -50,45 +50,55 @@
   </context-param>
   
   <!-- Servlets -->
-  <servlet>
-    <servlet-name>uploadQuestionsServlet</servlet-name>
-    <servlet-class>com.attestator.admin.server.UploadQuestionsServlet</servlet-class>
-  </servlet>
-  
-  <servlet>
-    <servlet-name>printTestServlet</servlet-name>
-    <servlet-class>com.attestator.admin.server.PrintTestServlet</servlet-class>
-  </servlet>
+    <servlet>
+        <servlet-name>uploadQuestionsServlet</servlet-name>
+        <servlet-class>com.attestator.admin.server.UploadQuestionsServlet</servlet-class>
+    </servlet>
 
-  <servlet>
-    <servlet-name>playerServiceServlet</servlet-name>
-    <servlet-class>com.attestator.player.server.PlayerServiceImpl</servlet-class>
-  </servlet>
+    <servlet>
+        <servlet-name>printTestServlet</servlet-name>
+        <servlet-class>com.attestator.admin.server.PrintTestServlet</servlet-class>
+    </servlet>
 
-  <servlet>
-    <servlet-name>adminServiceServlet</servlet-name>
-    <servlet-class>com.attestator.admin.server.AdminServiceImpl</servlet-class>
-  </servlet>
-  
-  <servlet-mapping>
-    <servlet-name>uploadQuestionsServlet</servlet-name>
-    <url-pattern>/admin/uploadquestions</url-pattern>
-  </servlet-mapping>
+    <servlet>
+        <servlet-name>downloadPdfServlet</servlet-name>
+        <servlet-class>com.attestator.admin.server.DownloadPdfServlet</servlet-class>
+    </servlet>
 
-  <servlet-mapping>
-    <servlet-name>printTestServlet</servlet-name>
-    <url-pattern>/admin/printtest/*</url-pattern>
-  </servlet-mapping>
-  
-  <servlet-mapping>
-    <servlet-name>playerServiceServlet</servlet-name>
-    <url-pattern>/player/playerservice</url-pattern>
-  </servlet-mapping>
+    <servlet>
+        <servlet-name>playerServiceServlet</servlet-name>
+        <servlet-class>com.attestator.player.server.PlayerServiceImpl</servlet-class>
+    </servlet>
 
-  <servlet-mapping>
-    <servlet-name>adminServiceServlet</servlet-name>
-    <url-pattern>/admin/adminservice</url-pattern>
-  </servlet-mapping>
+    <servlet>
+        <servlet-name>adminServiceServlet</servlet-name>
+        <servlet-class>com.attestator.admin.server.AdminServiceImpl</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>uploadQuestionsServlet</servlet-name>
+        <url-pattern>/admin/uploadquestions</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>printTestServlet</servlet-name>
+        <url-pattern>/admin/printtest/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>downloadPdfServlet</servlet-name>
+        <url-pattern>/admin/downloadpdf</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>playerServiceServlet</servlet-name>
+        <url-pattern>/player/playerservice</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>adminServiceServlet</servlet-name>
+        <url-pattern>/admin/adminservice</url-pattern>
+    </servlet-mapping>
   
   <!-- Default page to serve -->
   <welcome-file-list>

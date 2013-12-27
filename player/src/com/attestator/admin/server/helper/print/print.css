@@ -89,8 +89,9 @@ body {
 	
 }
 
-.questions-area { /*     height:   840px; */ /*     overflow: hidden; */
-	
+.questions-area { 
+    height:   870px; 
+    overflow: hidden;
 }
 
 .square {

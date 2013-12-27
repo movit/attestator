@@ -52,7 +52,7 @@ public class ExtendedURLStreamHandlerFactory implements URLStreamHandlerFactory 
         return null;
     }
     
-    public static ExtendedURLStreamHandlerFactory getInstance() {
+    public synchronized static ExtendedURLStreamHandlerFactory getInstance() {
         if (instance == null) {
             try {
                 Field factoryField = URL.class.getDeclaredField("factory");

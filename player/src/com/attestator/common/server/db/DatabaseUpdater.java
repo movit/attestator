@@ -35,7 +35,7 @@ import com.metapossum.utils.scanner.reflect.ClassesInPackageScanner;
 public class DatabaseUpdater {
     private static Logger logger = Logger.getLogger(DatabaseUpdater.class);
     
-    public static final int DB_VERSION = 25;
+    public static final int DB_VERSION = 26;
     
     @SuppressWarnings({"unchecked", "rawtypes"})
     public static void updateDatabase() {
@@ -136,6 +136,11 @@ public class DatabaseUpdater {
         }
         
         if (version.getVersion() < 25) {
+            Query<PrintingPropertiesVO> q = Singletons.rawDs().createQuery(PrintingPropertiesVO.class);            
+            Singletons.rawDs().delete(q);
+        }
+        
+        if (version.getVersion() < 26) {
             Query<PrintingPropertiesVO> q = Singletons.rawDs().createQuery(PrintingPropertiesVO.class);            
             Singletons.rawDs().delete(q);
         }
