@@ -1,8 +1,6 @@
 package com.attestator.admin.server.helper.print;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -412,10 +410,10 @@ public class PrintHelper {
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             renderToPdf(html, out);
             
-            File f = new File("C:\\\\test\\" + System.currentTimeMillis() + ".pdf");
-            FileOutputStream fout = new FileOutputStream(f);
-            fout.write(out.toByteArray());
-            fout.close();
+//            File f = new File("C:\\\\test\\" + System.currentTimeMillis() + ".pdf");
+//            FileOutputStream fout = new FileOutputStream(f);
+//            fout.write(out.toByteArray());
+//            fout.close();
             
             PdfReader pdfReader = new PdfReader(out.toByteArray());
             int result = pdfReader.getNumberOfPages();

@@ -105,6 +105,8 @@ public class PrintWindow implements IsWidget, Editor<PrintingPropertiesVO>{
         driver.initialize(this);
         driver.edit(properties);
         
+        variantsCount.setValue(1);
+        
         switch (mode) {
         case print:
             onePdfPerVariant.hide();
