@@ -1,13 +1,4 @@
-@CHARSET "UTF-8";
-
-@page { 
-/* 	size: 8.27in 11.69in; */
-	size: 796px 1125px;
-	margin: 60px;
-}
-
 @font-face {
-	/*     font-family: "my"; font-family is ignored by Flying Saucer. CSS should use font-family name from ttf file*/
 	font-style: normal;
 	src: url("times.ttf");
 	-fs-pdf-font-embed: embed;
@@ -44,29 +35,32 @@
 
 body {
 	font-family: "Times New Roman";
-	font-size: 14px;
+	padding: 0;
+	margin: 0;
 }
 
 .header {
-	border-bottom: 1px solid black;
+	border-bottom: 1pt solid black;
 	text-overflow: ellipsis;
-	white-space: nowrap;
-	overflow: hidden;
-	margin-bottom: 14px;
-}
-
-.question {
-	padding-top: 14px;
-	margin-bottom: 28px;
-	page-break-inside: avoid;
+	white-space:   nowrap;
+	overflow:      hidden;
+	margin-bottom: 1em;
 }
 
 .footer {
-	text-align: center;
+	white-space:   nowrap;
+    overflow:      hidden;
+    text-align:    center;
+}
+
+.question {
+	padding-top:       1em;
+	margin-bottom:     1em;
+	page-break-inside: avoid;
 }
 
 .question-no {
-	font-size: 200%;
+	font-size: 2em;
 	line-height: 10%;
 }
 
@@ -75,22 +69,17 @@ body {
 }
 
 .question-text {
-	margin-bottom: 12px;
+	margin-bottom: 0.5em;
 }
 
 .question-description {
-	font-style: italic;
-	font-size: 12px;
-	margin-top: 12px;
-	margin-bottom: 12px;
+	font-style:    italic;
+	font-size:     0.8em;
+	margin-top:    0.8em;
+	margin-bottom: 0.8em;
 }
 
-.questions-area-floating-height {
-	
-}
-
-.questions-area { 
-    height:   870px; 
+.content {
     overflow: hidden;
 }
 
@@ -99,11 +88,7 @@ body {
 }
 
 .question-choice {
-	margin-bottom: 8px;
-}
-
-.title-page {
-	
+	margin-bottom: 0.5em;
 }
 
 .answers-variant-title {
@@ -115,8 +100,8 @@ body {
 }
 
 .scq-answer {
-	font-size: 150%;
-	display: inline-block;
-	width: 70px;
+	font-size:   1.5em;
+	display:     inline-block;
+	width:       4em;
 	white-space: nowrap;
 }

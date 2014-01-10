@@ -10,6 +10,7 @@ import java.util.regex.Pattern;
 import org.apache.log4j.Logger;
 
 import com.attestator.admin.server.helper.print.PrintHelper;
+import com.attestator.admin.server.helper.print.PrintHelper.PrintingMedia;
 import com.attestator.common.server.CommonLogic;
 import com.attestator.common.server.helper.ReflectionHelper;
 import com.attestator.common.shared.SharedConstants;
@@ -707,7 +708,7 @@ public class AdminLogic extends CommonLogic {
         
         PrintingPropertiesVO properties = get(PrintingPropertiesVO.class, printingPropertiesId);
         MetaTestVO metatest = get(MetaTestVO.class, properties.getMetatestId());
-        String result = PrintHelper.printTest(metatest, properties);
+        String result = PrintHelper.printTest(metatest, properties, PrintingMedia.paper);
         
         return result;
     }

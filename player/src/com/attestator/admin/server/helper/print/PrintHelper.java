@@ -1,6 +1,8 @@
 package com.attestator.admin.server.helper.print;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -37,19 +39,89 @@ public class PrintHelper {
     private static final Logger logger = Logger
             .getLogger(PrintHelper.class);
     
-    private static final String CSS = getPrintCss();
+    private static final String COMMON_CSS = getPrintCss("print_common.css");
+    private static final String PDF_PAGE_DIMESIONS_CSS = getPrintCss("print_page_dimensions_pdf.css");
+    private static final String PAPER_PAGE_DIMESIONS_CSS = getPrintCss("print_page_dimensions_paper.css");
+    private static final String TEST_PAGE_DIMESIONS_CSS = getPrintCss("print_page_dimensions_test.css");
+    private static final String PAPER_FONT_SIZE_CSS = getPrintCss("print_font_size_paper.css");
+    private static final String PDF_FONT_SIZE_CSS = getPrintCss("print_font_size_pdf.css");
     
-    public static enum Mode {
+    public static enum PageMode {
         singlePage,
         doublePage
     }
     
+    public static enum PrintingMedia {
+        paper,
+        pdf
+    }
+    
     public abstract static class PagesIterator implements Iterator<String> {
-        protected Mode mode;
+        protected PageMode          mode;
+        protected PrintingMedia     media;
+        protected List<QuestionVO>  questions;
+        protected String            testCss;
+        protected int               page = 0;
+        protected int               questionIndex = 0;
         
-        public PagesIterator(Mode mode) {
-            this.mode = mode;
+        public PagesIterator(PageMode mode, PrintingMedia media, List<QuestionVO> questions) {
+            this.mode      = mode;
+            this.media     = media;
+            this.questions = questions;
+            
+            testCss = COMMON_CSS + PDF_FONT_SIZE_CSS + TEST_PAGE_DIMESIONS_CSS;
         }
+        
+        @Override
+        public boolean hasNext() {
+            return questionIndex < questions.size() || (MathHelper.isOdd(page) && mode == PageMode.doublePage);
+        }              
+        
+        @Override
+        public String next() {
+            if (!hasNext()) {
+                throw new NoSuchElementException();
+            }
+            
+            // No more questions to iterate but we need return extra empty page for double page mode
+            if (questionIndex == questions.size()) {
+                page++;
+                return "";
+            }
+            
+            String result = null;
+            HtmlBuilder candidate = new HtmlBuilder();                        
+            
+            for (;questionIndex < questions.size(); questionIndex++) {                                
+                // Prepare test HTML
+                addQuestionContent(candidate, questionIndex);                
+                String htmlForTest = makeHtmlDocument(candidate.toString(), testCss);
+                
+                if (getNumberOfPagesInPdf(htmlForTest) == 1) {
+                    // Store previous candidate
+                    result = candidate.toString();
+                }
+                else {
+                    // No more content should be added
+                    break;
+                }
+            }
+            
+            // No questions was actually added
+            // Even first question is bigger than one page
+            if (result == null) {
+                result = candidate.toString();
+            }
+            page++;
+            
+            return result;
+        }
+        
+        public int getPage() {
+            return page;
+        }
+        
+        protected abstract void addQuestionContent(HtmlBuilder hb, int questionNo);
 
         @Override
         public void remove() {
@@ -57,206 +129,75 @@ public class PrintHelper {
         }        
     }
     
-    public static class AnswersPagesIterator extends PagesIterator {
-        public static int ANSWERS_PER_PAGE = 200;
-        private List<QuestionVO> questions;
-        private String variant;
-        private String testName;
-        private int page = 0;
-        private int start = 0;
-        
-        public AnswersPagesIterator(Mode mode, List<QuestionVO> questions, String testName, String variant) {
-            super(mode);
-            this.questions = questions;
-            this.variant = variant;
-            this.testName = testName;
-        }
-        
-        @Override
-        public boolean hasNext() {
-            return start < questions.size() || (MathHelper.isOdd(page) && mode == Mode.doublePage);
+    public static class AnswersPagesIterator extends PagesIterator {             
+        public AnswersPagesIterator(PageMode mode, PrintingMedia media, List<QuestionVO> questions) {
+            super(mode, media, questions);
         }
 
         @Override
-        public String next() {
-            if (!hasNext()) {
-                throw new NoSuchElementException();
-            }
-            HtmlBuilder hb = new HtmlBuilder();
-            
-            int end = Math.min(start + ANSWERS_PER_PAGE, questions.size());
-            for (int i = start; i < end; i++) {
-                printAnswer(hb, questions.get(i), "" + (i + 1), variant);
-            }            
-            String result = makePage(hb.toString());
-            
-            start = end;
-            page++;            
-            
-            return result;
-        }
-        
-        private String makePage(String content) {
-            if (StringHelper.isEmptyOrNull(content)) {
-                return "";
-            }
-            String headerText = "<b>Вариант " + variant + ". Ответы.</b> " + testName;
-            String footerText = "" + (page + 1);
-            HtmlBuilder hb = new HtmlBuilder();            
-            printPageHeader(hb, headerText);
-            hb.startTag("div", "questions-area");
-            hb.appendText(content);
-            hb.endTag("div");
-            printPageFooter(hb, footerText);
-            return hb.toString();
+        protected void addQuestionContent(HtmlBuilder hb, int questionNo) {
+            printAnswer(hb, questions.get(questionNo), "" + (questionNo + 1));
         }
     }
     
-    public static class QuestionsPagesIterator extends PagesIterator {
-        private List<QuestionVO> questions;       
-        private int page = 0;
-        private int start = 0;
-        private String testName;
-        private String variant;
-        
-        public QuestionsPagesIterator(Mode mode, List<QuestionVO> questions, String testName, String variant) {
-            super(mode);
-            this.questions = questions;
-            this.testName = testName;
-            this.variant = variant;            
-        }
-        
-        @Override
-        public boolean hasNext() {
-            return start < questions.size() || (MathHelper.isOdd(page) && mode == Mode.doublePage);
-        }
-        
-        private String makePage(String content, boolean finalPage) {
-            if (StringHelper.isEmptyOrNull(content)) {
-                return "";
-            }
-            String headerText = "<b>Вариант " + variant + ".</b> " + testName;
-            String footerText = "" + (page + 1);
-            HtmlBuilder hb = new HtmlBuilder();            
-            printPageHeader(hb, headerText);
-            hb.startTag("div", finalPage ? "questions-area" : "questions-area-floating-height");
-            hb.appendText(content);
-            hb.endTag("div");
-            printPageFooter(hb, footerText);
-            if (!finalPage) {
-                // Simulate page-breaker
-                hb.startTag("div").appendText("aaa;").endTag("div");
-            }
-            return hb.toString();
+    public static class QuestionsPagesIterator extends PagesIterator {        
+        public QuestionsPagesIterator(PageMode mode, PrintingMedia media, List<QuestionVO> questions) {
+            super(mode, media, questions);            
         }
 
         @Override
-        public String next() {
-            if (!hasNext()) {
-                throw new NoSuchElementException();
-            }
-            HtmlBuilder hb = new HtmlBuilder();
-            String pageContent = "";   
-            
-            for (;start < questions.size(); start++) {                               
-                
-                
-                printQuestion(hb, mode, questions.get(start), start + 1, variant);
-                
-                String pageCandidat = makePage(hb.toString(), false);
-                pageCandidat = makeHtmlDocument(pageCandidat, CSS);
-                
-                int numberOfPagesInPdf = getNumberOfPagesInPdf(pageCandidat);
-                if (numberOfPagesInPdf > 1) {
-                    break;
-                }
-                
-                pageContent = hb.toString();
-            }
-            
-            //If current question bigger than page
-            if (StringHelper.isEmptyOrNull(pageContent)) {
-                pageContent = hb.toString();
-                start++;
-            }
-            
-            pageContent = makePage(pageContent, true);
-            
-            page++;            
-            return pageContent;
-        }        
+        protected void addQuestionContent(HtmlBuilder hb, int questionNo) {
+            printQuestion(hb, questions.get(questionNo), "" + (questionNo + 1));
+        }
     }
     
     
-    private static void printSingleTestVariant(MetaTestVO metatest, PrintingPropertiesVO properties, HtmlBuilder answersHb, HtmlBuilder variantsHb, Mode mode, String varantNo) {
+    private static void printSingleTestVariant(MetaTestVO metatest, PrintingPropertiesVO properties, HtmlBuilder answersHb, HtmlBuilder variantsHb, PageMode mode, PrintingMedia media, boolean breakAfterLastPage, String varantNo) {
         String variant = "" + properties.getPrintAttempt() + "-" + varantNo;
         
         List<QuestionVO> questions = Singletons.al().generateQuestionsList(metatest, properties.isThisRandomQuestionsOrder());            
         
-        printAnswers(answersHb, mode, questions, metatest.getName(), variant);
-        printPageBreaker(answersHb);
+        printAnswers(answersHb, mode, media, true, questions, metatest.getName(), variant);        
         printTitlePage(variantsHb, mode, properties.getTitlePage(), metatest, variant);            
-        printQuestions(variantsHb, mode, questions, metatest.getName(), variant);
+        printQuestions(variantsHb, mode, media, breakAfterLastPage, questions, metatest.getName(), variant);
     }
     
-    public static String printTest(MetaTestVO metatest, PrintingPropertiesVO properties) {
-        return printTest(metatest, properties, null);
+    public static String printTest(MetaTestVO metatest, PrintingPropertiesVO properties, PrintingMedia media) {
+        return printTest(metatest, properties, null, media);
     }
     
-    public static String printTest(MetaTestVO metatest, PrintingPropertiesVO properties, String variantNo) {
-        Mode mode = properties.isThisDoublePage() ? Mode.doublePage : Mode.singlePage;
+    public static String printTest(MetaTestVO metatest, PrintingPropertiesVO properties, String variantNo, PrintingMedia media) {
+        PageMode mode = properties.isThisDoublePage() ? PageMode.doublePage : PageMode.singlePage;
         
         HtmlBuilder answersHb = new HtmlBuilder();
         HtmlBuilder variantsHb = new HtmlBuilder();
         
         if (variantNo == null) {
-            // Print all variants
-            
+            // Print all variants            
             for (int i = 0; i < properties.getVariantsCount(); i++) {
-                printSingleTestVariant(metatest, properties, answersHb, variantsHb, mode, "" + (i + 1));
-                
-                if (i < (properties.getVariantsCount() - 1)) {
-                    printPageBreaker(variantsHb);
-                }
+                boolean breakAfterLastPage = i < (properties.getVariantsCount() - 1);
+                printSingleTestVariant(metatest, properties, answersHb, variantsHb, mode, media, breakAfterLastPage, "" + (i + 1));
             }
         }
         else {
             // Print single variant
-            printSingleTestVariant(metatest, properties, answersHb, variantsHb, mode, variantNo);
+            printSingleTestVariant(metatest, properties, answersHb, variantsHb, mode, media, false, variantNo);
         }
         
         HtmlBuilder hb = new HtmlBuilder();
-        
-       
+               
         hb.appendText(answersHb.toString());
         hb.appendText(variantsHb.toString());
         
+        String css = (media == PrintingMedia.paper) ? 
+                COMMON_CSS + PAPER_FONT_SIZE_CSS + PAPER_PAGE_DIMESIONS_CSS : 
+                COMMON_CSS + PDF_FONT_SIZE_CSS + PDF_PAGE_DIMESIONS_CSS;
         
-        String result = makeHtmlDocument(hb.toString(), CSS);
+        String result = makeHtmlDocument(hb.toString(), css);
         
         return result;
     }
 
-    public static void printTitlePage(HtmlBuilder hb, Mode mode, String titlePage, MetaTestVO metatest, String variant) {        
-        titlePage = titlePage.replaceAll("\\{test\\}", metatest.getName());
-        titlePage = titlePage.replaceAll("\\{variant\\}", variant);
-        
-        hb.startTag("div", "title-page").appendText(titlePage).endTag("div");
-        printPageBreaker(hb);
-        
-        if (mode == Mode.doublePage) {
-            printPageBreaker(hb);
-        }
-    }
-    
-    public static void printSpring(HtmlBuilder hb) {
-        hb.startTag("div", "spring").appendText("&nbsp;").endTag("div");
-    }
-    
-    public static void printPageBreaker(HtmlBuilder hb) {
-        hb.startTag("div", "page-breaker").appendText("&nbsp;").endTag("div");
-    }
-    
     public static void printPageHeader(HtmlBuilder hb, String text) {
         if (StringHelper.isEmptyOrNull(text)) {
             text = "&nbsp;";
@@ -264,41 +205,42 @@ public class PrintHelper {
         hb.startTag("div", "header").appendText(text).endTag("div");
     }
     
-    public static void printPageFooter(HtmlBuilder hb, String text) {
+    public static void printPageFooter(HtmlBuilder hb, String text, boolean breakPage) {
         if (StringHelper.isEmptyOrNull(text)) {
             text = "&nbsp;";
         }
-        hb.startTag("div", "footer").appendText(text).endTag("div");
+        String clazz = breakPage ? "footer page-breaker" : "footer";
+        hb.startTag("div", clazz).appendText(text).endTag("div");
     }
 
-    public static void printAnswer(HtmlBuilder hb, QuestionVO question, String questionIndex, String variant) {
+    public static void printPageBreaker(HtmlBuilder hb) {
+        printPageFooter(hb, null, true);
+    }
+    
+    private static void printPageContent(HtmlBuilder hb, String content) {
+        hb.startTag("div", "content");
+        hb.appendText(content);
+        hb.endTag("div");
+    }
+
+    public static void printAnswer(HtmlBuilder hb, QuestionVO question, String questionNo) {
         if (question instanceof SingleChoiceQuestionVO) {
             Integer rightAnswerIndex = ReportHelper.getRightAnswerIndex((SingleChoiceQuestionVO)question);
             if (rightAnswerIndex != null) {
-                hb.startTag("div", "scq-answer").appendText(questionIndex + "-" + ReportHelper.getLatinBullet(rightAnswerIndex + 1)).endTag("div");
+                hb.startTag("div", "scq-answer").appendText(questionNo + "-" + ReportHelper.getLatinBullet(rightAnswerIndex + 1)).endTag("div");
                 hb.appendText(" ");
             }
         }
         else {
             throw new IllegalArgumentException("Unsupported question type: " + question.getClass());
-        }        
+        }   
     }
     
-    public static void printAnswers(HtmlBuilder hb, Mode mode, List<QuestionVO> questions, String metatestName, String variant) {        
-        AnswersPagesIterator api = new AnswersPagesIterator(mode, questions, metatestName, variant);
-        while (api.hasNext()) {
-            hb.appendText(api.next());
-            if (api.hasNext()) {
-                printPageBreaker(hb);
-            }
-        }
-    }
-    
-    public static void printQuestion(HtmlBuilder hb, Mode mode, QuestionVO question, int no, String variant) {
+    public static void printQuestion(HtmlBuilder hb, QuestionVO question, String questionNo) {
         hb.startTag("div", "question");
         
         hb.startTag("div", "question-text");
-        hb.startTag("span", "question-no").appendText(no + " ").endTag("span");  
+        hb.startTag("span", "question-no").appendText(questionNo + " ").endTag("span");  
         hb.appendText(question.getText());
         hb.endTag("div");
         
@@ -317,17 +259,48 @@ public class PrintHelper {
         else {
             throw new IllegalArgumentException("Unknown question type: " + question.getClass());
         }
-       
+    
         hb.endTag("div");
     }
 
-    public static void printQuestions(HtmlBuilder hb, Mode mode, List<QuestionVO> questions, String testName, String variant) {
-        QuestionsPagesIterator qpi = new QuestionsPagesIterator(mode, questions, testName, variant);
+    public static void printTitlePage(HtmlBuilder hb, PageMode mode, String titlePageContent, MetaTestVO metatest, String variant) {        
+        titlePageContent = titlePageContent.replaceAll("\\{test\\}", metatest.getName());
+        titlePageContent = titlePageContent.replaceAll("\\{variant\\}", variant);
+        
+        printPageContent(hb, titlePageContent);
+                
+        if (mode == PageMode.doublePage) {
+            printPageBreaker(hb);
+        }
+        
+        printPageBreaker(hb);
+    }
+
+    public static void printAnswers(HtmlBuilder hb, 
+            PageMode mode, PrintingMedia media, boolean breakAfterLastPage, 
+            List<QuestionVO> questions, String metatestName, String variantName) {
+        
+        String headerText = "<b>Вариант " + variantName + ", ответы </b> " + metatestName;
+        AnswersPagesIterator api = new AnswersPagesIterator(mode, media, questions);
+        while (api.hasNext()) {
+            String pageContent = api.next();            
+            printPageHeader(hb, headerText);                
+            printPageContent(hb, pageContent);
+            printPageFooter(hb, "" + api.getPage(), breakAfterLastPage || api.hasNext());
+        }
+    }
+    
+    public static void printQuestions(HtmlBuilder hb, 
+            PageMode mode, PrintingMedia media, boolean breakAfterLastPage, 
+            List<QuestionVO> questions, String metatestName, String variantName) {
+        
+        String headerText = "<b>Вариант " + variantName + "</b> " + metatestName;
+        QuestionsPagesIterator qpi = new QuestionsPagesIterator(mode, media, questions);
         while (qpi.hasNext()) {
-            hb.appendText(qpi.next());
-            if (qpi.hasNext()) {
-                printPageBreaker(hb);
-            }
+            String pageContent = qpi.next();            
+            printPageHeader(hb, headerText);                
+            printPageContent(hb, pageContent);
+            printPageFooter(hb, "" + qpi.getPage(), breakAfterLastPage || qpi.hasNext());
         }
     }    
     
@@ -382,10 +355,10 @@ public class PrintHelper {
         }
     }
     
-    private static String getPrintCss() {
+    private static String getPrintCss(String file) {
         InputStream in = null;
         try {        
-            in = PrintHelper.class.getResourceAsStream("print.css");
+            in = PrintHelper.class.getResourceAsStream(file);
             String result = (new Scanner(in, "UTF-8")).useDelimiter("\\A").next();
             return result;
         }
@@ -438,6 +411,11 @@ public class PrintHelper {
         try {
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             renderToPdf(html, out);
+            
+            File f = new File("C:\\\\test\\" + System.currentTimeMillis() + ".pdf");
+            FileOutputStream fout = new FileOutputStream(f);
+            fout.write(out.toByteArray());
+            fout.close();
             
             PdfReader pdfReader = new PdfReader(out.toByteArray());
             int result = pdfReader.getNumberOfPages();

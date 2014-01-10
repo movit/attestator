@@ -13,6 +13,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.log4j.Logger;
 
 import com.attestator.admin.server.helper.print.PrintHelper;
+import com.attestator.admin.server.helper.print.PrintHelper.PrintingMedia;
 import com.attestator.common.server.helper.ServerHelper;
 import com.attestator.common.shared.helper.CheckHelper;
 import com.attestator.common.shared.helper.StringHelper;
@@ -65,7 +66,7 @@ public class DownloadPdfServlet extends HttpServlet {
                     ZipEntry zipEntry = new ZipEntry(pdfFileName);
                     zout.putNextEntry(zipEntry);
                     
-                    String testHtml = PrintHelper.printTest(metatest, properties, "" + (i+1));                    
+                    String testHtml = PrintHelper.printTest(metatest, properties, "" + (i+1), PrintingMedia.pdf);                    
                     PrintHelper.renderToPdf(testHtml, pzout);
                 }
                 zout.close();
@@ -75,7 +76,7 @@ public class DownloadPdfServlet extends HttpServlet {
                 response.setContentType("application/pdf");
                 response.setHeader( "Content-Disposition", "attachment; filename=" + "\"" + fileName + "\";" );
                 
-                String testHtml = PrintHelper.printTest(metatest, properties);
+                String testHtml = PrintHelper.printTest(metatest, properties, null, PrintingMedia.pdf);
                 PrintHelper.renderToPdf(testHtml, response.getOutputStream());
                 
                 response.getOutputStream().close();
