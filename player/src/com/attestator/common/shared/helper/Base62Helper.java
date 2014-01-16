@@ -1,5 +1,6 @@
 package com.attestator.common.shared.helper;
 
+
 public class Base62Helper {
     
     private static final String ALPHABET = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";    
@@ -20,7 +21,7 @@ public class Base62Helper {
     }
     
     public static String getRandomBase62LongId() {
-        long seed = (long)( Math.random() * Long.MAX_VALUE);
+        long seed = (long)(Math.random() * Long.MAX_VALUE);
         return encode(seed);
     }
     

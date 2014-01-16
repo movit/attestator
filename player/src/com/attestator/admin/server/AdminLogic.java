@@ -242,7 +242,7 @@ public class AdminLogic extends CommonLogic {
     
     public void savePrintigProperties(PrintingPropertiesVO properties) {
         CheckHelper.throwIfNull(properties, "properties");
-        properties.setPrintAttempt(properties.getPrintAttempt() + 1);
+        properties.setPrintAttempt(properties.getPrintAttemptOrZero() + 1);
         Singletons.ds().save(properties);
     }
 
@@ -555,7 +555,7 @@ public class AdminLogic extends CommonLogic {
                 return new Double(stringFilterValue);
             }
             else if (Boolean.class.isAssignableFrom(nativeField.getType())) {
-                return new Boolean(stringFilterValue);
+                return Boolean.valueOf(stringFilterValue);
             }
             else if (Date.class.isAssignableFrom(nativeField.getType())) {
                 return (new SimpleDateFormat(SharedConstants.DATE_TRANSFER_FORMAT)).parse(stringFilterValue);

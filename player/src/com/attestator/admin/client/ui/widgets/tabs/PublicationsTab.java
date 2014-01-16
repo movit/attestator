@@ -179,7 +179,7 @@ public class PublicationsTab extends Tab {
                 }
                 else if (value instanceof MetaTestVO) {
                     MetaTestVO metatest = (MetaTestVO) value;
-                    sb.appendHtmlConstant("<b>Тест &laquo;" + metatest.getName() + "&raquo;</b> (" + ReportHelper.formatQuestionsCount(metatest.getNumberOfQuestions()) + ")");
+                    sb.appendHtmlConstant("<b>Тест &laquo;" + metatest.getName() + "&raquo;</b> (" + ReportHelper.formatQuestionsCount(metatest.getNumberOfQuestionsOrZero()) + ")");
                 }
             }
         });        

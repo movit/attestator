@@ -158,7 +158,6 @@ public class PrintWindow implements IsWidget, Editor<PrintingPropertiesVO>{
                 else if (mode == Mode.saveAsPdf) {
                     super.onSuccess(result);
                     String url = "admin/downloadpdf?printingPropertiesId=" + properties.getId();
-                    //WindowHelper.openFile(url);
                     WindowHelper.downloadFile(url);
                 }
             }            

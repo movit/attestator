@@ -198,7 +198,7 @@ public class PublicationWindow implements IsWidget, Editor<PublicationVO>, HasSa
             if (StringHelper.isEmptyOrNull(aq.getText())) {
                 sb.append("Название поля не может быть пустым" + "<br>");                
                 if (ensureVisibleWidget == null) {
-                    AdditionalQuestionItem aqItem = additionalQuestions.getAdditonalQuestionItem(aq.getOrder());
+                    AdditionalQuestionItem aqItem = additionalQuestions.getAdditonalQuestionItem(aq.getOrderOrZero());
                     ensureVisibleWidget = aqItem.getTextField();
                     focusWidget = aqItem.getTextField();
                 }         
@@ -208,7 +208,7 @@ public class PublicationWindow implements IsWidget, Editor<PublicationVO>, HasSa
                 if (StringHelper.isEmptyOrNull(aq.getCheckValue())) {
                     sb.append("Секретный ключ не может быть пустым" + "<br>");                
                     if (ensureVisibleWidget == null) {
-                        AdditionalQuestionItem aqItem = additionalQuestions.getAdditonalQuestionItem(aq.getOrder());
+                        AdditionalQuestionItem aqItem = additionalQuestions.getAdditonalQuestionItem(aq.getOrderOrZero());
                         ensureVisibleWidget = aqItem.getCheckValueField();
                         focusWidget = aqItem.getCheckValueField();
                     }
@@ -332,7 +332,7 @@ public class PublicationWindow implements IsWidget, Editor<PublicationVO>, HasSa
         Collections.sort(publication.getAdditionalQuestions(), new Comparator<AdditionalQuestionVO>() {
             @Override
             public int compare(AdditionalQuestionVO o1, AdditionalQuestionVO o2) {
-                return o1.getOrder() - o2.getOrder();
+                return o1.getOrderOrZero() - o2.getOrderOrZero();
             }
         });
         

@@ -1,7 +1,6 @@
 package com.attestator.admin.client.props;
 
 import com.attestator.common.shared.helper.DateHelper;
-import com.attestator.common.shared.helper.NullHelper;
 import com.attestator.common.shared.vo.AdditionalQuestionVO;
 import com.attestator.common.shared.vo.BaseVO;
 import com.attestator.common.shared.vo.MetaTestVO;
@@ -191,8 +190,8 @@ public class PublicationsTreePropertyAccess {
          @Override
          public String getValue(PublicationsTreeItem object) {
              if (object instanceof PublicationVO) {
-                 if (NullHelper.nullSafeIntegerOrZerro(((PublicationVO) object).getMaxAttempts()) > 0) {
-                     return ((PublicationVO) object).getMaxAttempts().toString();
+                 if (((PublicationVO) object).getMaxAttemptsOrZero() > 0) {
+                     return "" + ((PublicationVO) object).getMaxAttemptsOrZero();
                  }
                  else {
                      return "неограничено";
@@ -207,8 +206,8 @@ public class PublicationsTreePropertyAccess {
          @Override
          public String getValue(PublicationsTreeItem object) {
              if (object instanceof PublicationVO) {
-                 if (NullHelper.nullSafeLongOrZerro(((PublicationVO) object).getMinScore()) > 0) {
-                     return ((PublicationVO) object).getMinScore().toString();
+                 if (((PublicationVO) object).getMinScoreOrZero() > 0) {
+                     return "" + ((PublicationVO) object).getMinScoreOrZero();
                  }
                  else {
                      return "неважно";
@@ -234,8 +233,8 @@ public class PublicationsTreePropertyAccess {
          @Override
          public String getValue(PublicationsTreeItem object) {
              if (object instanceof PublicationVO) {
-                 if (NullHelper.nullSafeLongOrZerro(((PublicationVO) object).getMaxTakeTestTime()) > 0) {
-                     return DateHelper.formatTimeValue(((PublicationVO) object).getMaxTakeTestTime() / 1000);
+                 if (((PublicationVO) object).getMaxTakeTestTimeOrZero() > 0) {
+                     return DateHelper.formatTimeValue(((PublicationVO) object).getMaxTakeTestTimeOrZero() / 1000);
                  }
                  else {
                      return "неограничено";

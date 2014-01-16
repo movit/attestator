@@ -41,7 +41,7 @@ public class DownloadPdfServlet extends HttpServlet {
             MetaTestVO metatest = Singletons.al().get(MetaTestVO.class, properties.getMetatestId());
             CheckHelper.throwIfNull(metatest, "metatest");
                         
-            String fileNameBase = metatest.getName() + "_" + properties.getPrintAttempt();
+            String fileNameBase = metatest.getName() + "_" + properties.getPrintAttemptOrZero();
             fileNameBase = fileNameBase.replaceAll("\\s+", "_");
             fileNameBase = StringHelper.toTranslit(fileNameBase);
             
@@ -61,7 +61,7 @@ public class DownloadPdfServlet extends HttpServlet {
                 ZipOutputStream zout = new ZipOutputStream(response.getOutputStream());
                 OutputStream pzout = ServerHelper.createNonClosingProxy(zout);
                 
-                for (int i = 0; i < properties.getVariantsCount(); i++) {
+                for (int i = 0; i < properties.getVariantsCountOrZero(); i++) {
                     String pdfFileName = fileNameBase + "_" + (i+1) + ".pdf";
                     ZipEntry zipEntry = new ZipEntry(pdfFileName);
                     zout.putNextEntry(zipEntry);

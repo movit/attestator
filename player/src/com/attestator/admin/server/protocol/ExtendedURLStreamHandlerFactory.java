@@ -56,16 +56,11 @@ public class ExtendedURLStreamHandlerFactory implements URLStreamHandlerFactory 
         if (instance == null) {
             try {
                 Field factoryField = URL.class.getDeclaredField("factory");
-                if (factoryField != null) {
-                    factoryField.setAccessible(true);
-                    URLStreamHandlerFactory baseFactory = (URLStreamHandlerFactory)factoryField.get(null);
-                    instance = new ExtendedURLStreamHandlerFactory(baseFactory);
-                    factoryField.set(null, instance);
-                }
-                else {
-                    instance = new ExtendedURLStreamHandlerFactory(null);
-                    URL.setURLStreamHandlerFactory(instance);
-                }
+                
+                factoryField.setAccessible(true);
+                URLStreamHandlerFactory baseFactory = (URLStreamHandlerFactory)factoryField.get(null);
+                instance = new ExtendedURLStreamHandlerFactory(baseFactory);
+                factoryField.set(null, instance);
             }
             catch (Throwable e) {            
             }

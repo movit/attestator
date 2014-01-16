@@ -295,7 +295,7 @@ public class DateFilterExt<M> extends Filter<M, Date> {
     }
     if (onItem.isChecked() && onMenu.getDate() != null) {
       long pvalue = new DateWrapper(onMenu.getDate()).resetTime().getTime();
-      if (d == null || pvalue != (d == null ? 0l : new DateWrapper(d).resetTime().getTime())) {
+      if (d == null || pvalue != (new DateWrapper(d).resetTime().getTime())) {
         return false;
       }
     }

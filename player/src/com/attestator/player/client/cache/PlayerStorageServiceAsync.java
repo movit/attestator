@@ -250,7 +250,7 @@ public class PlayerStorageServiceAsync implements PlayerServiceAsync {
                 List<ActivePublicationDTO> activePublications = psc.getItem((Class<List<ActivePublicationDTO>>) (Class<?>) ArrayList.class, apKey);
                 ActivePublicationDTO ap = getActivePublication(activePublications, publicationId);
                 if (ap != null) {
-                    if (ap.getAttemptsLeft() <= 0) {
+                    if (!ap.getPublication().isThisUnlimitedAttempts() && ap.getAttemptsLeftOrZero() <= 0) {
                         return null;
                     }
                 }
@@ -334,8 +334,10 @@ public class PlayerStorageServiceAsync implements PlayerServiceAsync {
             List<ActivePublicationDTO> activePublications = psc.getItem((Class<List<ActivePublicationDTO>>) (Class<?>) ArrayList.class, apKey);
             ActivePublicationDTO activePublication = getActivePublication(activePublications, reportPublication.getId());
             if (activePublication != null) {
-                long attemptsLeft = Math.max(activePublication.getAttemptsLeft() - 1, 0);
-                activePublication.setAttemptsLeft(attemptsLeft);
+                if (!activePublication.getPublication().isThisUnlimitedAttempts()) {
+                    long attemptsLeft = Math.max(activePublication.getAttemptsLeftOrZero() - 1, 0);
+                    activePublication.setAttemptsLeft(attemptsLeft);
+                }                
                 psc.setItem(apKey, activePublications);
             }
         }
@@ -366,6 +368,7 @@ public class PlayerStorageServiceAsync implements PlayerServiceAsync {
     }
 
     private boolean isOnline() {
+        //return false;
         return online <= 0;
     }
 

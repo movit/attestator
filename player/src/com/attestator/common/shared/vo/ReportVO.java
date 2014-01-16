@@ -162,6 +162,10 @@ public class ReportVO extends TenantableVO {
     public Double getScore() {
         return score;
     }
+    
+    public double getScoreOrZero() {
+        return NullHelper.nullSafeDoubleOrZerro(score);
+    }
 
     public void setScore(Double score) {
         this.score = score;
@@ -170,6 +174,10 @@ public class ReportVO extends TenantableVO {
     public Integer getNumErrors() {
         return numErrors;
     }
+    
+    public int getNumErrorsOrZero() {
+        return NullHelper.nullSafeIntegerOrZerro(numErrors);
+    }
 
     public void setNumErrors(Integer numErrors) {
         this.numErrors = numErrors;
@@ -177,6 +185,10 @@ public class ReportVO extends TenantableVO {
 
     public Integer getNumAnswers() {
         return numAnswers;
+    }
+    
+    public int getNumAnswersOrZero() {
+        return NullHelper.nullSafeIntegerOrZerro(numAnswers);
     }
 
     public void setNumAnswers(Integer numAnswers) {
@@ -193,6 +205,10 @@ public class ReportVO extends TenantableVO {
 
     public Integer getNumUnanswered() {
         return numUnanswered;
+    }
+    
+    public int getNumUnansweredOrZero() {
+        return NullHelper.nullSafeIntegerOrZerro(numUnanswered);
     }
 
     public void setNumUnanswered(Integer numUnanswered) {

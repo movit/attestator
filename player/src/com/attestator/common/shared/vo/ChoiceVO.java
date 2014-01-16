@@ -28,6 +28,9 @@ public class ChoiceVO extends BaseVO {
     public Integer getOrder() {
         return order;
     }
+    public int getOrderOrZero() {
+        return NullHelper.nullSafeIntegerOrZerro(order);
+    }
     public void setOrder(Integer order) {
         this.order = order;
     }

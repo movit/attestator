@@ -60,7 +60,7 @@ public class PlayerServiceImpl extends RemoteServiceServlet implements
                         numberOfAttempts--;
                     }
                     
-                    long attemptsLeft = publication.getMaxAttempts() - numberOfAttempts;
+                    long attemptsLeft = publication.getMaxAttemptsOrZero() - numberOfAttempts;
                     attemptsLeft = Math.max(attemptsLeft, 0);                    
                     resultItem.setAttemptsLeft(attemptsLeft);
                 }
@@ -185,7 +185,7 @@ public class PlayerServiceImpl extends RemoteServiceServlet implements
 
             if (!publication.isThisUnlimitedAttempts()) {
                 long numberOfAttempts = Singletons.pl().getNumberOfAttempts(publicationId, clientId);
-                if (numberOfAttempts >= publication.getMaxAttempts()) {
+                if (numberOfAttempts >= publication.getMaxAttemptsOrZero()) {
                     return null;
                 }
             }
@@ -223,7 +223,7 @@ public class PlayerServiceImpl extends RemoteServiceServlet implements
             // We have something for renew and this is has limited attempts
             if (result != null && !result.getPublication().isThisUnlimitedAttempts()) {
                 long numberOfAttempts = Singletons.pl().getNumberOfAttempts(publicationId, clientId);
-                if (numberOfAttempts > result.getPublication().getMaxAttempts()) {
+                if (numberOfAttempts > result.getPublication().getMaxAttemptsOrZero()) {
                     return null;
                 }
             }

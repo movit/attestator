@@ -62,8 +62,8 @@ public class ReportHelper {
             hb.startTag("div", "reportStudentName").appendText(name).endTag("div");
         }
         
-        if (report.getPublication().getThisMinScore() > 0) {
-            String passedStr = report.getScore() >= report.getPublication().getThisMinScore() ? "да" : "нет";
+        if (report.getPublication().getMinScoreOrZero() > 0) {
+            String passedStr = report.getScoreOrZero() >= report.getPublication().getMinScoreOrZero() ? "да" : "нет";
             hb.appendText("Аттестован:&nbsp;<b>" + passedStr + "</b>, ");
         }
         
@@ -96,11 +96,11 @@ public class ReportHelper {
         hb.appendText("<br/>");
         
         String totalScoreStr = "";
-        if ((report.getScore() - report.getScore().intValue()) == 0) {
-            totalScoreStr = "" + report.getScore().intValue();
+        if ((report.getScoreOrZero() - (int)report.getScoreOrZero()) == 0) {
+            totalScoreStr = "" + (int)report.getScoreOrZero();
         }
         else {
-            totalScoreStr = "" + report.getScore() ;
+            totalScoreStr = "" + report.getScoreOrZero() ;
         }
          
         
@@ -338,7 +338,7 @@ public class ReportHelper {
         
         double possibleScore = score;
         for (QuestionVO question: questions) {
-            possibleScore += question.getScore();
+            possibleScore += question.getScoreOrZero();
         }
         
         return possibleScore;
@@ -349,8 +349,8 @@ public class ReportHelper {
             return false;
         }
         
-        Long maxTakeTestTime = report.getPublication().getMaxTakeTestTime();
-        if (maxTakeTestTime != null && report.getStart() != null) {
+        long maxTakeTestTime = report.getPublication().getMaxTakeTestTimeOrZero();
+        if (maxTakeTestTime > 0 && report.getStart() != null) {
             Date testEnd = new Date(report.getStart().getTime() + maxTakeTestTime);
             Date now = new Date();
             if (testEnd.before(now)) {

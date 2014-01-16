@@ -69,6 +69,9 @@ public class PrintingPropertiesVO extends TenantableVO implements PublicationsTr
     public Integer getPrintAttempt() {
         return printAttempt;
     }
+    public Integer getPrintAttemptOrZero() {
+        return NullHelper.nullSafeIntegerOrZerro(printAttempt);
+    }
     public void setPrintAttempt(Integer printAttempt) {
         this.printAttempt = printAttempt;
     }
@@ -93,6 +96,9 @@ public class PrintingPropertiesVO extends TenantableVO implements PublicationsTr
     public Integer getVariantsCount() {
         return variantsCount;
     }
+    public int getVariantsCountOrZero() {
+        return NullHelper.nullSafeIntegerOrZerro(variantsCount);
+    }    
     public void setVariantsCount(Integer variantsCount) {
         this.variantsCount = variantsCount;
     }    

@@ -26,5 +26,6 @@
 	<classpathentry kind="lib" path="war/WEB-INF/lib/core-renderer.jar"/>
 	<classpathentry kind="lib" path="war/WEB-INF/lib/iText-2.0.8.jar"/>
 	<classpathentry kind="lib" path="war/WEB-INF/lib/PrintIt-1.13.jar"/>
+	<classpathentry kind="lib" path="war/WEB-INF/lib/joda-time-2.3.jar"/>
 	<classpathentry kind="output" path="war/WEB-INF/classes"/>
 </classpath>

@@ -151,7 +151,7 @@ public class PrintHelper {
     
     
     private static void printSingleTestVariant(MetaTestVO metatest, PrintingPropertiesVO properties, HtmlBuilder answersHb, HtmlBuilder variantsHb, PageMode mode, PrintingMedia media, boolean breakAfterLastPage, String varantNo) {
-        String variant = "" + properties.getPrintAttempt() + "-" + varantNo;
+        String variant = "" + properties.getPrintAttemptOrZero() + "-" + varantNo;
         
         List<QuestionVO> questions = Singletons.al().generateQuestionsList(metatest, properties.isThisRandomQuestionsOrder());            
         
@@ -172,8 +172,8 @@ public class PrintHelper {
         
         if (variantNo == null) {
             // Print all variants            
-            for (int i = 0; i < properties.getVariantsCount(); i++) {
-                boolean breakAfterLastPage = i < (properties.getVariantsCount() - 1);
+            for (int i = 0; i < properties.getVariantsCountOrZero(); i++) {
+                boolean breakAfterLastPage = i < (properties.getVariantsCountOrZero() - 1);
                 printSingleTestVariant(metatest, properties, answersHb, variantsHb, mode, media, breakAfterLastPage, "" + (i + 1));
             }
         }

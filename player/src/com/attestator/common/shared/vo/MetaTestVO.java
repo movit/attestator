@@ -30,6 +30,9 @@ public class MetaTestVO extends TenantableVO implements PublicationsTreeItem {
     public Integer getNumberOfQuestions() {
         return numberOfQuestions;
     }
+    public int getNumberOfQuestionsOrZero() {
+        return NullHelper.nullSafeIntegerOrZerro(numberOfQuestions);
+    }
     public void setNumberOfQuestions(Integer numberOfQuestions) {
         this.numberOfQuestions = numberOfQuestions;
     }
@@ -38,7 +41,7 @@ public class MetaTestVO extends TenantableVO implements PublicationsTreeItem {
     private void prePersist() {
         int count = 0;
         for (MetaTestEntryVO entry : entries) {
-            count += NullHelper.nullSafeIntegerOrZerro(entry.getNumberOfQuestions());
+            count += entry.getNumberOfQuestionsOrZero();
         }
         numberOfQuestions = count;
     }

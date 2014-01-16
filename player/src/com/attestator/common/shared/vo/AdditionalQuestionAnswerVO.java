@@ -1,5 +1,7 @@
 package com.attestator.common.shared.vo;
 
+import com.attestator.common.shared.helper.NullHelper;
+
 
 public class AdditionalQuestionAnswerVO extends BaseVO {
     private static final long serialVersionUID = -570096777625498816L;
@@ -26,6 +28,10 @@ public class AdditionalQuestionAnswerVO extends BaseVO {
 
     public Boolean getValueChecked() {
         return valueChecked;
+    }
+    
+    public boolean isThisValueChecked() {
+        return NullHelper.nullSafeTrue(valueChecked);
     }
 
     public void setValueChecked(Boolean valueChecked) {

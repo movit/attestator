@@ -1,5 +1,6 @@
 package com.attestator.player.shared.dto;
 
+import com.attestator.common.shared.helper.NullHelper;
 import com.attestator.common.shared.vo.PublicationVO;
 
 public class ActivePublicationDTO extends BaseDTO {
@@ -17,6 +18,9 @@ public class ActivePublicationDTO extends BaseDTO {
     public Long getAttemptsLeft() {
         return attemptsLeft;
     }
+    public long getAttemptsLeftOrZero() {
+        return NullHelper.nullSafeLongOrZerro(attemptsLeft);
+    }   
     public void setAttemptsLeft(Long attemptsLeft) {
         this.attemptsLeft = attemptsLeft;
     }

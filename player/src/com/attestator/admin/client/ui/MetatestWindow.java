@@ -427,9 +427,9 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
                     event.setCancelled(true);
                 }
                 else {
-                    questionsCountConverter.setPrevValue(entry.getNumberOfQuestions());
+                    questionsCountConverter.setPrevValue(entry.getNumberOfQuestionsOrZero());
                     questionsCountConverter.setMinValue(1);
-                    questionsCountConverter.setMaxValue(((MTEGroupVO)entry).getGroup().getQuestionsCount().intValue());
+                    questionsCountConverter.setMaxValue((int)((MTEGroupVO)entry).getGroup().getQuestionsCountOrZero());
                     
                     questionsCountEditor.clearInvalid();
                 }
@@ -491,7 +491,7 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
                     GroupVO group = ((MTEGroupVO) value).getGroup();
                     if (group != null) {
                         sb.appendHtmlConstant("<b>Группа: </b> &laquo;"  + group.getName() + "&raquo;, всего " + 
-                                ReportHelper.formatQuestionsCount(group.getQuestionsCount().intValue()));
+                                ReportHelper.formatQuestionsCount((int)group.getQuestionsCountOrZero()));
                     }
                 }
                 sb.appendHtmlConstant("</div>");
@@ -812,7 +812,7 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
             MTEGroupVO entry = new MTEGroupVO();
             entry.setGroupId(group.getId());
             entry.setGroup(group);
-            entry.setNumberOfQuestions(group.getQuestionsCount().intValue());
+            entry.setNumberOfQuestions((int)group.getQuestionsCountOrZero());
             entriesToAdd.add(entry);
         }
         

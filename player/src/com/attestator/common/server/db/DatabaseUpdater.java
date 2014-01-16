@@ -46,20 +46,20 @@ public class DatabaseUpdater {
         }
         
         logger.info("Current database version " + version.getVersion());
-        if (version.getVersion() < DB_VERSION) {
+        if (version.getVersionOrZero() < DB_VERSION) {
             logger.info("Updating to " + DB_VERSION);
         }
         
-        if (version.getVersion() < 1) {
+        if (version.getVersionOrZero() < 1) {
             addTestData();
         }
         
-        if (version.getVersion() < 2) {
+        if (version.getVersionOrZero() < 2) {
             Query<ChangeMarkerVO> q = Singletons.rawDs().createQuery(ChangeMarkerVO.class);
             Singletons.rawDs().delete(q);
         }
         
-        if (version.getVersion() < 10) {
+        if (version.getVersionOrZero() < 10) {
             Query<PublicationVO> q = Singletons.rawDs().createQuery(PublicationVO.class);
             q.disableValidation().field("additionalQuestions.checkValue").exists();
             UpdateOperations<PublicationVO> uo = Singletons.rawDs().createUpdateOperations(PublicationVO.class);
@@ -73,11 +73,11 @@ public class DatabaseUpdater {
             Singletons.rawDs().update(q, uo);
         }
 
-        if (version.getVersion() < 11) {
+        if (version.getVersionOrZero() < 11) {
             Singletons.rawDs().ensureIndexes();
         }
         
-        if (version.getVersion() < 21) {
+        if (version.getVersionOrZero() < 21) {
             Date now = new Date();
             try {
                 Set<Class<? extends ModificationDateAwareVO>> modificationAwareClasses = 
@@ -131,21 +131,21 @@ public class DatabaseUpdater {
             }
         }
 
-        if (version.getVersion() < 22) {
+        if (version.getVersionOrZero() < 22) {
             loadAndSave(MetaTestVO.class);
         }
         
-        if (version.getVersion() < 25) {
+        if (version.getVersionOrZero() < 25) {
             Query<PrintingPropertiesVO> q = Singletons.rawDs().createQuery(PrintingPropertiesVO.class);            
             Singletons.rawDs().delete(q);
         }
         
-        if (version.getVersion() < 26) {
+        if (version.getVersionOrZero() < 26) {
             Query<PrintingPropertiesVO> q = Singletons.rawDs().createQuery(PrintingPropertiesVO.class);            
             Singletons.rawDs().delete(q);
         }
         
-        if (version.getVersion() < DB_VERSION) {
+        if (version.getVersionOrZero() < DB_VERSION) {
             resetChangeMarkers();
             
             version.setVersion(DB_VERSION);

@@ -201,11 +201,15 @@ public class PublicationVO extends TenantableVO implements PublicationsTreeItem 
     }
     
     public boolean isThisUnlimitedAttempts() {
-        return NullHelper.nullSafeIntegerOrZerro(maxAttempts) == 0;
+        return getMaxAttemptsOrZero() == 0;
     }
     
     public Integer getMaxAttempts() {
         return maxAttempts;
+    }
+    
+    public int getMaxAttemptsOrZero() {
+        return NullHelper.nullSafeIntegerOrZerro(maxAttempts);
     }
 
     public void setMaxAttempts(Integer maxAttempts) {
@@ -224,12 +228,18 @@ public class PublicationVO extends TenantableVO implements PublicationsTreeItem 
     public Long getMaxTakeTestTime() {
         return maxTakeTestTime;
     }
+    public long getMaxTakeTestTimeOrZero() {
+        return NullHelper.nullSafeLongOrZerro(maxTakeTestTime);
+    }
     public void setMaxTakeTestTime(Long maxTakeTestTime) {
         this.maxTakeTestTime = maxTakeTestTime;
     }
     public Long getMaxQuestionAnswerTime() {
         return maxQuestionAnswerTime;
     }
+    public long getMaxQuestionAnswerTimeOrZero() {
+        return NullHelper.nullSafeLongOrZerro(maxQuestionAnswerTime);
+    }    
     public void setMaxQuestionAnswerTime(Long maxQuestionAnswerTime) {
         this.maxQuestionAnswerTime = maxQuestionAnswerTime;
     }
@@ -260,7 +270,7 @@ public class PublicationVO extends TenantableVO implements PublicationsTreeItem 
     public void setAllowInterruptTest(Boolean allowInterruptTest) {
         this.allowInterruptTest = allowInterruptTest;
     }    
-    public double getThisMinScore() {
+    public double getMinScoreOrZero() {
         return NullHelper.nullSafeDoubleOrZerro(minScore);
     }    
     public Double getMinScore() {

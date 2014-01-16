@@ -34,4 +34,5 @@ public class DateHelper {
     public static long getTimePart(Date date) {
         return date.getTime() % MILLISECONDS_IN_DAY;
     }
+    
 }

@@ -49,6 +49,10 @@ public abstract class QuestionVO extends TenantableVO {
         this.maxQuestionAnswerTime = maxQuestionAnswerTime;
     }
 
+    public double getScoreOrZero() {
+        return NullHelper.nullSafeDoubleOrZerro(score);
+    }
+    
     public Double getScore() {
         return score;
     }
@@ -60,14 +64,18 @@ public abstract class QuestionVO extends TenantableVO {
     public Double getPenalty() {
         return penalty;
     }
+    
+    public double getPenaltyOrZero() {
+        return NullHelper.nullSafeDoubleOrZerro(penalty);
+    }
 
     public void setPenalty(Double penalty) {
         this.penalty = penalty;
     }
 
     public double getAnswerScore(AnswerVO answer) {
-        Double questionScore = isRightAnswer(answer) ? getScore()
-                : getPenalty();
+        Double questionScore = isRightAnswer(answer) ? getScoreOrZero()
+                : -getPenaltyOrZero();
         return NullHelper.nullSafeDoubleOrZerro(questionScore);
     }
 

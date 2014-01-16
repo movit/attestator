@@ -442,8 +442,8 @@ public class TestScreen extends MainScreen {
                     addNavigationButtons();
                 }
 
-                if (publication.getMaxTakeTestTime() != null) {
-                    Long maxTakeTestTime = publication.getMaxTakeTestTime();
+                if (publication.getMaxTakeTestTimeOrZero() > 0) {
+                    long maxTakeTestTime = publication.getMaxTakeTestTimeOrZero();
                     if (report.getStart() != null) {
                         maxTakeTestTime = maxTakeTestTime - (System.currentTimeMillis() - report.getStart().getTime());
                     }                     
@@ -532,8 +532,8 @@ public class TestScreen extends MainScreen {
         int no = nextUnansweredQuestion(questionNo);
 
         boolean interrupt = false;
-        if (report.getPublication().getThisMinScore() > 0 && report.getPublication().isThisInterruptOnFalure()) {
-            interrupt = ReportHelper.getPossibleScore(report, no) < report.getPublication().getThisMinScore();
+        if (report.getPublication().getMinScoreOrZero() > 0 && report.getPublication().isThisInterruptOnFalure()) {
+            interrupt = ReportHelper.getPossibleScore(report, no) < report.getPublication().getMinScoreOrZero();
         }
 
         if (interrupt) {
@@ -633,12 +633,9 @@ public class TestScreen extends MainScreen {
             return 0;
         }
         if (report.getQuestions().get(no).getMaxQuestionAnswerTime() != null) {
-            return report.getQuestions().get(no)
-                    .getMaxQuestionAnswerTime();
-        } else if (publication.getMaxQuestionAnswerTime() != null) {
-            return publication.getMaxQuestionAnswerTime();
-        }
-        return 0;
+            return report.getQuestions().get(no).getMaxQuestionAnswerTime();                    
+        } 
+        return publication.getMaxQuestionAnswerTimeOrZero();
     }
 
     private boolean isPublicationStateNeeded() {

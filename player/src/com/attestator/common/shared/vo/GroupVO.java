@@ -1,6 +1,7 @@
 package com.attestator.common.shared.vo;
 
 import com.attestator.common.server.db.annotation.ReferenceCount;
+import com.attestator.common.shared.helper.NullHelper;
 import com.google.code.morphia.annotations.Entity;
 import com.google.code.morphia.annotations.Transient;
 
@@ -35,6 +36,10 @@ public class GroupVO extends TenantableVO {
 
     public Long getQuestionsCount() {
         return questionsCount;
+    }
+    
+    public long getQuestionsCountOrZero() {
+        return NullHelper.nullSafeLongOrZerro(questionsCount);
     }
     
     public void setQuestionsCount(Long questionsCount) {

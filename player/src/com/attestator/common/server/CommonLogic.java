@@ -107,8 +107,8 @@ public class CommonLogic {
                 List<String>    availableGroupQuestions = questionsIdsByGroup.get(mteGroup.getGroupId());
                 
                 int numOfQuestionsToAdd = 0;
-                if (mteGroup.getNumberOfQuestions() != null) {
-                    numOfQuestionsToAdd = Math.min(mteGroup.getNumberOfQuestions(), availableGroupQuestions.size()); 
+                if (mteGroup.getNumberOfQuestionsOrZero() > 0) {
+                    numOfQuestionsToAdd = Math.min(mteGroup.getNumberOfQuestionsOrZero(), availableGroupQuestions.size()); 
                 }
                 else {
                     numOfQuestionsToAdd = availableGroupQuestions.size();

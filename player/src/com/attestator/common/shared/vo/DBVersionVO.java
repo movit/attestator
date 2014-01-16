@@ -1,5 +1,6 @@
 package com.attestator.common.shared.vo;
 
+import com.attestator.common.shared.helper.NullHelper;
 import com.google.code.morphia.annotations.Entity;
 
 @Entity("dbversion")
@@ -10,7 +11,9 @@ public class DBVersionVO extends BaseVO {
     public Integer getVersion() {
         return version;
     }
-
+    public int getVersionOrZero() {
+        return NullHelper.nullSafeIntegerOrZerro(version);
+    }
     public void setVersion(Integer version) {
         this.version = version;
     }

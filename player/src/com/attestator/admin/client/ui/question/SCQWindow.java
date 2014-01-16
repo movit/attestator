@@ -59,7 +59,7 @@ public class SCQWindow implements IsWidget, Editor<SingleChoiceQuestionVO>, HasS
     private static Comparator<ChoiceVO> choicesOrderComparator = new Comparator<ChoiceVO>() {
         @Override
         public int compare(ChoiceVO o1, ChoiceVO o2) {
-            return o1.getOrder() - o2.getOrder();
+            return o1.getOrderOrZero() - o2.getOrderOrZero();
         }
     };
     
