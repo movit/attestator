@@ -26,7 +26,7 @@ public final class PlayerWebApplication implements ServletContextListener {
         try {
             Singletons.shutDown();
         } catch (Exception ex) {
-            logger.error("Cannot shutdown the application", ex);
+            logger.error("Can't correctly shutdown the application", ex);
         }
     }
 }

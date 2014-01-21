@@ -6,9 +6,11 @@ import javax.security.auth.login.LoginException;
 import javax.servlet.ServletContext;
 
 import com.attestator.admin.server.AdminLogic;
+import com.attestator.common.server.RawDsLogic;
 import com.attestator.common.server.db.DatabaseUpdater;
 import com.attestator.common.server.db.DatastoreInvocationHandler;
 import com.attestator.common.server.db.Interceptor;
+import com.attestator.common.server.db.SafeDatastore;
 import com.attestator.common.server.helper.ServerHelper;
 import com.google.code.morphia.Datastore;
 import com.google.code.morphia.Morphia;
@@ -17,26 +19,18 @@ import com.mongodb.Mongo;
 import com.mongodb.MongoClient;
 
 public class Singletons {
-    private static Morphia      morphia;
-    private static Mongo        mongo;
-    private static Datastore    rawDs;
-    private static Datastore    ds;
-    private static DB           db;
-    private static PlayerLogic  pl;
-    private static AdminLogic   al;
+    private static Morphia       morphia;
+    private static Mongo         mongo;
+    private static SafeDatastore ds;
+    private static DB            db;
+    private static PlayerLogic   pl;
+    private static AdminLogic    al;
+    private static RawDsLogic    rl;
     
-    public static Datastore rawDs() {
-        return rawDs;
-    }
-
-    public static Datastore ds() {
+   public static SafeDatastore ds() {
         return ds;
     }
     
-    public static DB db() {
-        return db;
-    }
-
     public static PlayerLogic pl() {
         return pl;
     }
@@ -45,6 +39,10 @@ public class Singletons {
         return al;
     }
     
+    public static RawDsLogic rl() {
+        return rl;
+    }
+   
     /**
      * Invoked when the web application starts.
      */
@@ -63,14 +61,19 @@ public class Singletons {
         }
         
         morphia = new Morphia();
-        rawDs   = morphia.createDatastore(mongo, "attestator");
-        ds      = (Datastore) Proxy.newProxyInstance(Datastore.class.getClassLoader(), new Class[] {Datastore.class}, new DatastoreInvocationHandler(rawDs)); 
+        Datastore rawDs = morphia.createDatastore(mongo, "attestator");
+        ds      = (SafeDatastore) Proxy.newProxyInstance(SafeDatastore.class.getClassLoader(), new Class[] {SafeDatastore.class}, new DatastoreInvocationHandler(rawDs)); 
         morphia.mapPackage("com.attestator.common.shared.vo");
+        // Update database should be called before installing interceptor.
+        // Because interceptor must work only with logged in environment.
+        // DatabaseUpdater can't rely on annotation handling which done by interceptor.
+        rl      = new RawDsLogic(rawDs);
+        DatabaseUpdater dbUpdater = new DatabaseUpdater(rawDs);
+        dbUpdater.updateDatabase();
+        
         morphia.getMapper().addInterceptor(new Interceptor());
         pl      = new PlayerLogic();
         al      = new AdminLogic();
-               
-        DatabaseUpdater.updateDatabase();
     }    
     
     /**

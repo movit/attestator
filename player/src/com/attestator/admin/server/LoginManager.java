@@ -13,7 +13,6 @@ import javax.servlet.http.HttpSession;
 
 import com.attestator.common.shared.vo.UserVO;
 import com.attestator.player.server.Singletons;
-import com.google.code.morphia.query.Query;
 
 public class LoginManager implements Filter {
     public static final String USER_ATTR_NAME = "user";    
@@ -32,10 +31,8 @@ public class LoginManager implements Filter {
     }
     
     public static UserVO login(HttpSession session, String email, String md5EncodedPassword) {        
-        Query<UserVO> q = Singletons.rawDs().createQuery(UserVO.class);
-        q.field("email").equal(email);
-        q.field("password").equal(md5EncodedPassword);
-        UserVO user = q.get();
+        
+        UserVO user = Singletons.rl().getUserByLoginPassword(email, md5EncodedPassword);
         
         if (user != null) {
             session.setAttribute(USER_ATTR_NAME, user);
@@ -55,9 +52,7 @@ public class LoginManager implements Filter {
     }
 
     public static UserVO setThreadLocalTenantId(String tenantId) {
-        Query<UserVO> q = Singletons.rawDs().createQuery(UserVO.class);
-        q.field("tenantId").equal(tenantId);
-        UserVO user = q.get();        
+        UserVO user = Singletons.rl().getUserByTenantId(tenantId);      
         loggedUser.set(user);
         return user;
     }

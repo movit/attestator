@@ -29,7 +29,7 @@ public class CommonLogic {
         CheckHelper.throwIfNull(clazz, "clazz");
         CheckHelper.throwIfNullOrEmpty(id, "id");
         
-        Query<T> q = Singletons.ds().createQuery(clazz);
+        Query<T> q = Singletons.ds().createFetchQuery(clazz);
         q.field("_id").equal(id);
         T result = q.get();
         return result;
@@ -39,7 +39,7 @@ public class CommonLogic {
         CheckHelper.throwIfNullOrEmpty(groupId, "groupId");        
         
         List<String>      result = new ArrayList<String>();
-        Query<QuestionVO> q      = Singletons.ds().createQuery(QuestionVO.class);
+        Query<QuestionVO> q      = Singletons.ds().createFetchQuery(QuestionVO.class);
         
         if (groupId != null) {
             q.field("groupId").equal(groupId);

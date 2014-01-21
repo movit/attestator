@@ -11,7 +11,6 @@ import com.attestator.common.server.db.annotation.Reference;
 import com.attestator.common.server.db.annotation.ReferenceCount;
 import com.attestator.common.server.db.annotation.SetOnSave;
 import com.attestator.common.server.helper.ReflectionHelper;
-import com.attestator.common.shared.vo.TenantableVO;
 import com.attestator.player.server.Singletons;
 import com.google.code.morphia.AbstractEntityInterceptor;
 import com.google.code.morphia.mapping.MappedClass;
@@ -23,27 +22,10 @@ import com.mongodb.DBObject;
 public class Interceptor extends AbstractEntityInterceptor {
     private static Logger logger = Logger.getLogger(Interceptor.class);    
     
-    private <T> void addTenantFilter(Query<T> query, Class<T> clazz, String tenantId) {
-        if (tenantId == null) {
-            return;
-        }
-        
-        if (TenantableVO.class.isAssignableFrom(clazz)) {
-            return;
-        }
-        
-        query.field("tenantId").equal(tenantId);
-    }
-    
-    @SuppressWarnings({ "rawtypes", "unchecked" })
+    @SuppressWarnings({ "rawtypes"})
     @Override
     public void postLoad(Object obj, DBObject dbo, Mapper mapper) {
         try {
-            String objTenantId = null;
-            if (obj instanceof TenantableVO) {
-                objTenantId = ((TenantableVO) obj).getTenantId();
-            }
-            
             // Load @Reference annotated fields
             MappedClass mappedObjClazz = mapper.getMappedClass(obj);
             Field[] refernceFields = ReflectionHelper
@@ -83,8 +65,7 @@ public class Interceptor extends AbstractEntityInterceptor {
                     continue;
                 }
 
-                Query q = Singletons.rawDs().createQuery(refernceField.getType());
-                addTenantFilter(q, refernceField.getType(), objTenantId);                
+                Query q = Singletons.ds().createFetchQuery(refernceField.getType());
                 q.field(toField.getNameToStore()).equal(referenceValue);
 
                 List<String> excludeList = new ArrayList<String>(
@@ -138,8 +119,7 @@ public class Interceptor extends AbstractEntityInterceptor {
                     continue;
                 }
 
-                Query q = Singletons.rawDs().createQuery(mappedToClazz.getClazz());
-                addTenantFilter(q, mappedToClazz.getClazz(), objTenantId);                
+                Query q = Singletons.ds().createFetchQuery(mappedToClazz.getClazz());
                 q.field(refCount.toField()).equal(referenceValue);
 
                 refernceCountField.set(obj, q.countAll());
@@ -150,14 +130,10 @@ public class Interceptor extends AbstractEntityInterceptor {
         }
     }
 
-    @SuppressWarnings({ "rawtypes", "unchecked" })
+    @SuppressWarnings({ "rawtypes" })
     @Override
     public void prePersist(Object obj, DBObject dbo, Mapper mapper) {
         try {
-            String objTenantId = null;
-            if (obj instanceof TenantableVO) {
-                objTenantId = ((TenantableVO) obj).getTenantId();
-            }
             
             MappedClass objMappedClass = mapper.getMappedClass(obj);
             Field[] updatedFields = ReflectionHelper
@@ -193,8 +169,7 @@ public class Interceptor extends AbstractEntityInterceptor {
                 Field idField = idMappedField.getField();
                 idField.setAccessible(true);                
 
-                Query q = Singletons.rawDs().createQuery(targetClass);
-                addTenantFilter(q, targetClass, objTenantId);
+                Query q = Singletons.ds().createFetchQuery(targetClass);
                 q.field(idMappedField.getNameToStore()).equal(refValue);
                 q.retrievedFields(true, valueMappedField.getNameToStore());
 

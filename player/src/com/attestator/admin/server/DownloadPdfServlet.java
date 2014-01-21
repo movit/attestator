@@ -35,10 +35,10 @@ public class DownloadPdfServlet extends HttpServlet {
             String printingPropertiesId = request.getParameter("printingPropertiesId");
             CheckHelper.throwIfNullOrEmpty(printingPropertiesId, "printingPropertiesId");
             
-            PrintingPropertiesVO properties = Singletons.al().get(PrintingPropertiesVO.class, printingPropertiesId);
+            PrintingPropertiesVO properties = Singletons.al().getById(PrintingPropertiesVO.class, printingPropertiesId);
             CheckHelper.throwIfNull(properties, "properties");        
             
-            MetaTestVO metatest = Singletons.al().get(MetaTestVO.class, properties.getMetatestId());
+            MetaTestVO metatest = Singletons.al().getById(MetaTestVO.class, properties.getMetatestId());
             CheckHelper.throwIfNull(metatest, "metatest");
                         
             String fileNameBase = metatest.getName() + "_" + properties.getPrintAttemptOrZero();

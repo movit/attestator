@@ -300,7 +300,7 @@ public class AdminServiceImpl extends RemoteServiceServlet implements
     @Override
     public <T extends BaseVO> T get(String className, String id) {        
         try {
-            return Singletons.al().get((Class<T>)Class.forName(className), id);
+            return Singletons.al().getById((Class<T>)Class.forName(className), id);
         }
         catch (Throwable e) {
             logger.error("Error: ", e);

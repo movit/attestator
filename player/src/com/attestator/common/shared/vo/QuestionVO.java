@@ -5,7 +5,7 @@ import com.attestator.common.shared.helper.NullHelper;
 import com.google.code.morphia.annotations.Entity;
 
 @Entity("question")
-public abstract class QuestionVO extends TenantableVO {
+public abstract class QuestionVO extends ShareableVO {
     private static final long serialVersionUID = -2683964459602620222L;
     private String            text;
     private String            groupId;

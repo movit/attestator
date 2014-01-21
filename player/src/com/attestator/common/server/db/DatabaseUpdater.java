@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.lang.reflect.Modifier;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
@@ -24,9 +25,11 @@ import com.attestator.common.shared.vo.PrintingPropertiesVO;
 import com.attestator.common.shared.vo.PublicationVO;
 import com.attestator.common.shared.vo.QuestionVO;
 import com.attestator.common.shared.vo.ReportVO;
+import com.attestator.common.shared.vo.ShareableVO;
 import com.attestator.common.shared.vo.SingleChoiceQuestionVO;
 import com.attestator.common.shared.vo.UserVO;
 import com.attestator.player.server.Singletons;
+import com.google.code.morphia.Datastore;
 import com.google.code.morphia.annotations.Entity;
 import com.google.code.morphia.query.Query;
 import com.google.code.morphia.query.UpdateOperations;
@@ -35,11 +38,18 @@ import com.metapossum.utils.scanner.reflect.ClassesInPackageScanner;
 public class DatabaseUpdater {
     private static Logger logger = Logger.getLogger(DatabaseUpdater.class);
     
-    public static final int DB_VERSION = 26;
+    public static final int DB_VERSION = 28;
     
+    private Datastore rawDs;   
+    
+    public DatabaseUpdater(Datastore rawDs) {
+        super();
+        this.rawDs = rawDs;
+    }
+
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public static void updateDatabase() {
-        DBVersionVO version = Singletons.rawDs().createQuery(DBVersionVO.class).get();
+    public void updateDatabase() {
+        DBVersionVO version = rawDs.createQuery(DBVersionVO.class).get();
         
         if (version == null) {
             version = new DBVersionVO(0);  
@@ -55,26 +65,26 @@ public class DatabaseUpdater {
         }
         
         if (version.getVersionOrZero() < 2) {
-            Query<ChangeMarkerVO> q = Singletons.rawDs().createQuery(ChangeMarkerVO.class);
-            Singletons.rawDs().delete(q);
+            Query<ChangeMarkerVO> q = rawDs.createQuery(ChangeMarkerVO.class);
+            rawDs.delete(q);
         }
         
         if (version.getVersionOrZero() < 10) {
-            Query<PublicationVO> q = Singletons.rawDs().createQuery(PublicationVO.class);
+            Query<PublicationVO> q = rawDs.createQuery(PublicationVO.class);
             q.disableValidation().field("additionalQuestions.checkValue").exists();
-            UpdateOperations<PublicationVO> uo = Singletons.rawDs().createUpdateOperations(PublicationVO.class);
+            UpdateOperations<PublicationVO> uo = rawDs.createUpdateOperations(PublicationVO.class);
             uo.disableValidation().set("additionalQuestions.$.answerType", AnswerTypeEnum.key).enableValidation();            
-            Singletons.rawDs().update(q, uo);
+            rawDs.update(q, uo);
             
-            q = Singletons.rawDs().createQuery(PublicationVO.class);
+            q = rawDs.createQuery(PublicationVO.class);
             q.disableValidation().field("additionalQuestions._id").exists().field("additionalQuestions.checkValue").doesNotExist();
-            uo = Singletons.rawDs().createUpdateOperations(PublicationVO.class);
+            uo = rawDs.createUpdateOperations(PublicationVO.class);
             uo.disableValidation().set("additionalQuestions.$.answerType", AnswerTypeEnum.text).enableValidation();            
-            Singletons.rawDs().update(q, uo);
+            rawDs.update(q, uo);
         }
 
         if (version.getVersionOrZero() < 11) {
-            Singletons.rawDs().ensureIndexes();
+            rawDs.ensureIndexes();
         }
         
         if (version.getVersionOrZero() < 21) {
@@ -91,27 +101,27 @@ public class DatabaseUpdater {
                         continue;
                     }
                     
-                    Query q = Singletons.rawDs().createQuery(clazz);
-                    UpdateOperations uo = Singletons.rawDs().createUpdateOperations(clazz);
+                    Query q = rawDs.createQuery(clazz);
+                    UpdateOperations uo = rawDs.createUpdateOperations(clazz);
                     uo.set("modified", now);
                     uo.set("created", now);
                     
-                    Singletons.rawDs().update(q, uo);
+                    rawDs.update(q, uo);
                 }
             } catch (IOException e) {
             }
 
-            Query<ReportVO> q = Singletons.rawDs().createQuery(ReportVO.class);
-            UpdateOperations<ReportVO> uo = Singletons.rawDs().createUpdateOperations(ReportVO.class);
+            Query<ReportVO> q = rawDs.createQuery(ReportVO.class);
+            UpdateOperations<ReportVO> uo = rawDs.createUpdateOperations(ReportVO.class);
             uo.set("publication.created", now);
-            Singletons.rawDs().update(q, uo);            
+            rawDs.update(q, uo);            
             
-            q = Singletons.rawDs().createQuery(ReportVO.class);
-            uo = Singletons.rawDs().createUpdateOperations(ReportVO.class);
+            q = rawDs.createQuery(ReportVO.class);
+            uo = rawDs.createUpdateOperations(ReportVO.class);
             uo.set("publication.modified", now);
-            Singletons.rawDs().update(q, uo);                        
+            rawDs.update(q, uo);                        
 
-            Query<ReportVO> qr = Singletons.rawDs().createQuery(ReportVO.class);
+            Query<ReportVO> qr = rawDs.createQuery(ReportVO.class);
             for (ReportVO report: qr.asList()) {
                 for (QuestionVO question: report.getQuestions()) {
                     question.setCreated(now);
@@ -127,7 +137,7 @@ public class DatabaseUpdater {
                     }
                 }
                 
-                Singletons.rawDs().save(report);
+                rawDs.save(report);
             }
         }
 
@@ -136,47 +146,81 @@ public class DatabaseUpdater {
         }
         
         if (version.getVersionOrZero() < 25) {
-            Query<PrintingPropertiesVO> q = Singletons.rawDs().createQuery(PrintingPropertiesVO.class);            
-            Singletons.rawDs().delete(q);
+            Query<PrintingPropertiesVO> q = rawDs.createQuery(PrintingPropertiesVO.class);            
+            rawDs.delete(q);
         }
         
         if (version.getVersionOrZero() < 26) {
-            Query<PrintingPropertiesVO> q = Singletons.rawDs().createQuery(PrintingPropertiesVO.class);            
-            Singletons.rawDs().delete(q);
+            Query<PrintingPropertiesVO> q = rawDs.createQuery(PrintingPropertiesVO.class);            
+            rawDs.delete(q);
+        }
+        
+        if (version.getVersionOrZero() < 27) {
+            try {
+                Set<Class<? extends ShareableVO>> shareableClasses = 
+                        (new ClassesInPackageScanner()).findSubclasses("com.attestator.common.shared.vo", ShareableVO.class);
+                
+                for (Class<? extends ShareableVO> clazz: shareableClasses) {
+                    if (Modifier.isAbstract(clazz.getModifiers())) {
+                        continue;
+                    }
+                    
+                    if (clazz.getAnnotation(Entity.class) == null) {
+                        continue;
+                    }
+                    
+                    Query<? extends ShareableVO> q = rawDs.createQuery(clazz);
+                    q.retrievedFields(true, "_id", "tenantId");
+                    Iterator<? extends ShareableVO> it = q.iterator();
+                    
+                    while (it.hasNext()) {
+                        ShareableVO shareable = it.next();
+                        UpdateOperations uo = rawDs.createUpdateOperations(clazz);
+                        uo.set("sharedForTenantIds", shareable.getTenantId());
+                        rawDs.update(shareable, uo);
+                    }
+                }
+            } catch (IOException e) {
+                logger.error(e.getMessage(), e);
+            }            
+        }
+        
+        if (version.getVersionOrZero() < 28) {
+            rawDs.ensureIndexes();
         }
         
         if (version.getVersionOrZero() < DB_VERSION) {
             resetChangeMarkers();
             
             version.setVersion(DB_VERSION);
-            Singletons.rawDs().save(version);
+            rawDs.save(version);
         }
         
         logger.info("Database is up to date");
     }
     
-    private static void resetChangeMarkers() {
-        Query<ChangeMarkerVO> q = Singletons.rawDs().createQuery(ChangeMarkerVO.class);            
-        Singletons.rawDs().delete(q);
+    private void resetChangeMarkers() {
+        Query<ChangeMarkerVO> q = rawDs.createQuery(ChangeMarkerVO.class);            
+        rawDs.delete(q);
         
-        Query<UserVO> qu = Singletons.rawDs().createQuery(UserVO.class);        
+        Query<UserVO> qu = rawDs.createQuery(UserVO.class);        
         for (UserVO user: qu.asList()) {
             ChangeMarkerVO cm = new ChangeMarkerVO(null, user.getTenantId(), null);
-            Singletons.rawDs().save(cm);
+            rawDs.save(cm);
         }
     }
     
-    private static <T> void loadAndSave(Class<T> clazz) {
-        Query<T> q = Singletons.rawDs().createQuery(clazz);
+    private <T> void loadAndSave(Class<T> clazz) {
+        Query<T> q = rawDs.createQuery(clazz);
         for (T obj: q.asList()) {
-            Singletons.rawDs().save(obj);
+            rawDs.save(obj);
         }
     }
     
-    private static void addTestData() {
-        Singletons.al().createNewUser("test2@test.com", "test");
+    private void addTestData() {
+        Singletons.rl().createNewUser("test2@test.com", "test");
         
-        UserVO user = Singletons.al().createNewUser("test@test.com", "test");        
+        UserVO user = Singletons.rl().createNewUser("test@test.com", "test");        
         LoginManager.setThreadLocalLoggedUser(user);
         
         GroupVO grOther = new GroupVO();
@@ -275,9 +319,11 @@ public class DatabaseUpdater {
             scq2.setId(BaseVO.idString());
             if (i < 250) {
                 scq2.setGroupId(grSign.getId());
+                scq2.setGroupName(grSign.getName());
             }
             else {
                 scq2.setGroupId(grOther.getId());
+                scq2.setGroupName(grOther.getName());
             }
             Singletons.ds().save(scq2);
         }
@@ -304,7 +350,7 @@ public class DatabaseUpdater {
         publication.setId(BaseVO.idString());
         Singletons.ds().save(publication);
         
-        user = Singletons.al().createNewUser("e_moskovkina@fgufccs.ru", "mskvkn", "fgufccs");
+        user = Singletons.rl().createNewUser("e_moskovkina@fgufccs.ru", "mskvkn", "fgufccs");
         
         LoginManager.setThreadLocalLoggedUser(user);
         mt = new MetaTestVO();

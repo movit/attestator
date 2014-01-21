@@ -10,7 +10,6 @@ import com.kfuntak.gwt.json.serialization.client.JsonSerializable;
 public class BaseVO implements Serializable, JsonSerializable{
 	private static final long serialVersionUID = 6796925180284904176L;
 	
-	
 	@Id
 	private String id = idString();
 	

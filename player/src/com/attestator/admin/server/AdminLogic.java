@@ -30,11 +30,11 @@ import com.attestator.common.shared.vo.PrintingPropertiesVO;
 import com.attestator.common.shared.vo.PublicationVO;
 import com.attestator.common.shared.vo.QuestionVO;
 import com.attestator.common.shared.vo.ReportVO;
-import com.attestator.common.shared.vo.UserVO;
 import com.attestator.player.server.Singletons;
 import com.google.code.morphia.query.CriteriaContainer;
 import com.google.code.morphia.query.Query;
 import com.google.code.morphia.query.UpdateOperations;
+import com.mongodb.WriteResult;
 import com.sencha.gxt.data.shared.SortDir;
 import com.sencha.gxt.data.shared.SortInfo;
 import com.sencha.gxt.data.shared.SortInfoBean;
@@ -52,7 +52,7 @@ public class AdminLogic extends CommonLogic {
     private final static Pattern NOT_ALNUM_REGEX = Pattern.compile("[^\\p{L}\\d]+");
     
     public List<GroupVO> loadAllGroups() {
-        Query<GroupVO> q = Singletons.ds().createQuery(GroupVO.class).order("name, _id");
+        Query<GroupVO> q = Singletons.ds().createFetchQuery(GroupVO.class).order("name, _id");
         List<GroupVO> result = q.asList();
         
         // Put default group to the top of list
@@ -87,7 +87,7 @@ public class AdminLogic extends CommonLogic {
         CheckHelper.throwIfNull(loadConfig, "loadConfig");
         
         // Create query
-        Query<T> q = Singletons.ds().createQuery(clazz);
+        Query<T> q = Singletons.ds().createFetchQuery(clazz);
         
         // Exclude fields if any
         if (excludFields != null) {
@@ -126,7 +126,7 @@ public class AdminLogic extends CommonLogic {
     public PagingLoadResult<ReportVO> loadReports(FilterPagingLoadConfig loadConfig, String ... excludFields) {
         CheckHelper.throwIfNull(loadConfig, "loadConfig");
         // Create query
-        Query<ReportVO> q = Singletons.ds().createQuery(ReportVO.class);
+        Query<ReportVO> q = Singletons.ds().createFetchQuery(ReportVO.class);
         
         if (excludFields != null) {
             q.retrievedFields(false, excludFields);
@@ -165,13 +165,13 @@ public class AdminLogic extends CommonLogic {
     public PrintingPropertiesVO getPrintPropertiesByMetatestId(String metatestId) {
         CheckHelper.throwIfNullOrEmpty(metatestId, "metatestId");
         
-        Query<PrintingPropertiesVO> q = Singletons.ds().createQuery(PrintingPropertiesVO.class);
+        Query<PrintingPropertiesVO> q = Singletons.ds().createFetchQuery(PrintingPropertiesVO.class);
         q.field("metatestId").equal(metatestId);
         
         PrintingPropertiesVO result = q.get();
         
         if (result == null) {
-             Query<MetaTestVO> qm = Singletons.ds().createQuery(MetaTestVO.class);
+             Query<MetaTestVO> qm = Singletons.ds().createFetchQuery(MetaTestVO.class);
              qm.field("_id").equal(metatestId);
              qm.retrievedFields(false, "entries");
              MetaTestVO metatest = qm.get();
@@ -188,7 +188,7 @@ public class AdminLogic extends CommonLogic {
     public List<PublicationVO> loadPublicationsByMetatestId(String metatestId, ListLoadConfig config) {
         CheckHelper.throwIfNullOrEmpty(metatestId, "metatestId");
 
-        Query<PublicationVO> q = Singletons.ds().createQuery(PublicationVO.class);
+        Query<PublicationVO> q = Singletons.ds().createFetchQuery(PublicationVO.class);
         q.field("metatestId").equal(metatestId);
         
         if (config != null &&  !NullHelper.nullSafeIsEmpty(config.getSortInfo())) {
@@ -206,7 +206,7 @@ public class AdminLogic extends CommonLogic {
     public ReportVO loadReport(String reportId) {
         CheckHelper.throwIfNullOrEmpty(reportId, "reportId");
         
-        Query<ReportVO> q = Singletons.ds().createQuery(ReportVO.class);        
+        Query<ReportVO> q = Singletons.ds().createFetchQuery(ReportVO.class);        
         q.field("_id").equal(reportId);
         
         ReportVO result = q.get();
@@ -216,7 +216,7 @@ public class AdminLogic extends CommonLogic {
     public MetaTestVO loadMetatest(String metatestId) {
         CheckHelper.throwIfNullOrEmpty(metatestId, "metatestId");
         
-        Query<MetaTestVO> q = Singletons.ds().createQuery(MetaTestVO.class);        
+        Query<MetaTestVO> q = Singletons.ds().createFetchQuery(MetaTestVO.class);        
         q.field("_id").equal(metatestId);
         
         MetaTestVO result = q.get();
@@ -224,7 +224,7 @@ public class AdminLogic extends CommonLogic {
     }
 
     public List<MetaTestVO> loadAllMetaTests(String ... excludFields) {
-        Query<MetaTestVO> q = Singletons.ds().createQuery(MetaTestVO.class);
+        Query<MetaTestVO> q = Singletons.ds().createFetchQuery(MetaTestVO.class);
         if (excludFields != null) {
             q.retrievedFields(false, excludFields);
         }        
@@ -234,7 +234,7 @@ public class AdminLogic extends CommonLogic {
     }
     
     public List<PublicationVO> loadAllPublications() {
-        Query<PublicationVO> q = Singletons.ds().createQuery(PublicationVO.class);
+        Query<PublicationVO> q = Singletons.ds().createFetchQuery(PublicationVO.class);
         addDefaultOrder(PublicationVO.class, q);
         List<PublicationVO> qRes = q.asList();        
         return qRes;
@@ -265,7 +265,7 @@ public class AdminLogic extends CommonLogic {
         Singletons.ds().save(publications);
         
         List<String> publicationsIds = VOHelper.getIds(publications);
-        Query<PublicationVO> q = Singletons.ds().createQuery(PublicationVO.class);
+        Query<PublicationVO> q = Singletons.ds().createUpdateQuery(PublicationVO.class);
         q.field("metatestId").equal(metatestId);
         if (!NullHelper.isEmptyOrNull(publicationsIds)) {
             q.field("_id").notIn(publicationsIds);
@@ -302,7 +302,7 @@ public class AdminLogic extends CommonLogic {
         
         for (String groupToDeleteId: groupsToDeleteIds) {
             // Switch questions to default group
-            Query<QuestionVO> qQuestion = Singletons.ds().createQuery(QuestionVO.class);
+            Query<QuestionVO> qQuestion = Singletons.ds().createUpdateQuery(QuestionVO.class);
             qQuestion.field("groupId").equal(groupToDeleteId);
             
             UpdateOperations<QuestionVO> uoQuestion = Singletons.ds().createUpdateOperations(QuestionVO.class);
@@ -312,7 +312,7 @@ public class AdminLogic extends CommonLogic {
             Singletons.ds().update(qQuestion, uoQuestion);
             
             //Delete metatest entries with deleted group            
-            Query<MetaTestVO> qMetatest = Singletons.ds().createQuery(MetaTestVO.class);
+            Query<MetaTestVO> qMetatest = Singletons.ds().createUpdateQuery(MetaTestVO.class);
             qMetatest.disableValidation().filter("entries.groupId", groupToDeleteId).enableValidation();
           
             MTEGroupVO mteTemplate = ReflectionHelper.createEmpty(MTEGroupVO.class);
@@ -324,14 +324,14 @@ public class AdminLogic extends CommonLogic {
             Singletons.ds().update(qMetatest, uoMetatest);
             
             // Delete group
-            Query<GroupVO> qGroup = Singletons.ds().createQuery(GroupVO.class);
+            Query<GroupVO> qGroup = Singletons.ds().createUpdateQuery(GroupVO.class);
             qGroup.field("_id").equal(groupToDeleteId);
             Singletons.ds().delete(qGroup);
         }
         
         for (GroupVO groupToSave: groupsToSave) {
             // Switch questions to new group name
-            Query<QuestionVO> qQuestion = Singletons.ds().createQuery(QuestionVO.class);
+            Query<QuestionVO> qQuestion = Singletons.ds().createUpdateQuery(QuestionVO.class);
             qQuestion.field("groupId").equal(groupToSave.getId());
             
             UpdateOperations<QuestionVO> uoQuestion = Singletons.ds().createUpdateOperations(QuestionVO.class);
@@ -353,14 +353,14 @@ public class AdminLogic extends CommonLogic {
             return;
         }
         
-        Query<GroupVO> qGroup = Singletons.ds().createQuery(GroupVO.class);
+        Query<GroupVO> qGroup = Singletons.ds().createFetchQuery(GroupVO.class);
         qGroup.field("_id").equal(groupId);
         GroupVO group = qGroup.get();
         if (group == null) {
             return;
         }
                 
-        Query<QuestionVO> q = Singletons.ds().createQuery(QuestionVO.class);
+        Query<QuestionVO> q = Singletons.ds().createUpdateQuery(QuestionVO.class);
         q.field("_id").in(questionIds);
         
         UpdateOperations<QuestionVO> uo = Singletons.ds().createUpdateOperations(QuestionVO.class);
@@ -376,37 +376,6 @@ public class AdminLogic extends CommonLogic {
         return getById(GroupVO.class, LoginManager.getThreadLocalLoggedUser().getDefaultGroupId());
     }
     
-    public UserVO createNewUser(String email, String password) {
-        return createNewUser(email, password, null); 
-    }
-    
-    public UserVO createNewUser(String email, String password, String tenantId) {
-        CheckHelper.throwIfNullOrEmpty(email, "email");
-        CheckHelper.throwIfNullOrEmpty(password, "password");
-        
-        UserVO result = new UserVO();
-        result.setEmail(email);
-        result.setPassword(password);
-        
-        if (tenantId != null) {
-            result.setId(tenantId);
-            result.setTenantId(tenantId);
-            result.setDefaultGroupId(tenantId);
-        }
-        
-        Singletons.rawDs().save(result);
-        
-        GroupVO defaultGroup = new GroupVO();
-        defaultGroup.setId(result.getDefaultGroupId());
-        defaultGroup.setTenantId(result.getTenantId());
-        defaultGroup.setName(GroupVO.DEFAULT_GROUP_INITIAL_NAME);
-        
-        Singletons.rawDs().save(defaultGroup);
-        
-        return result;
-    }
-    
-    
     public void deleteReports(List<String> reportsIds) {
         CheckHelper.throwIfNull(reportsIds, "reportsIds");
         
@@ -414,7 +383,7 @@ public class AdminLogic extends CommonLogic {
             return;
         }
         
-        Query<ReportVO> qReport = Singletons.ds().createQuery(ReportVO.class);
+        Query<ReportVO> qReport = Singletons.ds().createUpdateQuery(ReportVO.class);
         qReport.field("_id").in(reportsIds);
         
         Singletons.ds().delete(qReport);
@@ -429,7 +398,7 @@ public class AdminLogic extends CommonLogic {
             return;
         }
         
-        Query<PublicationVO> q = Singletons.ds().createQuery(PublicationVO.class);
+        Query<PublicationVO> q = Singletons.ds().createUpdateQuery(PublicationVO.class);
         q.field("_id").in(publicationIds);
         
         Singletons.ds().delete(q);
@@ -443,14 +412,16 @@ public class AdminLogic extends CommonLogic {
         if (metatestIds.isEmpty()) {
             return;
         }
-
-        Query<PublicationVO> qp = Singletons.ds().createQuery(PublicationVO.class);
-        qp.field("metatestId").in(metatestIds);        
-        Singletons.ds().delete(qp);
         
-        Query<MetaTestVO> qm = Singletons.ds().createQuery(MetaTestVO.class);
-        qm.field("_id").in(metatestIds);        
-        Singletons.ds().delete(qm);
+        for (String metatestId: metatestIds) {
+            Query<MetaTestVO> qm = Singletons.ds().createUpdateQuery(MetaTestVO.class);
+            qm.field("_id").equal(metatestId);        
+            WriteResult wr = Singletons.ds().delete(qm);
+            if (wr.getN() == 1) {
+                Singletons.rl().deletePublicationsForMetatest(metatestId);
+                Singletons.rl().deletePritingPropertiesForMetatest(metatestId);   
+            }            
+        }
         
         putChangesMarker(null, CacheType.getActivePublications);
     }
@@ -463,7 +434,8 @@ public class AdminLogic extends CommonLogic {
         }
         
         // Remove all metatest entries referanced to this question
-        Query<MetaTestVO> qMetatest = Singletons.ds().createQuery(MetaTestVO.class);
+        // TODO strange place need to be checked
+        Query<MetaTestVO> qMetatest = Singletons.ds().createUpdateQuery(MetaTestVO.class);
         qMetatest.disableValidation().field("entries.groupId").in(questionIds).enableValidation();        
         
         ArrayList<MTEQuestionVO> mteTemplates = new ArrayList<MTEQuestionVO>();
@@ -479,7 +451,7 @@ public class AdminLogic extends CommonLogic {
         Singletons.ds().update(qMetatest, uoMetatest);
         
         // Remove questions
-        Query<QuestionVO> qQuestion = Singletons.ds().createQuery(QuestionVO.class);
+        Query<QuestionVO> qQuestion = Singletons.ds().createUpdateQuery(QuestionVO.class);
         qQuestion.field("_id").in(questionIds);
         
         
@@ -598,7 +570,7 @@ public class AdminLogic extends CommonLogic {
                 container = juntion;
             }
             else {
-                container = (CriteriaContainer)q;
+                container = q.and();
             }
             
             for (String field: fields) {
@@ -679,23 +651,11 @@ public class AdminLogic extends CommonLogic {
         }
     }
 
-    public <T extends BaseVO> T get(Class<T> clazz, String id) {
-        CheckHelper.throwIfNull(clazz, "clazz");
-        CheckHelper.throwIfNullOrEmpty(id, "id");
-        
-        Query<T> q = Singletons.ds().createQuery(clazz);        
-        q.field("_id").equal(id);
-        
-        T result = q.get();
-        
-        return result;
-    }
-
     public <T extends BaseVO> T copy(Class<T> clazz, String id) {
         CheckHelper.throwIfNull(clazz, "clazz");
         CheckHelper.throwIfNullOrEmpty(id, "id");
         
-        T result = get(clazz, id);
+        T result = getById(clazz, id);
         if (result != null) {
             result.resetIdentity();
         }
@@ -706,8 +666,8 @@ public class AdminLogic extends CommonLogic {
     public String getHtmlForPrinting(String printingPropertiesId) {
         CheckHelper.throwIfNullOrEmpty(printingPropertiesId, "printingPropertiesId");
         
-        PrintingPropertiesVO properties = get(PrintingPropertiesVO.class, printingPropertiesId);
-        MetaTestVO metatest = get(MetaTestVO.class, properties.getMetatestId());
+        PrintingPropertiesVO properties = getById(PrintingPropertiesVO.class, printingPropertiesId);
+        MetaTestVO metatest = getById(MetaTestVO.class, properties.getMetatestId());
         String result = PrintHelper.printTest(metatest, properties, PrintingMedia.paper);
         
         return result;

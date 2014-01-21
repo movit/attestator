@@ -11,7 +11,6 @@ import com.attestator.common.server.CommonLogic;
 import com.attestator.common.shared.helper.CheckHelper;
 import com.attestator.common.shared.helper.ReportHelper;
 import com.attestator.common.shared.vo.AnswerVO;
-import com.attestator.common.shared.vo.BaseVO;
 import com.attestator.common.shared.vo.CacheType;
 import com.attestator.common.shared.vo.ChangeMarkerVO;
 import com.attestator.common.shared.vo.InterruptionCauseEnum;
@@ -30,7 +29,7 @@ public class PlayerLogic extends CommonLogic{
     public PublicationVO getActivePublication(String id) {
         CheckHelper.throwIfNullOrEmpty(id, "id");
 
-        Query<PublicationVO> pq = Singletons.ds().createQuery(PublicationVO.class);
+        Query<PublicationVO> pq = Singletons.ds().createFetchQuery(PublicationVO.class);
         
         Date now = new Date();
         pq.and(
@@ -50,7 +49,7 @@ public class PlayerLogic extends CommonLogic{
     }
     
     public List<PublicationVO> getActivePublications() {
-        Query<PublicationVO> pq = Singletons.ds().createQuery(PublicationVO.class);
+        Query<PublicationVO> pq = Singletons.ds().createFetchQuery(PublicationVO.class);
         
         Date now = new Date();
         
@@ -70,17 +69,6 @@ public class PlayerLogic extends CommonLogic{
         return activePublications;
     }
 
-    @Override
-    public <T extends BaseVO> T getById(Class<T> clazz, String id) {
-        CheckHelper.throwIfNull(clazz, "clazz");
-        CheckHelper.throwIfNullOrEmpty(id, "id");
-        
-        Query<T> q = Singletons.ds().createQuery(clazz);
-        q.field("_id").equal(id);
-        T result = q.get();
-        return result;
-    }
-    
     public List<ChangeMarkerVO> getChangesSince(Date time, String clientId) {
         CheckHelper.throwIfNullOrEmpty(clientId, "clientId");
         
@@ -89,7 +77,7 @@ public class PlayerLogic extends CommonLogic{
             return Arrays.asList(new ChangeMarkerVO(null, LoginManager.getThreadLocalTenatId(), null));
         }
         
-        Query<ChangeMarkerVO> q = Singletons.ds().createQuery(ChangeMarkerVO.class);
+        Query<ChangeMarkerVO> q = Singletons.ds().createFetchQuery(ChangeMarkerVO.class);
         q.field("created").greaterThan(time);
         
         // Look for changes
@@ -115,7 +103,7 @@ public class PlayerLogic extends CommonLogic{
         
         // Is some publications expired or became active since last query
         Date now = new Date();
-        Query<PublicationVO> qp = Singletons.ds().createQuery(PublicationVO.class);
+        Query<PublicationVO> qp = Singletons.ds().createFetchQuery(PublicationVO.class);
         qp.or(
             qp.criteria("start").greaterThan(time).criteria("start").lessThanOrEq(now),
             qp.criteria("end").greaterThan(time).criteria("end").lessThanOrEq(now)
@@ -133,7 +121,7 @@ public class PlayerLogic extends CommonLogic{
         CheckHelper.throwIfNullOrEmpty(publicationId, "publicatioId");
         CheckHelper.throwIfNullOrEmpty(clientId, "clientId");        
         
-        Query<ReportVO> q = Singletons.ds().createQuery(ReportVO.class);
+        Query<ReportVO> q = Singletons.ds().createFetchQuery(ReportVO.class);
         q.field("publication._id").equal(publicationId);
         q.field("clientId").equal(clientId);
         
@@ -145,7 +133,7 @@ public class PlayerLogic extends CommonLogic{
         CheckHelper.throwIfNullOrEmpty(publicatioId, "publicatioId");
         CheckHelper.throwIfNullOrEmpty(clientId, "clientId");        
         
-        Query<ReportVO> q = Singletons.ds().createQuery(ReportVO.class);
+        Query<ReportVO> q = Singletons.ds().createFetchQuery(ReportVO.class);
         q.field("publication._id").equal(publicatioId);
         q.field("clientId").equal(clientId);
         q.field("finished").equal(true);
@@ -183,7 +171,7 @@ public class PlayerLogic extends CommonLogic{
         CheckHelper.throwIfNullOrEmpty(publicationId, "publicationId");
         CheckHelper.throwIfNullOrEmpty(clientId, "clientId");        
         
-        Query<ReportVO> q = Singletons.ds().createQuery(ReportVO.class);        
+        Query<ReportVO> q = Singletons.ds().createFetchQuery(ReportVO.class);        
         q.field("publication._id").equal(publicationId);
         q.field("clientId").equal(clientId);        
         q.order("-start");
@@ -203,7 +191,7 @@ public class PlayerLogic extends CommonLogic{
         CheckHelper.throwIfNullOrEmpty(reportId, "reportId");
         CheckHelper.throwIfNullOrEmpty(clientId, "clientId");        
         
-        Query<ReportVO> q = Singletons.ds().createQuery(ReportVO.class);        
+        Query<ReportVO> q = Singletons.ds().createFetchQuery(ReportVO.class);        
         q.field("_id").equal(reportId);
         q.field("clientId").equal(clientId);        
         
@@ -218,7 +206,7 @@ public class PlayerLogic extends CommonLogic{
         CheckHelper.throwIfNull(report.getPublication().getMetatest(), "report.publication.metatest");        
         CheckHelper.throwIfNullOrEmpty(clientId, "clientId");
 
-        Query<ReportVO> q = Singletons.ds().createQuery(ReportVO.class);        
+        Query<ReportVO> q = Singletons.ds().createFetchQuery(ReportVO.class);        
         q.field("_id").equal(report.getId());
         long count = q.countAll();
         if (count > 0) {
@@ -240,7 +228,7 @@ public class PlayerLogic extends CommonLogic{
         CheckHelper.throwIfNull(answer, "answer");
         CheckHelper.throwIfNullOrEmpty(clientId, "clientId");
         
-        Query<ReportVO> q = Singletons.ds().createQuery(ReportVO.class);        
+        Query<ReportVO> q = Singletons.ds().createFetchQuery(ReportVO.class);        
         q.field("_id").equal(reportId);
         q.field("clientId").equal(clientId);
         q.field("finished").notEqual(true);
@@ -273,7 +261,7 @@ public class PlayerLogic extends CommonLogic{
         CheckHelper.throwIfNullOrEmpty(clientId, "clientId");
         CheckHelper.throwIfNull(end, "end");
         
-        Query<ReportVO> q = Singletons.ds().createQuery(ReportVO.class);        
+        Query<ReportVO> q = Singletons.ds().createFetchQuery(ReportVO.class);        
         q.field("_id").equal(reportId);
         q.field("clientId").equal(clientId);
         q.field("finished").notEqual(true);
