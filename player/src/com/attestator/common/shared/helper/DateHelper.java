@@ -5,6 +5,20 @@ import java.util.Date;
 public class DateHelper {
     public static final long MILLISECONDS_IN_DAY = 1000 * 60 * 60 * 24; 
     
+    public static boolean beforeOrNull(Date before, Date when) {
+        if (before == null) {
+            return true;
+        }
+        return before.before(when);
+    }
+
+    public static boolean afterOrNull(Date after, Date when) {
+        if (after == null) {
+            return true;
+        }
+        return after.before(after);
+    }
+    
     public static boolean isTheSameDate(Date d1, Date d2) {
         if (d1 == null || d2 == null) {
             return false;

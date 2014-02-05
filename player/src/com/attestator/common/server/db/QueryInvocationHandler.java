@@ -3,11 +3,12 @@ package com.attestator.common.server.db;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 
+import org.mongodb.morphia.query.Query;
+import org.mongodb.morphia.query.QueryResults;
+
 import com.attestator.common.server.db.SafeQuery.QueryType;
 import com.attestator.common.server.helper.ReflectionHelper;
 import com.attestator.common.shared.helper.CheckHelper;
-import com.google.code.morphia.query.Query;
-import com.google.code.morphia.query.QueryResults;
 
 public class QueryInvocationHandler implements InvocationHandler {
     private static Method GET_QUERY_TYPE = ReflectionHelper.getMethod(

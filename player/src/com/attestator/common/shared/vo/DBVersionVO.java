@@ -1,7 +1,8 @@
 package com.attestator.common.shared.vo;
 
+import org.mongodb.morphia.annotations.Entity;
+
 import com.attestator.common.shared.helper.NullHelper;
-import com.google.code.morphia.annotations.Entity;
 
 @Entity("dbversion")
 public class DBVersionVO extends BaseVO {

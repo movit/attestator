@@ -1,7 +1,8 @@
 package com.attestator.common.shared.vo;
 
+import org.mongodb.morphia.annotations.Transient;
+
 import com.attestator.common.shared.helper.NullHelper;
-import com.google.code.morphia.annotations.Transient;
 
 public class AdditionalQuestionVO extends BaseVO {    
     public static enum AnswerTypeEnum implements Displayable {

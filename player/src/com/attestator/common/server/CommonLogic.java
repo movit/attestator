@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
+import org.mongodb.morphia.query.Query;
 
 import com.attestator.admin.server.LoginManager;
 import com.attestator.common.shared.helper.CheckHelper;
@@ -20,7 +21,6 @@ import com.attestator.common.shared.vo.MetaTestVO;
 import com.attestator.common.shared.vo.QuestionVO;
 import com.attestator.common.shared.vo.SingleChoiceQuestionVO;
 import com.attestator.player.server.Singletons;
-import com.google.code.morphia.query.Query;
 
 public class CommonLogic {
     private static final Logger logger = Logger.getLogger(CommonLogic.class);
@@ -40,6 +40,7 @@ public class CommonLogic {
         
         List<String>      result = new ArrayList<String>();
         Query<QuestionVO> q      = Singletons.ds().createFetchQuery(QuestionVO.class);
+        q.retrievedFields(true, "_id");
         
         if (groupId != null) {
             q.field("groupId").equal(groupId);
@@ -149,7 +150,6 @@ public class CommonLogic {
             }
         }
     }
-
     
     protected void putGlobalChangesMarker() {
         putChangesMarker(null, null);

@@ -27,7 +27,7 @@ import com.google.gwt.user.client.ui.RootPanel;
  * Entry point classes define <code>onModuleLoad()</code>.
  */
 public class Player implements EntryPoint {
-    public static int VERSION = 9;
+    public static int VERSION = 10;
     
     /**
      * Create a remote service proxy to talk to the server-side Greeting service.

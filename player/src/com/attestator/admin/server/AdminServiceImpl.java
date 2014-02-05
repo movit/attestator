@@ -211,7 +211,13 @@ public class AdminServiceImpl extends RemoteServiceServlet implements
     @Override
     public UserVO getLoggedUser() throws IllegalStateException {        
         try {
-            return LoginManager.getThreadLocalLoggedUser();
+            UserVO result = null;
+            try {
+                result = LoginManager.getThreadLocalLoggedUser();
+            }
+            catch (IllegalStateException e) {                
+            }
+            return result;
         }
         catch (Throwable e) {
             logger.error("Error: ", e);
@@ -349,6 +355,18 @@ public class AdminServiceImpl extends RemoteServiceServlet implements
             throws IllegalStateException {
         try {
             return Singletons.al().getHtmlForPrinting(printingPropertiesId);
+        }
+        catch (Throwable e) {
+            logger.error("Error: ", e);
+            throw new IllegalStateException(DEFAULT_ERROR_MESSAGE, e);
+        }
+    }
+
+    @Override
+    public PagingLoadResult<UserVO> loadUsers(FilterPagingLoadConfig loadConfig)
+            throws IllegalStateException {
+        try {
+            return Singletons.sl().loadUserPage(loadConfig);
         }
         catch (Throwable e) {
             logger.error("Error: ", e);

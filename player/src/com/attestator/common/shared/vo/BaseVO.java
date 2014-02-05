@@ -4,7 +4,8 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.Random;
 
-import com.google.code.morphia.annotations.Id;
+import org.mongodb.morphia.annotations.Id;
+
 import com.kfuntak.gwt.json.serialization.client.JsonSerializable;
 
 public class BaseVO implements Serializable, JsonSerializable{
@@ -76,4 +77,5 @@ public class BaseVO implements Serializable, JsonSerializable{
         z |= ((x >> 24) & 0x000000FF);
         return z;
     }
+    
 }

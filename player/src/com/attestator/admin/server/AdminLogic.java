@@ -1,55 +1,54 @@
 package com.attestator.admin.server;
 
-import java.lang.reflect.Field;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
-import java.util.regex.Pattern;
+import java.util.Set;
 
 import org.apache.log4j.Logger;
+import org.mongodb.morphia.query.Query;
+import org.mongodb.morphia.query.UpdateOperations;
 
 import com.attestator.admin.server.helper.print.PrintHelper;
 import com.attestator.admin.server.helper.print.PrintHelper.PrintingMedia;
 import com.attestator.common.server.CommonLogic;
+import com.attestator.common.server.helper.DatastoreHelper;
 import com.attestator.common.server.helper.ReflectionHelper;
-import com.attestator.common.shared.SharedConstants;
 import com.attestator.common.shared.helper.CheckHelper;
 import com.attestator.common.shared.helper.DateHelper;
 import com.attestator.common.shared.helper.NullHelper;
-import com.attestator.common.shared.helper.StringHelper;
 import com.attestator.common.shared.helper.VOHelper;
 import com.attestator.common.shared.vo.BaseVO;
 import com.attestator.common.shared.vo.CacheType;
 import com.attestator.common.shared.vo.GroupVO;
 import com.attestator.common.shared.vo.MTEGroupVO;
 import com.attestator.common.shared.vo.MTEQuestionVO;
+import com.attestator.common.shared.vo.MetaTestEntryVO;
 import com.attestator.common.shared.vo.MetaTestVO;
-import com.attestator.common.shared.vo.ModificationDateAwareVO;
 import com.attestator.common.shared.vo.PrintingPropertiesVO;
 import com.attestator.common.shared.vo.PublicationVO;
 import com.attestator.common.shared.vo.QuestionVO;
 import com.attestator.common.shared.vo.ReportVO;
+import com.attestator.common.shared.vo.ShareableVO;
+import com.attestator.common.shared.vo.SharingEntryVO;
+import com.attestator.common.shared.vo.TenantableCronTaskVO;
+import com.attestator.common.shared.vo.UpdateAllMetattestsVisiblityLockVO;
+import com.attestator.common.shared.vo.UpdateMetatestsSharingTaskVO;
 import com.attestator.player.server.Singletons;
-import com.google.code.morphia.query.CriteriaContainer;
-import com.google.code.morphia.query.Query;
-import com.google.code.morphia.query.UpdateOperations;
 import com.mongodb.WriteResult;
-import com.sencha.gxt.data.shared.SortDir;
 import com.sencha.gxt.data.shared.SortInfo;
 import com.sencha.gxt.data.shared.SortInfoBean;
-import com.sencha.gxt.data.shared.loader.FilterConfig;
 import com.sencha.gxt.data.shared.loader.FilterPagingLoadConfig;
 import com.sencha.gxt.data.shared.loader.ListLoadConfig;
 import com.sencha.gxt.data.shared.loader.PagingLoadResult;
 import com.sencha.gxt.data.shared.loader.PagingLoadResultBean;
 
 public class AdminLogic extends CommonLogic {
+    @SuppressWarnings("unused")
     private static final Logger logger = Logger.getLogger(AdminLogic.class);
-
-    private final static Pattern OR_REGEX  = Pattern.compile("(?i)\\s+or\\s+");
-    private final static Pattern AND_REGEX = Pattern.compile("(?i)\\s+and\\s+");    
-    private final static Pattern NOT_ALNUM_REGEX = Pattern.compile("[^\\p{L}\\d]+");
     
     public List<GroupVO> loadAllGroups() {
         Query<GroupVO> q = Singletons.ds().createFetchQuery(GroupVO.class).order("name, _id");
@@ -74,15 +73,6 @@ public class AdminLogic extends CommonLogic {
         return result;
     }
     
-    private <T> void addDefaultOrder(Class<T> clazz, Query<T> q) {
-        if (ModificationDateAwareVO.class.isAssignableFrom(clazz)) {
-            q.order("created, _id");
-        }
-        else {
-            q.order("_id");
-        }
-    }
-    
     public <T> PagingLoadResult<T> loadPage(Class<T> clazz, FilterPagingLoadConfig loadConfig, String ... excludFields) {
         CheckHelper.throwIfNull(loadConfig, "loadConfig");
         
@@ -94,18 +84,8 @@ public class AdminLogic extends CommonLogic {
             q.retrievedFields(false, excludFields);
         }
     
-        // Add filters
-        if (!NullHelper.nullSafeIsEmpty(loadConfig.getFilters())) {
-            addFilters(q, loadConfig.getFilters());
-        }
-        
-        // Add order
-        if (!NullHelper.nullSafeIsEmpty(loadConfig.getSortInfo())) {
-            addOrders(q, loadConfig.getSortInfo());
-        }
-        else {
-            addDefaultOrder(clazz, q);
-        }
+        // Add load config
+        DatastoreHelper.addLoadConfig(q, loadConfig);
 
         // Get total count (without offset and limit)
         long count = q.countAll();        
@@ -134,13 +114,13 @@ public class AdminLogic extends CommonLogic {
         
         // Add filters
         if (!NullHelper.nullSafeIsEmpty(loadConfig.getFilters())) {
-            addFilters(q, loadConfig.getFilters());
+            DatastoreHelper.addFilters(q, loadConfig.getFilters());
         }        
         
         // Add order
         if (!NullHelper.nullSafeIsEmpty(loadConfig.getSortInfo())) {
         	List<? extends SortInfo> sortInfo = prepareReportSortInfo(loadConfig.getSortInfo());
-            addOrders(q, sortInfo);
+        	DatastoreHelper.addOrders(q, sortInfo);
         }
         else {
             q.order("-start, _id");
@@ -192,10 +172,10 @@ public class AdminLogic extends CommonLogic {
         q.field("metatestId").equal(metatestId);
         
         if (config != null &&  !NullHelper.nullSafeIsEmpty(config.getSortInfo())) {
-            addOrders(q, config.getSortInfo());
+            DatastoreHelper.addOrders(q, config.getSortInfo());
         }
         else {
-            addDefaultOrder(PublicationVO.class, q);
+            DatastoreHelper.addDefaultOrder(PublicationVO.class, q);
         }
         
         List<PublicationVO> result = q.asList();        
@@ -228,14 +208,14 @@ public class AdminLogic extends CommonLogic {
         if (excludFields != null) {
             q.retrievedFields(false, excludFields);
         }        
-        addDefaultOrder(MetaTestVO.class, q);        
+        DatastoreHelper.addDefaultOrder(MetaTestVO.class, q);        
         List<MetaTestVO> qRes = q.asList();        
         return qRes;
     }
     
     public List<PublicationVO> loadAllPublications() {
         Query<PublicationVO> q = Singletons.ds().createFetchQuery(PublicationVO.class);
-        addDefaultOrder(PublicationVO.class, q);
+        DatastoreHelper.addDefaultOrder(PublicationVO.class, q);
         List<PublicationVO> qRes = q.asList();        
         return qRes;
     }
@@ -249,6 +229,11 @@ public class AdminLogic extends CommonLogic {
     public void saveMetatest(MetaTestVO metatest) {
         CheckHelper.throwIfNull(metatest, "question");        
         Singletons.ds().save(metatest);
+        
+        Date now = new Date();        
+        updateAllMetatestsVisibilityOnDate(now);
+        scheduleAllMetatestsSharingTasksAfter(now);
+        
         putGlobalChangesMarker();
     }
     
@@ -418,8 +403,8 @@ public class AdminLogic extends CommonLogic {
             qm.field("_id").equal(metatestId);        
             WriteResult wr = Singletons.ds().delete(qm);
             if (wr.getN() == 1) {
-                Singletons.rl().deletePublicationsForMetatest(metatestId);
-                Singletons.rl().deletePritingPropertiesForMetatest(metatestId);   
+                Singletons.sl().deletePublicationsForMetatest(metatestId);
+                Singletons.sl().deletePritingPropertiesForMetatest(metatestId);   
             }            
         }
         
@@ -452,8 +437,7 @@ public class AdminLogic extends CommonLogic {
         
         // Remove questions
         Query<QuestionVO> qQuestion = Singletons.ds().createUpdateQuery(QuestionVO.class);
-        qQuestion.field("_id").in(questionIds);
-        
+        qQuestion.field("_id").in(questionIds);        
         
         Singletons.ds().delete(qQuestion);
         putGlobalChangesMarker();
@@ -472,183 +456,6 @@ public class AdminLogic extends CommonLogic {
     		}
     	}
     	return result;
-    }
-    
-    private <T> void addOrders(Query<T> q, List<? extends SortInfo> orders) {
-        StringBuilder sb = new StringBuilder();
-        int i = 0;
-        boolean idAdded = false;
-        for (SortInfo order: orders) {
-            if (StringHelper.isEmptyOrNull(order.getSortField())) {
-                logger.warn("Incorrect SortInfo");
-                continue;
-            }
-            if (i > 0) {
-                sb.append(",");
-            }
-            if (order.getSortDir() == SortDir.DESC) {
-                sb.append("-");
-            }
-            sb.append(order.getSortField());
-            
-            if ("_id".equals(order.getSortField())) {
-                idAdded = true;
-            }
-            
-            i++;
-        }
-        
-        // To prevent order of equal elements
-        if (!idAdded) {
-            if (i > 0) {
-                sb.append(",");
-            }
-            sb.append("_id");
-        }
-        
-        q.order(sb.toString());
-    }
-
-    private <T> Object getNatveFilterValue(Class<T> clazz, String filterFieldName, String stringFilterValue) {
-        try {
-            if ("_id".equals(filterFieldName)) {
-                filterFieldName = "id";
-            }
-            
-            Field nativeField = ReflectionHelper.getDeclaredField(clazz, filterFieldName, true);
-            
-            if (Integer.class.isAssignableFrom(nativeField.getType())) {
-                return new Integer(stringFilterValue);
-            }
-            else if (Long.class.isAssignableFrom(nativeField.getType())) {
-                return new Long(stringFilterValue);
-            }
-            else if (Double.class.isAssignableFrom(nativeField.getType())) {
-                return new Double(stringFilterValue);
-            }
-            else if (Boolean.class.isAssignableFrom(nativeField.getType())) {
-                return Boolean.valueOf(stringFilterValue);
-            }
-            else if (Date.class.isAssignableFrom(nativeField.getType())) {
-                return (new SimpleDateFormat(SharedConstants.DATE_TRANSFER_FORMAT)).parse(stringFilterValue);
-            }
-            return stringFilterValue;
-        }
-        catch (Throwable e) {
-            logger.warn(e.getMessage(), e);
-            return null;
-        }
-    }
-    
-    private <T> void addFilters(Query<T> q, List<FilterConfig> filters) {        
-        Class<T> clazz = q.getEntityClass();
-        
-        for (FilterConfig filter: filters) {
-            
-            if (StringHelper.isEmptyOrNull(filter.getValue())
-            ||  StringHelper.isEmptyOrNull(filter.getField())) {
-                logger.warn("Incorrect FilterConfig");
-                continue;
-            }
-            
-            CriteriaContainer juntion = null;
-            String[] fields = null;
-            if (OR_REGEX.matcher(filter.getField()).find()) {
-                juntion = q.or();
-                fields = OR_REGEX.split(filter.getField());
-            }
-            else if (AND_REGEX.matcher(filter.getField()).find()) {
-                juntion = q.and();
-                fields = AND_REGEX.split(filter.getField());
-            }            
-            else {
-                fields = new String[] {filter.getField()};
-            }
-            
-            CriteriaContainer container = null;
-            if (juntion != null) {
-                container = juntion;
-            }
-            else {
-                container = q.and();
-            }
-            
-            for (String field: fields) {
-                Object filterValue = getNatveFilterValue(clazz, field, filter.getValue());                
-                
-                if (filterValue == null) {
-                    continue;
-                }
-                
-                if (filter.getComparison() == null 
-                || "eq".equals(filter.getComparison())) {
-                    if (Boolean.FALSE.equals(filterValue)) {
-                        container.or(
-                            container.criteria(field).equal(filterValue),
-                            container.criteria(field).doesNotExist()
-                        );
-                    }
-                    else {
-                        container.criteria(field).equal(filterValue);
-                    }
-                }
-                if ("before".equals(filter.getComparison())) {
-                    container.criteria(field).lessThan(filterValue);
-                }
-                else if ("after".equals(filter.getComparison())) {
-                    if (filterValue instanceof Date) {
-                        filterValue = new Date(((Date) filterValue).getTime() + DateHelper.MILLISECONDS_IN_DAY);
-                    }
-                    container.criteria(field).greaterThan(filterValue);
-                }
-                else if ("on".equals(filter.getComparison())) {                    
-                    if (filterValue instanceof Date) {
-                        Date fromTime = (Date)filterValue;
-                        Date toTime = new Date(((Date) filterValue).getTime() + DateHelper.MILLISECONDS_IN_DAY);
-                        container.and(
-                            container.criteria(field).greaterThan(fromTime),
-                            container.criteria(field).lessThan(toTime)
-                        );
-                    }
-                    else {
-                        container.criteria(field).equal(filterValue);
-                    }
-                }
-                else if ("lt".equals(filter.getComparison())) {                    
-                    container.criteria(field).lessThan(filterValue);
-                }
-                else if ("gt".equals(filter.getComparison())) {                    
-                    container.criteria(field).greaterThan(filterValue);
-                }
-                else if ("contains".equals(filter.getComparison())) {
-                    String strFilterValue = (String)filterValue;
-                    //Replace NON unicode letters or digits to spaces 
-                    strFilterValue = strFilterValue.trim().toLowerCase();
-                    strFilterValue = NOT_ALNUM_REGEX.matcher(strFilterValue).replaceAll(" ");  
-                    strFilterValue = StringHelper.escapeRegexpLiteral(strFilterValue);
-                    
-                    String[] keywords = strFilterValue.split("\\s+");
-                    List<Pattern> keywordPatterns = new ArrayList<Pattern>();
-                    for (String keyword: keywords) {
-                        if (StringHelper.isEmptyOrNull(keyword)) {
-                            continue;
-                        }
-                        keywordPatterns.add(Pattern.compile(keyword, Pattern.CASE_INSENSITIVE));                    
-                    }
-                    
-                    if (!keywordPatterns.isEmpty()) {
-                        container.criteria(field).hasAllOf(keywordPatterns);
-                    }
-                }
-                else if ("notIn".equals(filter.getComparison())) {
-                    List<String> values = StringHelper.splitBySeparatorToList(filter.getValue(), ", ");
-                    
-                    if (!NullHelper.isEmptyOrNull(values)) {
-                        container.criteria(field).notIn(values);
-                    }
-                }
-            }
-        }
     }
 
     public <T extends BaseVO> T copy(Class<T> clazz, String id) {
@@ -671,5 +478,137 @@ public class AdminLogic extends CommonLogic {
         String result = PrintHelper.printTest(metatest, properties, PrintingMedia.paper);
         
         return result;
+    }
+    
+    private Set<String> getMetatestQuestionsIds(MetaTestVO metatest) {
+        CheckHelper.throwIfNull(metatest, "metatest");
+        CheckHelper.throwIfNull(metatest.getEntries(), "metatest.getEntries()");
+        
+        Set<String> result = new HashSet<String>();
+        for (MetaTestEntryVO entry: metatest.getEntries()) {
+            if (entry instanceof MTEQuestionVO) {
+                result.add(((MTEQuestionVO) entry).getQuestionId());
+            }
+            else if (entry instanceof MTEGroupVO) {
+                List<String> groupQuestions = getQuestionIdsByGroupId(((MTEGroupVO) entry).getGroupId());
+                result.addAll(groupQuestions);
+            }
+        }
+        
+        return result;
+    }
+    
+    private Set<String> getMetatestSharedOnDateTenantIds(MetaTestVO metatest, Date date) {
+        CheckHelper.throwIfNull(date, "date");
+        CheckHelper.throwIfNull(metatest, "metatest");
+        CheckHelper.throwIfNull(metatest.getSharingEntries(), "metatest.getSharingEntries()");
+        
+        Set<String> result = new HashSet<String>();
+        for (SharingEntryVO entry: metatest.getSharingEntries()) {
+            if (DateHelper.beforeOrNull(entry.getStart(), date)
+            &&  DateHelper.afterOrNull(entry.getEnd(), date)) {
+                result.add(entry.getTenantId());
+            }
+        }
+        
+        return result;
+    }
+    
+    private <T extends ShareableVO> void resetSharingForObjects(Class<T> clazz) {
+        resetSharingForObjects(clazz, null);
+    }
+    
+    private <T extends ShareableVO> void resetSharingForObjects(Class<T> clazz, Collection<String> ids) {
+        Query<T> q = Singletons.ds().createUpdateQuery(clazz);
+        if (!NullHelper.isEmptyOrNull(ids)) {
+            q.field("_id").in(ids);
+        }
+        
+        UpdateOperations<T> uo = Singletons.ds().createUpdateOperations(clazz);
+        uo.set("sharedForTenantIds", new HashSet<String>(Arrays.asList(LoginManager.getThreadLocalTenatId())));
+        
+        Singletons.ds().update(q, uo);
+    }
+    
+    private <T extends ShareableVO> void addSharingForObjects(Class<T> clazz, Collection<String> ids, Collection<String> tenantIds) {
+        if (NullHelper.isEmptyOrNull(tenantIds)) {
+            return;
+        }
+        
+        Query<T> q = Singletons.ds().createUpdateQuery(clazz);
+        if (!NullHelper.isEmptyOrNull(ids)) {
+            q.field("_id").in(ids);
+        }
+        
+        UpdateOperations<T> uo = Singletons.ds().createUpdateOperations(clazz);
+        uo.addAll("sharedForTenantIds", new ArrayList<String>(tenantIds), false);
+        
+        Singletons.ds().update(q, uo);
+    }
+    
+    public void updateAllMetatestsVisibilityOnDate(Date date) {
+        UpdateAllMetattestsVisiblityLockVO lock = new UpdateAllMetattestsVisiblityLockVO(LoginManager.getThreadLocalTenatId());
+        try {
+            LockManager.lockBlocking(lock);
+            
+            resetSharingForObjects(MetaTestVO.class);
+            resetSharingForObjects(QuestionVO.class);
+            
+            List<MetaTestVO> metatests = loadAllMetaTests();
+            for (MetaTestVO metatest: metatests) {
+                Set<String> questionIds = getMetatestQuestionsIds(metatest);
+                Set<String> sharedNowTenantIds = getMetatestSharedOnDateTenantIds(metatest, date);
+                
+                addSharingForObjects(MetaTestVO.class, Arrays.asList(metatest.getId()), sharedNowTenantIds);
+                addSharingForObjects(QuestionVO.class, questionIds, sharedNowTenantIds);
+            }
+        }
+        finally {
+            LockManager.releaseLock(lock);
+        }
+    }
+    
+    public void scheduleAllMetatestsSharingTasksAfter(Date theDate) {                
+        CheckHelper.throwIfNull(theDate, "theDate");
+        
+        List<Date> dates = new ArrayList<Date>();
+        List<MetaTestVO> metatests = loadAllMetaTests("entries");        
+        for (MetaTestVO metatest: metatests) {
+            for (SharingEntryVO entry: metatest.getSharingEntries()) {
+                if (entry.getStart() != null) {
+                    dates.add(entry.getStart());
+                }
+                if (entry.getEnd() != null) {
+                    dates.add(entry.getEnd());
+                }
+            }
+        }
+        
+        List<UpdateMetatestsSharingTaskVO> oldCronTasks = getAllUpdateMetatestsSharingTasks();
+        for (UpdateMetatestsSharingTaskVO oldCronTask: oldCronTasks) {
+            removeCronTask(oldCronTask);
+        }
+        
+        for (Date date: dates) {
+            if (date.after(theDate)) {
+                UpdateMetatestsSharingTaskVO newCronTask = new UpdateMetatestsSharingTaskVO(date);
+                scheduleCronTask(newCronTask);
+            }
+        }
+    }
+    
+    public void scheduleCronTask(TenantableCronTaskVO cronTask) {
+        Singletons.ds().save(cronTask);
+    }
+    
+    public List<UpdateMetatestsSharingTaskVO> getAllUpdateMetatestsSharingTasks() {
+        Query<UpdateMetatestsSharingTaskVO> q = Singletons.ds().createFetchQuery(UpdateMetatestsSharingTaskVO.class);
+        q.disableValidation().field("className").equal(UpdateMetatestsSharingTaskVO.class.getName()).enableValidation();
+        List<UpdateMetatestsSharingTaskVO> result = q.asList();
+        return result;
+    }
+    
+    public void removeCronTask(TenantableCronTaskVO cronTask) {
+        Singletons.ds().delete(cronTask);
     }
 }

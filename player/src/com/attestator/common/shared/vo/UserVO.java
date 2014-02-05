@@ -1,6 +1,7 @@
 package com.attestator.common.shared.vo;
 
-import com.google.code.morphia.annotations.Entity;
+import org.mongodb.morphia.annotations.Entity;
+
 
 @Entity("user")
 public class UserVO extends TenantableVO {
@@ -8,6 +9,7 @@ public class UserVO extends TenantableVO {
 
     private String defaultGroupId;
     private String email;
+    private String username;
     private String password;
 
     public UserVO() {
@@ -37,5 +39,13 @@ public class UserVO extends TenantableVO {
 
     public void setDefaultGroupId(String defaultGroupId) {
         this.defaultGroupId = defaultGroupId;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
     }
 }

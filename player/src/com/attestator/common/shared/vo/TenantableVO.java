@@ -1,7 +1,7 @@
 package com.attestator.common.shared.vo;
 
-import com.google.code.morphia.annotations.Index;
-import com.google.code.morphia.annotations.Indexes;
+import org.mongodb.morphia.annotations.Index;
+import org.mongodb.morphia.annotations.Indexes;
 
 @Indexes({@Index(name = "tenantAndId", value = "tenantId, _id")})
 public abstract class TenantableVO extends ModificationDateAwareVO {

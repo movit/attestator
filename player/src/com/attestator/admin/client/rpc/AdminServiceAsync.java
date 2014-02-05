@@ -24,6 +24,7 @@ public interface AdminServiceAsync {
     void loadQuestions(FilterPagingLoadConfig loadConfig, AsyncCallback<PagingLoadResult<QuestionVO>> callback);
     void loadReports(FilterPagingLoadConfig loadConfig, AsyncCallback<PagingLoadResult<ReportVO>> callback);
     void loadGroupsPage(FilterPagingLoadConfig loadConfig, AsyncCallback<PagingLoadResult<GroupVO>> callback);
+    void loadUsers(FilterPagingLoadConfig loadConfig, AsyncCallback<PagingLoadResult<UserVO>> callback);
     
     void loadReport(String reportId, AsyncCallback<ReportVO> callback);
     void loadMetatest(String metatestId, AsyncCallback<MetaTestVO> callback);

@@ -3,9 +3,10 @@ package com.attestator.common.shared.vo;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.mongodb.morphia.annotations.Entity;
+import org.mongodb.morphia.annotations.PrePersist;
+
 import com.attestator.common.shared.helper.NullHelper;
-import com.google.code.morphia.annotations.Entity;
-import com.google.code.morphia.annotations.PrePersist;
 
 @Entity("metatest")
 public class MetaTestVO extends ShareableVO implements PublicationsTreeItem {
@@ -14,7 +15,8 @@ public class MetaTestVO extends ShareableVO implements PublicationsTreeItem {
     private String                 name;    
 	private List<MetaTestEntryVO>  entries = new ArrayList<MetaTestEntryVO>();
 	private Integer                numberOfQuestions;
-  
+	private List<SharingEntryVO>   sharingEntries = new ArrayList<SharingEntryVO>();
+	
     public List<MetaTestEntryVO> getEntries() {
         return entries;
     }
@@ -35,6 +37,12 @@ public class MetaTestVO extends ShareableVO implements PublicationsTreeItem {
     }
     public void setNumberOfQuestions(Integer numberOfQuestions) {
         this.numberOfQuestions = numberOfQuestions;
+    }
+    public List<SharingEntryVO> getSharingEntries() {
+        return sharingEntries;
+    }
+    public void setSharingEntries(List<SharingEntryVO> sharingEntries) {
+        this.sharingEntries = sharingEntries;
     }
     @SuppressWarnings("unused")
     @PrePersist

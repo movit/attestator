@@ -4,11 +4,20 @@ import java.io.IOException;
 import java.lang.reflect.Modifier;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
+import org.mongodb.morphia.Datastore;
+import org.mongodb.morphia.annotations.Entity;
+import org.mongodb.morphia.query.Query;
+import org.mongodb.morphia.query.UpdateOperations;
 
+import com.attestator.admin.server.LockManager;
 import com.attestator.admin.server.LoginManager;
 import com.attestator.common.shared.vo.AdditionalQuestionVO;
 import com.attestator.common.shared.vo.AdditionalQuestionVO.AnswerTypeEnum;
@@ -16,7 +25,9 @@ import com.attestator.common.shared.vo.BaseVO;
 import com.attestator.common.shared.vo.ChangeMarkerVO;
 import com.attestator.common.shared.vo.ChoiceVO;
 import com.attestator.common.shared.vo.DBVersionVO;
+import com.attestator.common.shared.vo.DatabaseUpdateLockVO;
 import com.attestator.common.shared.vo.GroupVO;
+import com.attestator.common.shared.vo.LockVO;
 import com.attestator.common.shared.vo.MTEGroupVO;
 import com.attestator.common.shared.vo.MTEQuestionVO;
 import com.attestator.common.shared.vo.MetaTestVO;
@@ -29,16 +40,12 @@ import com.attestator.common.shared.vo.ShareableVO;
 import com.attestator.common.shared.vo.SingleChoiceQuestionVO;
 import com.attestator.common.shared.vo.UserVO;
 import com.attestator.player.server.Singletons;
-import com.google.code.morphia.Datastore;
-import com.google.code.morphia.annotations.Entity;
-import com.google.code.morphia.query.Query;
-import com.google.code.morphia.query.UpdateOperations;
 import com.metapossum.utils.scanner.reflect.ClassesInPackageScanner;
 
 public class DatabaseUpdater {
     private static Logger logger = Logger.getLogger(DatabaseUpdater.class);
     
-    public static final int DB_VERSION = 28;
+    public static final int DB_VERSION = 32;
     
     private Datastore rawDs;   
     
@@ -49,8 +56,17 @@ public class DatabaseUpdater {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     public void updateDatabase() {
-        DBVersionVO version = rawDs.createQuery(DBVersionVO.class).get();
+        // Only one instance of server should update database
+        DatabaseUpdateLockVO lock = new DatabaseUpdateLockVO();
+        if (!LockManager.lock(lock)) {
+            LockManager.blockUntilLockReleased(lock);
+            return;
+        }
         
+        // First of all remove all locks if any
+        removeAllLocks();
+        
+        DBVersionVO version = rawDs.createQuery(DBVersionVO.class).get();        
         if (version == null) {
             version = new DBVersionVO(0);  
         }
@@ -176,7 +192,9 @@ public class DatabaseUpdater {
                     while (it.hasNext()) {
                         ShareableVO shareable = it.next();
                         UpdateOperations uo = rawDs.createUpdateOperations(clazz);
-                        uo.set("sharedForTenantIds", shareable.getTenantId());
+                        Set<String> sharedForTenantIds = new HashSet<String>();
+                        sharedForTenantIds.add(shareable.getTenantId());                        
+                        uo.set("sharedForTenantIds", sharedForTenantIds);
                         rawDs.update(shareable, uo);
                     }
                 }
@@ -189,6 +207,119 @@ public class DatabaseUpdater {
             rawDs.ensureIndexes();
         }
         
+        if (version.getVersionOrZero() < 29) {
+            Query<UserVO> q = rawDs.createQuery(UserVO.class);
+            for (UserVO user: q.asList()) {
+                String[] emailParts = user.getEmail().split("@", 2);
+                user.setUsername(emailParts[0]);
+                rawDs.save(user);
+            }
+        }
+        
+        if (version.getVersionOrZero() < 31) {
+            try {
+                
+                List<UserVO> usersList = rawDs.createQuery(UserVO.class).asList();
+                final Map<String, UserVO> usersMap = new HashMap<String, UserVO>();
+                for (UserVO user: usersList) {
+                    usersMap.put(user.getTenantId(), user);
+                }
+                
+                Set<Class<? extends ShareableVO>> shareableClasses = 
+                        (new ClassesInPackageScanner()).findSubclasses("com.attestator.common.shared.vo", ShareableVO.class);
+                
+                for (Class<? extends ShareableVO> clazz: shareableClasses) {
+                    if (Modifier.isAbstract(clazz.getModifiers())) {
+                        continue;
+                    }
+                    
+                    if (clazz.getAnnotation(Entity.class) == null) {
+                        continue;
+                    }
+                    
+                    Query<? extends ShareableVO> q = rawDs.createQuery(clazz);
+                    q.retrievedFields(true, "_id", "tenantId");
+                    Iterator<? extends ShareableVO> it = q.iterator();
+                    
+                    while (it.hasNext()) {
+                        ShareableVO shareable = it.next();
+                        UpdateOperations uo = rawDs.createUpdateOperations(clazz);
+                        UserVO user = usersMap.get(shareable.getTenantId());
+                        if (user != null) {
+                            uo.set("ownerUsername", user.getUsername());
+                        }                        
+                        rawDs.update(shareable, uo);
+                    }
+                }
+            } catch (IOException e) {
+                logger.error(e.getMessage(), e);
+            }            
+        }
+        
+        if (version.getVersionOrZero() < 27) {
+            try {
+                Set<Class<? extends ShareableVO>> shareableClasses = 
+                        (new ClassesInPackageScanner()).findSubclasses("com.attestator.common.shared.vo", ShareableVO.class);
+                
+                for (Class<? extends ShareableVO> clazz: shareableClasses) {
+                    if (Modifier.isAbstract(clazz.getModifiers())) {
+                        continue;
+                    }
+                    
+                    if (clazz.getAnnotation(Entity.class) == null) {
+                        continue;
+                    }
+                    
+                    Query<? extends ShareableVO> q = rawDs.createQuery(clazz);
+                    q.retrievedFields(true, "_id", "tenantId");
+                    Iterator<? extends ShareableVO> it = q.iterator();
+                    
+                    while (it.hasNext()) {
+                        ShareableVO shareable = it.next();
+                        UpdateOperations uo = rawDs.createUpdateOperations(clazz);
+                        Set<String> sharedForTenantIds = new HashSet<String>();
+                        sharedForTenantIds.add(shareable.getTenantId());                        
+                        uo.set("sharedForTenantIds", sharedForTenantIds);
+                        rawDs.update(shareable, uo);
+                    }
+                }
+            } catch (IOException e) {
+                logger.error(e.getMessage(), e);
+            }            
+        }
+        
+        if (version.getVersionOrZero() < 32) {
+            try {
+                Set<Class<? extends ShareableVO>> shareableClasses = 
+                        (new ClassesInPackageScanner()).findSubclasses("com.attestator.common.shared.vo", ShareableVO.class);
+                
+                for (Class<? extends ShareableVO> clazz: shareableClasses) {
+                    if (Modifier.isAbstract(clazz.getModifiers())) {
+                        continue;
+                    }
+                    
+                    if (clazz.getAnnotation(Entity.class) == null) {
+                        continue;
+                    }
+                    
+                    Query<? extends ShareableVO> q = rawDs.createQuery(clazz);
+                    q.retrievedFields(true, "_id", "tenantId");
+                    Iterator<? extends ShareableVO> it = q.iterator();
+                    
+                    while (it.hasNext()) {
+                        ShareableVO shareable = it.next();
+                        UpdateOperations uo = rawDs.createUpdateOperations(clazz);
+                        Set<String> sharedForTenantIds = new HashSet<String>();
+                        sharedForTenantIds.add(shareable.getTenantId());                        
+                        uo.set("sharedForTenantIds", sharedForTenantIds);
+                        rawDs.update(shareable, uo);
+                    }
+                }
+            } catch (IOException e) {
+                logger.error(e.getMessage(), e);
+            }            
+        }
+        
         if (version.getVersionOrZero() < DB_VERSION) {
             resetChangeMarkers();
             
@@ -197,6 +328,11 @@ public class DatabaseUpdater {
         }
         
         logger.info("Database is up to date");
+    }
+    
+    private void removeAllLocks() {
+        Query<LockVO> q = rawDs.createQuery(LockVO.class);
+        rawDs.delete(q);
     }
     
     private void resetChangeMarkers() {
@@ -218,9 +354,9 @@ public class DatabaseUpdater {
     }
     
     private void addTestData() {
-        Singletons.rl().createNewUser("test2@test.com", "test");
+        Singletons.sl().createNewUser("test2@test.com", "test");
         
-        UserVO user = Singletons.rl().createNewUser("test@test.com", "test");        
+        UserVO user = Singletons.sl().createNewUser("test@test.com", "test");        
         LoginManager.setThreadLocalLoggedUser(user);
         
         GroupVO grOther = new GroupVO();
@@ -350,7 +486,7 @@ public class DatabaseUpdater {
         publication.setId(BaseVO.idString());
         Singletons.ds().save(publication);
         
-        user = Singletons.rl().createNewUser("e_moskovkina@fgufccs.ru", "mskvkn", "fgufccs");
+        user = Singletons.sl().createNewUser("e_moskovkina@fgufccs.ru", "mskvkn", "fgufccs");
         
         LoginManager.setThreadLocalLoggedUser(user);
         mt = new MetaTestVO();

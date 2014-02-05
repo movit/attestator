@@ -26,6 +26,7 @@ public interface AdminService extends RemoteService {
     PagingLoadResult<QuestionVO> loadQuestions(FilterPagingLoadConfig loadConfig) throws IllegalStateException;
     PagingLoadResult<ReportVO> loadReports(FilterPagingLoadConfig loadConfig) throws IllegalStateException;
     PagingLoadResult<GroupVO> loadGroupsPage(FilterPagingLoadConfig loadConfig) throws IllegalStateException;
+    PagingLoadResult<UserVO> loadUsers(FilterPagingLoadConfig loadConfig) throws IllegalStateException;
     
     ReportVO loadReport(String reportId) throws IllegalStateException;
     MetaTestVO loadMetatest(String metatestId) throws IllegalStateException;

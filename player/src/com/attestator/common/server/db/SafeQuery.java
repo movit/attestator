@@ -1,6 +1,6 @@
 package com.attestator.common.server.db;
 
-import com.google.code.morphia.query.Query;
+import org.mongodb.morphia.query.Query;
 
 interface SafeQuery<T> extends Query<T> {
     static enum QueryType {

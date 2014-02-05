@@ -91,7 +91,36 @@ public class ReflectionHelper {
         
         return field;
     }
+
+    /**
+     * Retrieving fields list of specified class 
+     * retrieving fields from all class hierarchy
+     * stopping on stopSuperclass
+     * 
+     * @param clazz
+     *            where fields are searching
+     * @param recursively
+     *            param
+     * @return list of fields
+     */
+    public static Field[] getDeclaredFields(Class clazz, Class stopSuperlass) {
+        List<Field> fields = new LinkedList<Field>();
+        Field[] declaredFields = clazz.getDeclaredFields();
+        Collections.addAll(fields, declaredFields);
+
+        Class superClass = clazz.getSuperclass();
+
+        if (superClass != null && !superClass.equals(stopSuperlass)) {
+            Field[] declaredFieldsOfSuper = getDeclaredFields(superClass,
+                    stopSuperlass);
+            if (declaredFieldsOfSuper.length > 0)
+                Collections.addAll(fields, declaredFieldsOfSuper);
+        }
+
+        return fields.toArray(new Field[fields.size()]);
+    }
     
+
     /**
      * Retrieving fields list of specified class If recursively is true,
      * retrieving fields from all class hierarchy

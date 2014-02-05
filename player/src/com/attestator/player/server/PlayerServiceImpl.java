@@ -30,9 +30,9 @@ public class PlayerServiceImpl extends RemoteServiceServlet implements
     private static final Logger logger = Logger.getLogger(PlayerServiceImpl.class);    
     
     private void login(String tenantId) throws LoginException {
-        UserVO user = LoginManager.setThreadLocalTenantId(tenantId);
+        UserVO user = LoginManager.login(null, tenantId);
         if (user == null) {
-            throw new LoginException("Неверный банк тестов");
+            throw new LoginException("Unable to login by tenantId: " + tenantId);
         }
     }
     

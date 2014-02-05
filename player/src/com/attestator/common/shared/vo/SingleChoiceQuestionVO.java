@@ -3,11 +3,11 @@ package com.attestator.common.shared.vo;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.attestator.common.shared.helper.NullHelper;
-import com.google.code.morphia.annotations.Entity;
-import com.google.code.morphia.annotations.PostLoad;
+import org.mongodb.morphia.annotations.PostLoad;
 
-@Entity("question")
+import com.attestator.common.shared.helper.NullHelper;
+
+@org.mongodb.morphia.annotations.Entity("question")
 public class SingleChoiceQuestionVO extends QuestionVO {
     private static final long serialVersionUID = -3128704433193435364L;
     

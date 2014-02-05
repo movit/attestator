@@ -22,6 +22,7 @@ import com.attestator.admin.client.ui.event.SaveEvent.HasSaveEventHandlers;
 import com.attestator.admin.client.ui.event.SaveEvent.SaveHandler;
 import com.attestator.admin.client.ui.widgets.MultylinkCell;
 import com.attestator.admin.client.ui.widgets.SearchField;
+import com.attestator.admin.client.ui.widgets.SharingEntriesList;
 import com.attestator.common.client.ui.resolurces.Resources;
 import com.attestator.common.shared.helper.NullHelper;
 import com.attestator.common.shared.helper.ReportHelper;
@@ -34,6 +35,7 @@ import com.attestator.common.shared.vo.MetaTestEntryVO;
 import com.attestator.common.shared.vo.MetaTestVO;
 import com.attestator.common.shared.vo.PublicationVO;
 import com.attestator.common.shared.vo.QuestionVO;
+import com.attestator.common.shared.vo.SharingEntryVO;
 import com.google.gwt.cell.client.AbstractCell;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.core.client.Scheduler;
@@ -81,6 +83,7 @@ import com.sencha.gxt.data.shared.loader.PagingLoader;
 import com.sencha.gxt.widget.core.client.Component;
 import com.sencha.gxt.widget.core.client.ContentPanel;
 import com.sencha.gxt.widget.core.client.ContentPanel.ContentPanelAppearance;
+import com.sencha.gxt.widget.core.client.TabPanel;
 import com.sencha.gxt.widget.core.client.Window;
 import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
 import com.sencha.gxt.widget.core.client.button.TextButton;
@@ -156,6 +159,9 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
     @UiField
     TextField name;
     
+    @UiField
+    SharingEntriesList sharingEntries;    
+
     @Ignore
     @UiField
     Window window;
@@ -241,6 +247,12 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
     Grid<PublicationVO> publicationsGrid;
     
     @Ignore
+    ListStore<SharingEntryVO> sharngStore;
+    
+    ColumnModel<SharingEntryVO> sharingCm;
+    
+    
+    @Ignore
     GridEditing<MetaTestEntryVO> entriesEditing;
     @Ignore
     @UiField
@@ -249,6 +261,11 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
     @Ignore
     @UiField
     PagingToolBar groupsPager;
+    
+    @Ignore
+    @UiField
+    TabPanel tabs;
+    
     
     @Ignore
     ListStore<MetaTestEntryVO> entriesStore;
@@ -371,7 +388,7 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
         Grid<T> result = new Grid<T>(store, cm);
         result.setSelectionModel(sm);
         result.getView().setAutoFill(true);
-        result.getView().setForceFit(true);
+//        result.getView().setForceFit(true);
         result.setLoadMask(true);
         return result;
     }
@@ -383,7 +400,7 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
         result.setSelectionModel(sm);
         result.setLoader(loader);
         result.getView().setAutoFill(true);
-        result.getView().setForceFit(true);
+//        result.getView().setForceFit(true);
         result.setLoadMask(true);
         return result;
     }
@@ -895,6 +912,7 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
                         Scheduler.get().scheduleDeferred(new ScheduledCommand() {                            
                             @Override
                             public void execute() {
+                                //TODO top now is tab cover. Need switch to first tab before focusing
                                 top.getScrollSupport().ensureVisible(finalEnsureVisibleWidget);
                                 if (finalFocusWiget != null) {
                                     finalFocusWiget.focus();
@@ -1084,7 +1102,7 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
                 groupsPanel.forceLayout();                
             }
         });
-        
+                
         Scheduler.get().scheduleDeferred(new ScheduledCommand() {
             @Override
             public void execute() {

@@ -6,18 +6,18 @@ import java.lang.reflect.Proxy;
 import java.util.Date;
 
 import org.apache.log4j.Logger;
+import org.mongodb.morphia.Datastore;
+import org.mongodb.morphia.query.Query;
+import org.mongodb.morphia.query.UpdateOperations;
 
 import com.attestator.admin.server.LoginManager;
 import com.attestator.common.server.db.SafeQuery.QueryType;
 import com.attestator.common.server.helper.ReflectionHelper;
 import com.attestator.common.shared.helper.CheckHelper;
-import com.attestator.common.shared.helper.StringHelper;
 import com.attestator.common.shared.vo.ModificationDateAwareVO;
 import com.attestator.common.shared.vo.ShareableVO;
+import com.attestator.common.shared.vo.TenantableCronTaskVO;
 import com.attestator.common.shared.vo.TenantableVO;
-import com.google.code.morphia.Datastore;
-import com.google.code.morphia.query.Query;
-import com.google.code.morphia.query.UpdateOperations;
 
 public class DatastoreInvocationHandler implements InvocationHandler {
     @SuppressWarnings("unused")
@@ -42,10 +42,6 @@ public class DatastoreInvocationHandler implements InvocationHandler {
     public Object invoke(Object proxy, Method method, Object[] args)
             throws Throwable {
         
-        if (StringHelper.isEmptyOrNull(LoginManager.getThreadLocalTenatId())) {
-            throw new IllegalAccessException("No current tenantId is set. Looks like you not logged in.");
-        }
-        
         if (CREATE_FETCH_QUERY.equals(method) ) {
             Query<?> rawQ = (Query<?>)CREATE_QUERY.invoke(rawDs, args);
             SafeQuery<?> result = cretaeSafeQueryProxy(rawQ, QueryType.queryForFetch);
@@ -57,6 +53,9 @@ public class DatastoreInvocationHandler implements InvocationHandler {
             else if (TenantableVO.class.isAssignableFrom(clazz)) {
                 result.field("tenantId").equal(LoginManager.getThreadLocalTenatId());
             }
+            else if (TenantableCronTaskVO.class.isAssignableFrom(clazz)) {
+                result.field("tenantId").equal(LoginManager.getThreadLocalTenatId());
+            }
             
             return result;
         }
@@ -66,6 +65,9 @@ public class DatastoreInvocationHandler implements InvocationHandler {
             
             Class<?> clazz = (Class<?>)args[0];
             if (TenantableVO.class.isAssignableFrom(clazz)) {
+                result.field("tenantId").equal(LoginManager.getThreadLocalTenatId());
+            }
+            else if (TenantableCronTaskVO.class.isAssignableFrom(clazz)) {
                 result.field("tenantId").equal(LoginManager.getThreadLocalTenatId());
             }
             return result;
@@ -143,12 +145,26 @@ public class DatastoreInvocationHandler implements InvocationHandler {
                 throw new IllegalArgumentException("Object us not writeable for tenant: " + LoginManager.getThreadLocalTenatId() + ", obj: " + obj.toString());               
             }
         }
+        else if (obj instanceof TenantableCronTaskVO) {
+            Query<?> q = rawDs.createQuery(obj.getClass());
+            q.field("_id").equal(((TenantableCronTaskVO) obj).getId());
+            q.retrievedFields(true, "tenantId");
+            
+            TenantableCronTaskVO dbObj = (TenantableCronTaskVO)q.get();
+            
+            if (dbObj != null && !LoginManager.getThreadLocalTenatId().equals(dbObj.getTenantId())) {
+                throw new IllegalArgumentException("Object us not writeable for tenant: " + LoginManager.getThreadLocalTenatId() + ", obj: " + obj.toString());               
+            }
+        }        
     }
     
     private void prepareForSave(Object obj) {        
         if (obj instanceof TenantableVO) {
             ((TenantableVO) obj).setTenantId(LoginManager.getThreadLocalTenatId());
         }
+        if (obj instanceof TenantableCronTaskVO) {
+            ((TenantableCronTaskVO) obj).setTenantId(LoginManager.getThreadLocalTenatId());
+        }        
         if (obj instanceof ShareableVO) {
             ((ShareableVO) obj).getSharedForTenantIds().add(LoginManager.getThreadLocalTenatId());
         }

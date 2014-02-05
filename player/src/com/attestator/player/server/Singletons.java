@@ -5,15 +5,16 @@ import java.lang.reflect.Proxy;
 import javax.security.auth.login.LoginException;
 import javax.servlet.ServletContext;
 
+import org.mongodb.morphia.Datastore;
+import org.mongodb.morphia.Morphia;
+
 import com.attestator.admin.server.AdminLogic;
-import com.attestator.common.server.RawDsLogic;
+import com.attestator.common.server.SystemLogic;
 import com.attestator.common.server.db.DatabaseUpdater;
 import com.attestator.common.server.db.DatastoreInvocationHandler;
 import com.attestator.common.server.db.Interceptor;
 import com.attestator.common.server.db.SafeDatastore;
 import com.attestator.common.server.helper.ServerHelper;
-import com.google.code.morphia.Datastore;
-import com.google.code.morphia.Morphia;
 import com.mongodb.DB;
 import com.mongodb.Mongo;
 import com.mongodb.MongoClient;
@@ -25,9 +26,9 @@ public class Singletons {
     private static DB            db;
     private static PlayerLogic   pl;
     private static AdminLogic    al;
-    private static RawDsLogic    rl;
+    private static SystemLogic   sl;
     
-   public static SafeDatastore ds() {
+    public static SafeDatastore ds() {
         return ds;
     }
     
@@ -39,10 +40,18 @@ public class Singletons {
         return al;
     }
     
-    public static RawDsLogic rl() {
-        return rl;
+    public static SystemLogic sl() {
+        return sl;
+    }
+    
+    public static Morphia morphia() {
+        return morphia;
     }
    
+    public static DB db() {
+        return db;
+    }
+    
     /**
      * Invoked when the web application starts.
      */
@@ -67,7 +76,7 @@ public class Singletons {
         // Update database should be called before installing interceptor.
         // Because interceptor must work only with logged in environment.
         // DatabaseUpdater can't rely on annotation handling which done by interceptor.
-        rl      = new RawDsLogic(rawDs);
+        sl      = new SystemLogic(rawDs);
         DatabaseUpdater dbUpdater = new DatabaseUpdater(rawDs);
         dbUpdater.updateDatabase();
         

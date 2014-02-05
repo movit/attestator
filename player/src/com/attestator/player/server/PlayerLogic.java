@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.List;
 
 import org.apache.log4j.Logger;
+import org.mongodb.morphia.query.Query;
 
 import com.attestator.admin.server.LoginManager;
 import com.attestator.common.server.CommonLogic;
@@ -18,7 +19,6 @@ import com.attestator.common.shared.vo.MetaTestVO;
 import com.attestator.common.shared.vo.PublicationVO;
 import com.attestator.common.shared.vo.QuestionVO;
 import com.attestator.common.shared.vo.ReportVO;
-import com.google.code.morphia.query.Query;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 

@@ -5,6 +5,7 @@ import javax.servlet.ServletContextListener;
 
 import org.apache.log4j.Logger;
 
+import com.attestator.admin.server.CronManager;
 import com.attestator.admin.server.protocol.ExtendedURLStreamHandlerFactory;
 import com.attestator.admin.server.protocol.membuffer.MembufferURLStreamHandler;
 
@@ -15,7 +16,8 @@ public final class PlayerWebApplication implements ServletContextListener {
     public void contextInitialized(ServletContextEvent sce) {
         try {
             ExtendedURLStreamHandlerFactory.getInstance().registerURLStreamHandler(MembufferURLStreamHandler.class);
-            Singletons.initialize(sce.getServletContext());                               
+            Singletons.initialize(sce.getServletContext());
+            CronManager.start();
         } catch (Exception ex) {
             logger.error("Application cannot be started.", ex);
         }
@@ -24,6 +26,7 @@ public final class PlayerWebApplication implements ServletContextListener {
     @Override
     public void contextDestroyed(ServletContextEvent sce) {
         try {
+            CronManager.stop();
             Singletons.shutDown();
         } catch (Exception ex) {
             logger.error("Can't correctly shutdown the application", ex);

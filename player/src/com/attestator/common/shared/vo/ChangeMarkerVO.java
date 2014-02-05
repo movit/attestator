@@ -3,8 +3,9 @@ package com.attestator.common.shared.vo;
 import java.util.Map;
 import java.util.TreeMap;
 
+import org.mongodb.morphia.annotations.Entity;
+
 import com.attestator.common.shared.helper.CheckHelper;
-import com.google.code.morphia.annotations.Entity;
 
 @Entity("changemarker")
 public class ChangeMarkerVO extends TenantableVO {

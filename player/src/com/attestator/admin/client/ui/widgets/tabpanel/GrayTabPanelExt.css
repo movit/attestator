@@ -1,0 +1,9 @@
+@CHARSET "UTF-8";
+
+.tabBody {
+  background-color: transparent;
+}
+
+.tabStripSpacer {
+  border-bottom: 0px !important;
+}

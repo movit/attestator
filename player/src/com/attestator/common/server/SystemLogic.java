@@ -1,29 +1,40 @@
 package com.attestator.common.server;
 
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+
+import org.mongodb.morphia.Datastore;
+import org.mongodb.morphia.query.Query;
+
+import com.attestator.common.server.helper.DatastoreHelper;
 import com.attestator.common.shared.helper.CheckHelper;
+import com.attestator.common.shared.vo.CronTaskVO;
 import com.attestator.common.shared.vo.GroupVO;
 import com.attestator.common.shared.vo.PrintingPropertiesVO;
 import com.attestator.common.shared.vo.PublicationVO;
 import com.attestator.common.shared.vo.UserVO;
 import com.attestator.player.server.Singletons;
-import com.google.code.morphia.Datastore;
-import com.google.code.morphia.query.Query;
+import com.sencha.gxt.data.shared.loader.FilterPagingLoadConfig;
+import com.sencha.gxt.data.shared.loader.PagingLoadResult;
+import com.sencha.gxt.data.shared.loader.PagingLoadResultBean;
 
 /**
  * 
  * @author Vitaly
  * Only this class is allowed use raw datastore;
  */
-public class RawDsLogic {
+public class SystemLogic {
     private Datastore rawDs;
 
-    public RawDsLogic(Datastore rawDs) {
+    public SystemLogic(Datastore rawDs) {
         super();
         this.rawDs = rawDs;
     }
     
     public UserVO createNewUser(String email, String password) {
-        return Singletons.rl().createNewUser(email, password, null); 
+        return Singletons.sl().createNewUser(email, password, null); 
     }    
 
     public UserVO createNewUser(String email, String password, String tenantId) {
@@ -92,4 +103,58 @@ public class RawDsLogic {
         rawDs.delete(q);
     }
 
+    public PagingLoadResult<UserVO> loadUserPage(FilterPagingLoadConfig loadConfig, String ... excludFields) {
+        CheckHelper.throwIfNull(loadConfig, "loadConfig");
+        
+        // Create query
+        Query<UserVO> q = rawDs.createQuery(UserVO.class);
+        
+        HashSet<String> usedExcludeFields = new HashSet<String>();        
+        // Exclude fields if any
+        if (excludFields != null) {
+            usedExcludeFields.addAll(Arrays.asList(excludFields));
+        }
+        // Don't load password. Never!
+        usedExcludeFields.add("password");
+        
+        q.retrievedFields(false, usedExcludeFields.toArray(new String[0]));
+        
+        // Add load config
+        DatastoreHelper.addLoadConfig(q, loadConfig);
+
+        // Get total count (without offset and limit)
+        long count = q.countAll();        
+                
+        q.offset(loadConfig.getOffset());
+        q.limit(loadConfig.getLimit());
+        
+        List<UserVO> qRes = q.asList();
+        
+        PagingLoadResultBean<UserVO> result = new PagingLoadResultBean<UserVO>();
+        result.setData(qRes);
+        result.setOffset(loadConfig.getOffset());
+        result.setTotalLength((int)count);
+        
+        return result;
+    }
+    
+    public void scheduleCronTask(CronTaskVO cronTask) {
+        rawDs.save(cronTask);
+    }
+    
+    public List<CronTaskVO> getActiveCronTasks() {
+        Query<CronTaskVO> q = rawDs.createQuery(CronTaskVO.class);
+        q.field("time").lessThanOrEq(new Date());
+        q.order("time");
+        List<CronTaskVO> result = q.asList();
+        return result;
+    }
+    
+    public void removeCronTask(String cronTaskId) {
+        CheckHelper.throwIfNullOrEmpty(cronTaskId, "cronTaskId");
+        
+        Query<CronTaskVO> q = rawDs.createQuery(CronTaskVO.class);
+        q.field("_id").equal(cronTaskId);
+        rawDs.delete(q);
+    }
 }

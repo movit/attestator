@@ -1,7 +1,8 @@
 package com.attestator.common.shared.vo;
 
+import org.mongodb.morphia.annotations.Transient;
+
 import com.attestator.common.server.db.annotation.Reference;
-import com.google.code.morphia.annotations.Transient;
 
 public class MTEGroupVO extends MetaTestEntryVO {
     private static final long serialVersionUID = -2665975538192261095L;

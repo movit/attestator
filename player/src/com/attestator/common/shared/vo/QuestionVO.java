@@ -1,8 +1,9 @@
 package com.attestator.common.shared.vo;
 
+import org.mongodb.morphia.annotations.Entity;
+
 import com.attestator.common.server.db.annotation.SetOnSave;
 import com.attestator.common.shared.helper.NullHelper;
-import com.google.code.morphia.annotations.Entity;
 
 @Entity("question")
 public abstract class QuestionVO extends ShareableVO {

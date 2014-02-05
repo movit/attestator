@@ -1,9 +1,10 @@
 package com.attestator.common.shared.vo;
 
+import org.mongodb.morphia.annotations.Entity;
+import org.mongodb.morphia.annotations.Transient;
+
 import com.attestator.common.server.db.annotation.ReferenceCount;
 import com.attestator.common.shared.helper.NullHelper;
-import com.google.code.morphia.annotations.Entity;
-import com.google.code.morphia.annotations.Transient;
 
 @Entity("group")
 public class GroupVO extends ShareableVO {
