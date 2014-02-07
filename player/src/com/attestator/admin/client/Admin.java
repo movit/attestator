@@ -1,51 +1,5 @@
 package com.attestator.admin.client;
 
-//Now
-//TODO Backup sources!!!!!
-
-//TODO Order reports by startDate by default
-//TODO Admin errors+unanswered report mode
-//TODO Admin add middleName column
-//TODO Login screen login by "enter" button click
-//TODO Max error counter to interrupt test
-
-//TODO Buy Jelasstic hosting
-
-//TODO Move questions from publication to report
-
-//TODO Player offline mode 
-//TODO Player several browser instances go online from one machine. What happens with calls queue?
-//TODO Reset attempts counter without deleting reports
-//TODO Opera disable text selection
-
-//TODO File format check
-//TODO Optimize report update
-
-//Later
-
-//TODO Firefox copy paste to search box do not start search
-//TODO Error message about unsuccessful login
-//TODO User registration
-//TODO Multydomain system
-//TODO Save grids state
-//TODO Admin userfriendly exceptions
-//TODO Admin session timeout
-//TODO Show number of questions in groups where useful
-//TODO Add indexes
-//TODO Password encryption
-//TODO XSRF Token
-//TODO Database backup
-//TODO ClientID using evercookie
-
-//TODO Report printing
-//TODO Better report formatting
-//TODO Tests sharing between clients 
-//TODO Test editing screen
-//TODO Study mode. (Show correct answers)
-//TODO Build wars automatically
-//TODO Client Id ban
-//TODO My profile edit window
-//TODO Logo and icons
 
 import com.attestator.admin.client.rpc.AdminAsyncCallback;
 import com.attestator.admin.client.rpc.AdminService;

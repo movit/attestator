@@ -225,15 +225,17 @@ public class AdminLogic extends CommonLogic {
         properties.setPrintAttempt(properties.getPrintAttemptOrZero() + 1);
         Singletons.ds().save(properties);
     }
-
-    public void saveMetatest(MetaTestVO metatest) {
-        CheckHelper.throwIfNull(metatest, "question");        
-        Singletons.ds().save(metatest);
-        
+    
+    private void refreshAllSharing() {
         Date now = new Date();        
         updateAllMetatestsVisibilityOnDate(now);
         scheduleAllMetatestsSharingTasksAfter(now);
-        
+    }
+    
+    public void saveMetatest(MetaTestVO metatest) {
+        CheckHelper.throwIfNull(metatest, "question");        
+        Singletons.ds().save(metatest);
+        refreshAllSharing();
         putGlobalChangesMarker();
     }
     
@@ -405,9 +407,10 @@ public class AdminLogic extends CommonLogic {
             if (wr.getN() == 1) {
                 Singletons.sl().deletePublicationsForMetatest(metatestId);
                 Singletons.sl().deletePritingPropertiesForMetatest(metatestId);   
-            }            
+            }
         }
         
+        refreshAllSharing();        
         putChangesMarker(null, CacheType.getActivePublications);
     }
     
@@ -418,23 +421,19 @@ public class AdminLogic extends CommonLogic {
             return;
         }
         
-        // Remove all metatest entries referanced to this question
-        // TODO strange place need to be checked
-        Query<MetaTestVO> qMetatest = Singletons.ds().createUpdateQuery(MetaTestVO.class);
-        qMetatest.disableValidation().field("entries.groupId").in(questionIds).enableValidation();        
-        
-        ArrayList<MTEQuestionVO> mteTemplates = new ArrayList<MTEQuestionVO>();
+        // Remove all metatest entries referenced to this question
         for (String questionId: questionIds) {
+            Query<MetaTestVO> qMetatest = Singletons.ds().createUpdateQuery(MetaTestVO.class);
+            qMetatest.disableValidation().field("entries.questionId").hasAnyOf(questionIds).enableValidation();        
+            
+            UpdateOperations<MetaTestVO> uoMetatest = Singletons.ds().createUpdateOperations(MetaTestVO.class);
             MTEQuestionVO mteTemplate = ReflectionHelper.createEmpty(MTEQuestionVO.class);
             mteTemplate.setQuestionId(questionId);
-            mteTemplates.add(mteTemplate);
+            uoMetatest.removeAll("entries", mteTemplate);
+            
+            Singletons.ds().update(qMetatest, uoMetatest);
         }
-        
-        UpdateOperations<MetaTestVO> uoMetatest = Singletons.ds().createUpdateOperations(MetaTestVO.class);
-        uoMetatest.removeAll("entries", mteTemplates);
     
-        Singletons.ds().update(qMetatest, uoMetatest);
-        
         // Remove questions
         Query<QuestionVO> qQuestion = Singletons.ds().createUpdateQuery(QuestionVO.class);
         qQuestion.field("_id").in(questionIds);        
@@ -505,8 +504,8 @@ public class AdminLogic extends CommonLogic {
         
         Set<String> result = new HashSet<String>();
         for (SharingEntryVO entry: metatest.getSharingEntries()) {
-            if (DateHelper.beforeOrNull(entry.getStart(), date)
-            &&  DateHelper.afterOrNull(entry.getEnd(), date)) {
+            if (DateHelper.beforeOrNull(entry.getStartTime(), date)
+            &&  DateHelper.afterOrNull(entry.getEndTime(), date)) {
                 result.add(entry.getTenantId());
             }
         }
@@ -575,11 +574,11 @@ public class AdminLogic extends CommonLogic {
         List<MetaTestVO> metatests = loadAllMetaTests("entries");        
         for (MetaTestVO metatest: metatests) {
             for (SharingEntryVO entry: metatest.getSharingEntries()) {
-                if (entry.getStart() != null) {
-                    dates.add(entry.getStart());
+                if (entry.getStartTime() != null) {
+                    dates.add(entry.getStartTime());
                 }
-                if (entry.getEnd() != null) {
-                    dates.add(entry.getEnd());
+                if (entry.getEndTime() != null) {
+                    dates.add(entry.getEndTime());
                 }
             }
         }

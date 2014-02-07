@@ -184,10 +184,10 @@
 		focusWidget="{cancelButton}">
 		<row:VerticalLayoutContainer ui:field="top">
 			<row:child layoutData="{maxWidthMaxHeightVLData}">
-				<gxt:PlainTabPanel width="1" ui:field="tabs"
+				<gxt:PlainTabPanel ui:field="tabs" width="1"
 					bodyBorder="true">
 					<gxt:child config="{testTabConfig}">
-						<row:VerticalLayoutContainer
+						<row:VerticalLayoutContainer ui:field="testTop"
 							styleName="{style.transparentBackground}">
 							<row:child layoutData="{maxWidthMinHeightBottomMarginVLData}">
 								<form:FieldLabel labelAlign="TOP" text="Название">
@@ -307,7 +307,7 @@
 						</row:VerticalLayoutContainer>
 					</gxt:child>
 					<gxt:child config="{sharingTabConfig}">
-						<row:VerticalLayoutContainer>
+						<row:VerticalLayoutContainer ui:field="sharingTop">
 						    <row:child layoutData="{maxSharingEntriesVLData}">
 						        <att:SharingEntriesList ui:field="sharingEntries"></att:SharingEntriesList>
 						    </row:child>

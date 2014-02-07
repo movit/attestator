@@ -71,8 +71,8 @@ public class UserComboBox extends Composite {
     private ComboBox<UserVO> createComboBox(ListStore<UserVO> store) {
         ComboBox<UserVO> result = new ComboBox<UserVO>(store, USER_PROPERTY_ACESS.usernameLabel());
         result.setLoader(loader);
-        result.setTypeAhead(true);
-        result.setMinChars(1);
+        result.setTypeAhead(false);
+        result.setMinChars(2);
         result.setPageSize(10);
         result.setWidth(450);
         result.setHideTrigger(true);

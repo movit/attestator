@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Set;
 
 import com.attestator.admin.client.Admin;
-import com.attestator.admin.client.helper.WidgetHelpr;
+import com.attestator.admin.client.helper.WidgetHelper;
 import com.attestator.admin.client.props.BoundedConverter;
 import com.attestator.admin.client.props.GroupVOPropertyAccess;
 import com.attestator.admin.client.props.MetatestEntryVOPropertyAccess;
@@ -24,6 +24,7 @@ import com.attestator.admin.client.ui.widgets.MultylinkCell;
 import com.attestator.admin.client.ui.widgets.SearchField;
 import com.attestator.admin.client.ui.widgets.SharingEntriesList;
 import com.attestator.common.client.ui.resolurces.Resources;
+import com.attestator.common.shared.helper.DateHelper;
 import com.attestator.common.shared.helper.NullHelper;
 import com.attestator.common.shared.helper.ReportHelper;
 import com.attestator.common.shared.helper.StringHelper;
@@ -83,7 +84,7 @@ import com.sencha.gxt.data.shared.loader.PagingLoader;
 import com.sencha.gxt.widget.core.client.Component;
 import com.sencha.gxt.widget.core.client.ContentPanel;
 import com.sencha.gxt.widget.core.client.ContentPanel.ContentPanelAppearance;
-import com.sencha.gxt.widget.core.client.TabPanel;
+import com.sencha.gxt.widget.core.client.PlainTabPanel;
 import com.sencha.gxt.widget.core.client.Window;
 import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
 import com.sencha.gxt.widget.core.client.button.TextButton;
@@ -168,7 +169,24 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
     
     @UiField
     @Ignore
-    VerticalLayoutContainer top;
+    PlainTabPanel tabs;
+    
+    @UiField
+    @Ignore
+    VerticalLayoutContainer testTop;
+    
+    @UiField
+    @Ignore
+    VerticalLayoutContainer sharingTop;
+    
+    
+//    @Ignore
+//    @UiField
+//    Widget sharingTab;
+//
+//    @Ignore
+//    @UiField
+//    Widget testTab;    
     
     @UiField
     @Ignore
@@ -247,12 +265,6 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
     Grid<PublicationVO> publicationsGrid;
     
     @Ignore
-    ListStore<SharingEntryVO> sharngStore;
-    
-    ColumnModel<SharingEntryVO> sharingCm;
-    
-    
-    @Ignore
     GridEditing<MetaTestEntryVO> entriesEditing;
     @Ignore
     @UiField
@@ -261,11 +273,6 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
     @Ignore
     @UiField
     PagingToolBar groupsPager;
-    
-    @Ignore
-    @UiField
-    TabPanel tabs;
-    
     
     @Ignore
     ListStore<MetaTestEntryVO> entriesStore;
@@ -749,7 +756,7 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
         l.add(new ColumnConfig<PublicationVO, String>(publicationsTreeProperties.maxTakeTestTime, 20, "Времени на тест"));
         l.add(createPublicationActionsColumnConfig(new IdentityValueProvider<PublicationVO>()));
         
-        WidgetHelpr.disableColumnHeaderOperations(l);
+        WidgetHelper.disableColumnHeaderOperations(l);
 
         ColumnModel<PublicationVO> result = new ColumnModel<PublicationVO>(l);
     
@@ -900,6 +907,17 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
             sb.append("В тесте должен быть хотя бы одинн элемент" + "<br>");            
         }
         
+        for (SharingEntryVO sharingEntry: sharingEntries.getListStore().getAll()) {
+            if (sharingEntry.getStart() != null && sharingEntry.getEnd() != null) {
+                if (!DateHelper.afterOrEqualOrNull(sharingEntry.getEnd(), sharingEntry.getStart())) {
+                    sb.append("Начало периода для пользователя " + sharingEntry.getUsername() + " должно быть позже окончания" + "<br>");
+                    if (ensureVisibleWidget == null) {
+                        ensureVisibleWidget = sharingEntries;                        
+                    }
+                }
+            }
+        }
+            
         if (sb.length() > 0) {
             AlertMessageBox alert = new AlertMessageBox("Ошибка", sb.toString());
             
@@ -912,10 +930,15 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
                         Scheduler.get().scheduleDeferred(new ScheduledCommand() {                            
                             @Override
                             public void execute() {
-                                //TODO top now is tab cover. Need switch to first tab before focusing
-                                top.getScrollSupport().ensureVisible(finalEnsureVisibleWidget);
-                                if (finalFocusWiget != null) {
-                                    finalFocusWiget.focus();
+                                if (WidgetHelper.isParent(testTop, finalEnsureVisibleWidget)) {
+                                    tabs.setActiveWidget(testTop);
+                                    testTop.getScrollSupport().ensureVisible(finalEnsureVisibleWidget);
+                                    if (finalFocusWiget != null) {
+                                        finalFocusWiget.focus();
+                                    }
+                                }
+                                else if (WidgetHelper.isParent(sharingTop, finalEnsureVisibleWidget)) {
+                                    tabs.setActiveWidget(sharingTop);
                                 }
                             }
                         });

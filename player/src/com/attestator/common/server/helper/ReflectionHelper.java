@@ -149,6 +149,33 @@ public class ReflectionHelper {
     }
 
     /**
+     * Retrieving method list of specified class If recursively is true,
+     * retrieving method from all class hierarchy
+     * 
+     * @param clazz
+     *            where fields are searching
+     * @param recursively
+     *            param
+     * @return list of methods
+     */
+    public static Method[] getDeclaredMethods(Class clazz, boolean recursively) {
+        List<Method> methods = new LinkedList<Method>();
+        Method[] declaredMethods = clazz.getDeclaredMethods();
+        Collections.addAll(methods, declaredMethods);
+
+        Class superClass = clazz.getSuperclass();
+
+        if (superClass != null && recursively) {
+            Method[] declaredMethodsOfSuper = getDeclaredMethods(superClass,
+                    recursively);
+            if (declaredMethodsOfSuper.length > 0)
+                Collections.addAll(methods, declaredMethodsOfSuper);
+        }
+
+        return methods.toArray(new Method[methods.size()]);
+    }
+
+    /**
      * Retrieving fields list of specified class and which are annotated by
      * incoming annotation class If recursively is true, retrieving fields from
      * all class hierarchy
@@ -173,6 +200,33 @@ public class ReflectionHelper {
 
         return annotatedFields.toArray(new Field[annotatedFields.size()]);
     }
+    
+    /**
+     * Retrieving methods list of specified class and which are annotated by
+     * incoming annotation class If recursively is true, retrieving methods from
+     * all class hierarchy
+     * 
+     * @param clazz
+     *            - where methods are searching
+     * @param annotationClass
+     *            - specified annotation class
+     * @param recursively
+     *            param
+     * @return list of annotated methods
+     */
+    public static Method[] getAnnotatedDeclaredMethods(Class clazz,
+            Class<? extends Annotation> annotationClass, boolean recursively) {
+        Method[] allMethods = getDeclaredMethods(clazz, recursively);
+        List<Method> annotatedMethods = new LinkedList<Method>();
+
+        for (Method method : allMethods) {
+            if (method.isAnnotationPresent(annotationClass))
+                annotatedMethods.add(method);
+        }
+
+        return annotatedMethods.toArray(new Method[annotatedMethods.size()]);
+    }
+
 
     /**
      * Create object with all fields set to null

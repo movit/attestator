@@ -6,6 +6,7 @@ import java.util.List;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.PrePersist;
 
+import com.attestator.common.server.db.annotation.PostUpdate;
 import com.attestator.common.shared.helper.NullHelper;
 
 @Entity("metatest")
@@ -44,8 +45,10 @@ public class MetaTestVO extends ShareableVO implements PublicationsTreeItem {
     public void setSharingEntries(List<SharingEntryVO> sharingEntries) {
         this.sharingEntries = sharingEntries;
     }
+    
     @SuppressWarnings("unused")
     @PrePersist
+    @PostUpdate
     private void prePersist() {
         int count = 0;
         for (MetaTestEntryVO entry : entries) {
@@ -53,6 +56,7 @@ public class MetaTestVO extends ShareableVO implements PublicationsTreeItem {
         }
         numberOfQuestions = count;
     }
+    
     @Override
     public void resetIdentity() {        
         super.resetIdentity();

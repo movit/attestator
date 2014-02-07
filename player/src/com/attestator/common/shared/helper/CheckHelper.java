@@ -40,14 +40,5 @@ public class CheckHelper {
         if (StringHelper.isEmptyOrNull(value)) {
             throw new IllegalArgumentException("[" + valueName + "] should be not empty");
         }
-    }
-    
-    public static void throwIfNullOrNotImplement(Object obj, Class<?> clazz, String objName) {
-        if (obj == null) {
-            throw new IllegalArgumentException("[" + objName + "] should be not null");
-        }
-        if (!clazz.isAssignableFrom(obj.getClass())) {
-            throw new IllegalArgumentException("[" + objName + "] should extend or implement " + clazz.getName());
-        }
-    }
+    }    
 }

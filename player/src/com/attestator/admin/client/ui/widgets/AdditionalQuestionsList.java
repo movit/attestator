@@ -2,7 +2,7 @@ package com.attestator.admin.client.ui.widgets;
 
 import java.util.Iterator;
 
-import com.attestator.admin.client.helper.WidgetHelpr;
+import com.attestator.admin.client.helper.WidgetHelper;
 import com.attestator.admin.client.ui.event.DeleteEvent;
 import com.attestator.admin.client.ui.event.DeleteEvent.DeleteHandler;
 import com.attestator.admin.client.ui.event.RearrangeEvent;
@@ -92,7 +92,7 @@ public class AdditionalQuestionsList extends Composite implements IsEditor<ListE
     }
     
     private void moveItem(AdditionalQuestionItem item, boolean up) {
-        int itemIndex = WidgetHelpr.widgetIndex(aqContainer, item);
+        int itemIndex = WidgetHelper.widgetIndex(aqContainer, item);
         
         if (up) {
             if (itemIndex > 0) {

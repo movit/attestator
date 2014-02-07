@@ -3,21 +3,28 @@ package com.attestator.common.server.db;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.Query;
 import org.mongodb.morphia.query.UpdateOperations;
+import org.mongodb.morphia.query.UpdateOpsImpl;
 
 import com.attestator.admin.server.LoginManager;
 import com.attestator.common.server.db.SafeQuery.QueryType;
+import com.attestator.common.server.db.annotation.PostUpdate;
 import com.attestator.common.server.helper.ReflectionHelper;
 import com.attestator.common.shared.helper.CheckHelper;
 import com.attestator.common.shared.vo.ModificationDateAwareVO;
 import com.attestator.common.shared.vo.ShareableVO;
 import com.attestator.common.shared.vo.TenantableCronTaskVO;
 import com.attestator.common.shared.vo.TenantableVO;
+import com.mongodb.DBObject;
 
 public class DatastoreInvocationHandler implements InvocationHandler {
     @SuppressWarnings("unused")
@@ -124,13 +131,57 @@ public class DatastoreInvocationHandler implements InvocationHandler {
     }
     
     private QueryType getQueryType(Query<?> q) {
-        CheckHelper.throwIfNullOrNotImplement(q, SafeQuery.class, "query");
-       
+        CheckHelper.throwIfNull(q, "query");
+        if (!(q instanceof SafeQuery)) {
+            throw new IllegalArgumentException("query should be instanceof " + SafeQuery.class);
+        }       
         return ((SafeQuery<?>) q).getQueryType();
     }
     
     private SafeQuery<?> cretaeSafeQueryProxy(Query<?> rawQ, QueryType queryType) {
         return (SafeQuery<?>) Proxy.newProxyInstance(SafeQuery.class.getClassLoader(), new Class[] {SafeQuery.class}, new QueryInvocationHandler(rawQ, queryType));
+    }
+    
+    private void postUpdate(Query<?> q, UpdateOperations<?> uo) {
+        Class<?> clazz = q.getEntityClass();
+        Method[] postUpdateMethods = ReflectionHelper.getAnnotatedDeclaredMethods(clazz, PostUpdate.class, true);
+        if (postUpdateMethods.length == 0) {
+            return;
+        }
+        
+        boolean onAnyChange = false;
+        boolean retriveAll = false;
+        Set<String> onChangeFields = new HashSet<String>();
+        Set<String> retrivedFields = new HashSet<String>();
+        
+        for (Method method: postUpdateMethods) {
+            if (method.getGenericParameterTypes().length > 0) {
+                throw new IllegalStateException("Method " + method.getName() + " in " + method.getDeclaringClass().getName() + " marked as @PostUpdate should have no args.");
+            }
+            
+            PostUpdate postUpdateAnnotation = method.getAnnotation(PostUpdate.class);
+            
+            onAnyChange = onAnyChange || postUpdateAnnotation.onChangeFields().length == 0;
+            if (!onAnyChange) {
+                onChangeFields.addAll(Arrays.asList(postUpdateAnnotation.onChangeFields()));
+            }
+            
+            retriveAll = retriveAll || postUpdateAnnotation.retrivedFields().length == 0;
+            if (!retriveAll) {
+                retrivedFields.addAll(Arrays.asList(postUpdateAnnotation.retrivedFields()));
+            }
+        }
+        
+        if (!onAnyChange) {
+            DBObject updateOps = ((UpdateOpsImpl<?>) uo).getOps();
+            @SuppressWarnings("unchecked")
+            Set<String> updateOpsFields = updateOps.toMap().keySet();
+            if (Collections.disjoint(onChangeFields, updateOpsFields)) {
+                return;
+            }
+        }
+        
+        Query<?> updatedObjects
     }
     
     private void thowIfNotWriteable(Object obj) {        

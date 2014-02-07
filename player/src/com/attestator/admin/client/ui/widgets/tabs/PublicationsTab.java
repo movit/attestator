@@ -7,7 +7,7 @@ import java.util.Date;
 import java.util.List;
 
 import com.attestator.admin.client.Admin;
-import com.attestator.admin.client.helper.WidgetHelpr;
+import com.attestator.admin.client.helper.WidgetHelper;
 import com.attestator.admin.client.props.PublicationsTreePropertyAccess;
 import com.attestator.admin.client.rpc.AdminAsyncCallback;
 import com.attestator.admin.client.ui.EditMode;
@@ -296,7 +296,7 @@ public class PublicationsTab extends Tab {
         l.add(new ColumnConfig<PublicationsTreeItem, String>(publicationProperties.maxTakeTestTime, 20, "Времени на тест"));
         l.add(createPublicationActionsColumnConfig(new IdentityValueProvider<PublicationsTreeItem>()));
         
-        WidgetHelpr.disableColumnHeaderOperations(l);
+        WidgetHelper.disableColumnHeaderOperations(l);
         
         ColumnModel<PublicationsTreeItem> result = new ColumnModel<PublicationsTreeItem>(l);
 

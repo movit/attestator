@@ -2,7 +2,7 @@ package com.attestator.admin.client.ui.widgets;
 
 import java.util.Iterator;
 
-import com.attestator.admin.client.helper.WidgetHelpr;
+import com.attestator.admin.client.helper.WidgetHelper;
 import com.attestator.admin.client.ui.event.DeleteEvent;
 import com.attestator.admin.client.ui.event.DeleteEvent.DeleteHandler;
 import com.attestator.admin.client.ui.event.RearrangeEvent;
@@ -104,7 +104,7 @@ public class ChoicesList extends Composite implements IsEditor<ListEditor<Choice
     }
     
     private void moveItem(ChoicesListItem item, boolean up) {
-        int itemIndex = WidgetHelpr.widgetIndex(choicesContainer, item);
+        int itemIndex = WidgetHelper.widgetIndex(choicesContainer, item);
         
         if (up) {
             if (itemIndex > 0) {

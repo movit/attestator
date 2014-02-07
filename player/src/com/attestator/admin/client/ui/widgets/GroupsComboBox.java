@@ -3,7 +3,7 @@ package com.attestator.admin.client.ui.widgets;
 import java.util.List;
 
 import com.attestator.admin.client.Admin;
-import com.attestator.admin.client.helper.WidgetHelpr;
+import com.attestator.admin.client.helper.WidgetHelper;
 import com.attestator.admin.client.rpc.AdminAsyncCallback;
 import com.attestator.admin.client.ui.GroupsWindow;
 import com.attestator.admin.client.ui.event.SaveEvent;
@@ -145,7 +145,7 @@ public class GroupsComboBox extends Composite implements LeafValueEditor<String>
                 groupStore.add(GroupsComboItem.EDIT_ITEM);
                 
                 List<String> groupNames = VOHelper.getNames(result);
-                comboBox.setMinListWidth(WidgetHelpr.width(groupNames));
+                comboBox.setMinListWidth(WidgetHelper.width(groupNames));
                 
                 //Force filtering to hide CREATE_ITEM
                 comboBox.doQuery("qqq", true);

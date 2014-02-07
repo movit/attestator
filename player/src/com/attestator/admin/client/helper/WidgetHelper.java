@@ -2,12 +2,13 @@ package com.attestator.admin.client.helper;
 
 import java.util.List;
 
+import com.attestator.common.shared.helper.CheckHelper;
 import com.google.gwt.user.client.ui.Widget;
 import com.sencha.gxt.core.client.util.TextMetrics;
 import com.sencha.gxt.widget.core.client.container.Container;
 import com.sencha.gxt.widget.core.client.grid.ColumnConfig;
 
-public class WidgetHelpr {    
+public class WidgetHelper {    
     public static int widgetIndex(Container parent, Widget child) {
         for (int i = 0; i < parent.getWidgetCount(); i++) {
             if (parent.getWidget(i) == child) {
@@ -36,5 +37,15 @@ public class WidgetHelpr {
             columnConfig.setSortable(false);
             columnConfig.setMenuDisabled(true);
         }
+    }
+    
+    public static boolean isParent(Widget parent, Widget child) {
+        CheckHelper.throwIfNull(parent, "parent");
+        CheckHelper.throwIfNull(child, "child");
+        
+        for (child = child.getParent(); child != null && child != parent; child = child.getParent()) {            
+        }
+        
+        return child == parent;
     }
 }

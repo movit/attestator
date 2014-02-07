@@ -35,9 +35,11 @@ import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.form.DateField;
 import com.sencha.gxt.widget.core.client.form.DateTimePropertyEditor;
+import com.sencha.gxt.widget.core.client.grid.CellSelectionModel;
 import com.sencha.gxt.widget.core.client.grid.ColumnConfig;
 import com.sencha.gxt.widget.core.client.grid.ColumnModel;
 import com.sencha.gxt.widget.core.client.grid.Grid;
+import com.sencha.gxt.widget.core.client.grid.GridSelectionModel;
 import com.sencha.gxt.widget.core.client.grid.editing.GridInlineEditing;
 
 public class SharingEntriesList extends Composite implements IsEditor<ValueAwareEditor<List<SharingEntryVO>>> {
@@ -64,6 +66,7 @@ public class SharingEntriesList extends Composite implements IsEditor<ValueAware
     ListStore<SharingEntryVO> listStore;
     ListStore<SharingEntryVO> createListStore() {
         ListStore<SharingEntryVO> result = new ListStore<SharingEntryVO>(props.id());
+        result.setAutoCommit(true);
         return result;
     }
     
@@ -89,6 +92,11 @@ public class SharingEntriesList extends Composite implements IsEditor<ValueAware
         return result;
     }
     
+    CellSelectionModel<SharingEntryVO> sm;
+    CellSelectionModel<SharingEntryVO> createSelectionModel() {
+        CellSelectionModel<SharingEntryVO> result = new CellSelectionModel<SharingEntryVO>();
+        return result;
+    }
     
     ColumnConfig<SharingEntryVO, SharingEntryVO> actionsColumn;
     private ColumnConfig<SharingEntryVO, SharingEntryVO> createSharingEntryActionsColumnConfig(IdentityValueProvider<SharingEntryVO> valueProvider, final ListStore<SharingEntryVO> listStore) {
@@ -138,9 +146,10 @@ public class SharingEntriesList extends Composite implements IsEditor<ValueAware
     @Ignore
     @UiField(provided=true)
     Grid<SharingEntryVO> grid;
-    Grid<SharingEntryVO> createGrid(ListStore<SharingEntryVO> listStore, ColumnModel<SharingEntryVO> cm) {
+    Grid<SharingEntryVO> createGrid(ListStore<SharingEntryVO> listStore, ColumnModel<SharingEntryVO> cm, GridSelectionModel<SharingEntryVO> sm) {
         Grid<SharingEntryVO> result = new Grid<SharingEntryVO>(listStore, cm);
         result.getView().setAutoFill(true);
+        result.setSelectionModel(sm);
         return result;
     }
 
@@ -156,8 +165,15 @@ public class SharingEntriesList extends Composite implements IsEditor<ValueAware
     GridInlineEditing<SharingEntryVO> gridInlineEditing;
     GridInlineEditing<SharingEntryVO> createGridInlineEditing(Grid<SharingEntryVO> grid, ColumnConfig<SharingEntryVO, Date> startColumn, ColumnConfig<SharingEntryVO, Date> endColumn) {
         GridInlineEditing<SharingEntryVO> result = new GridInlineEditing<SharingEntryVO>(grid);
-        result.addEditor(startColumn, new DateField(new DateTimePropertyEditor(DateTimeFormat.getFormat(PredefinedFormat.DATE_MEDIUM))));
-        result.addEditor(endColumn, new DateField(new DateTimePropertyEditor(DateTimeFormat.getFormat(PredefinedFormat.DATE_MEDIUM))));        
+        
+        DateField startField = new DateField(new DateTimePropertyEditor(DateTimeFormat.getFormat(PredefinedFormat.DATE_MEDIUM)));
+        startField.setClearValueOnParseError(false);
+        result.addEditor(startColumn, startField);
+        
+        DateField endField = new DateField(new DateTimePropertyEditor(DateTimeFormat.getFormat(PredefinedFormat.DATE_MEDIUM)));
+        endField.setClearValueOnParseError(false);
+        result.addEditor(endColumn, endField);        
+        
         return result;
     }
     
@@ -171,7 +187,8 @@ public class SharingEntriesList extends Composite implements IsEditor<ValueAware
         endColumn = createDateColumn(props.end(), "Доступен по");
         actionsColumn = createSharingEntryActionsColumnConfig(new IdentityValueProvider<SharingEntryVO>(), listStore);
         cm = createCm(startColumn, endColumn, actionsColumn);
-        grid = createGrid(listStore, cm);
+        sm = createSelectionModel();
+        grid = createGrid(listStore, cm, sm);
         listStoreEditor = createListStoreEditor(grid, listStore);
         gridInlineEditing = createGridInlineEditing(grid, startColumn, endColumn);
         
@@ -184,11 +201,23 @@ public class SharingEntriesList extends Composite implements IsEditor<ValueAware
         if (user == null) {
             return;
         }
+        int i = 0;
+        for (SharingEntryVO sharingEntry: listStore.getAll()) {
+            if (sharingEntry.getTenantId().equals(user.getTenantId())) {
+                sm.selectCell(i, 0);
+                return;
+            }
+            i++;
+        }
         SharingEntryVO newEntry = new SharingEntryVO();
         newEntry.setTenantId(user.getTenantId());
         newEntry.setUsername(user.getUsername());
         listStore.add(newEntry);
-    }    
+    }
+    
+    public ListStore<SharingEntryVO> getListStore() {
+        return listStore;
+    }
     
     @Override
     public ValueAwareEditor<List<SharingEntryVO>> asEditor() {

@@ -83,10 +83,6 @@ public class CommonLogic {
                 if (mteQuestionId == null) {
                     continue;
                 }
-                //TODO do we allow question duplication if user add one question to test several times
-//                if (testQuestionIds.contains(mteQuestionId)) {
-//                    continue;
-//                }
                 
                 QuestionVO question = getById(QuestionVO.class, mteQuestionId); 
                 if (question == null) {
