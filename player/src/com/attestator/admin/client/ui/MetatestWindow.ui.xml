@@ -173,16 +173,34 @@
 		<ui:attributes text="Использование другими пользователями" />
 		  
 	</ui:with>
-
+    
 	<ui:style>
 		.transparentBackground {
 			background-color: transparent;
 		}
+		
+		.bold {
+	       font-weight: bold;
+        }
+        
+        .inline {
+	       display: inline;
+        }
 	</ui:style>
 	<gxt:Window ui:field="window" pixelSize="1000, 600" modal="true"
 		maximizable="true" resizable="true" blinkModal="true" headingText="Тест"
 		focusWidget="{cancelButton}">
 		<row:VerticalLayoutContainer ui:field="top">
+		    <row:child>
+                <g:HTMLPanel ui:field="readOnlyBanner" visible="false">
+                    <div style='background-color: #FFFF99; border: 1px solid; padding: 5px;'>
+                        Вы не можете редактировать этот тест потому, что он создан пользователем 
+                        <g:Label ui:field="robOwnerUsernameLabel" styleName="{style.bold} {style.inline}"/>. 
+                        Но вы можете создать копию  <att:AnchorImage ui:field="robCopyMetatestButton"  href="#" image="{icons.copy16x16}"/> этого теста 
+                        и редактировать уже ее. Еще вы можете создавать или удалять публикации для этого теста.                        
+                    </div>                
+                </g:HTMLPanel>
+            </row:child>
 			<row:child layoutData="{maxWidthMaxHeightVLData}">
 				<gxt:PlainTabPanel ui:field="tabs" width="1"
 					bodyBorder="true">
@@ -309,7 +327,7 @@
 					<gxt:child config="{sharingTabConfig}">
 						<row:VerticalLayoutContainer ui:field="sharingTop">
 						    <row:child layoutData="{maxSharingEntriesVLData}">
-						        <att:SharingEntriesList ui:field="sharingEntries"></att:SharingEntriesList>
+						        <att:SharingEntriesList ui:field="sharingEntries"/>
 						    </row:child>
 						</row:VerticalLayoutContainer>
 					</gxt:child>

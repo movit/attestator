@@ -53,12 +53,18 @@ public class UserComboBox extends Composite {
                 String query = comboBox.getText();
                 event.getLoadConfig().getFilters().clear();
                 if (!StringHelper.isEmptyOrNull(query)) {
-                    FilterConfig filterConfig = new FilterConfigBean();
-                    filterConfig.setField("username");
-                    filterConfig.setComparison("contains");
-                    filterConfig.setValue(query);
-                    event.getLoadConfig().getFilters().add(filterConfig);
-                }                
+                    FilterConfig usernameFilter = new FilterConfigBean();
+                    usernameFilter.setField("username");
+                    usernameFilter.setComparison("contains");
+                    usernameFilter.setValue(query);
+                    event.getLoadConfig().getFilters().add(usernameFilter);
+                }
+                
+                FilterConfig currentUserFilter = new FilterConfigBean();
+                currentUserFilter.setField("tenantId");
+                currentUserFilter.setComparison("notEq");
+                currentUserFilter.setValue(Admin.getLoggedUser().getTenantId());
+                event.getLoadConfig().getFilters().add(currentUserFilter);
             }
         });
         

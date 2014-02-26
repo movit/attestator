@@ -1,0 +1,83 @@
+<!DOCTYPE ui:UiBinder SYSTEM "http://dl.google.com/gwt/DTD/xhtml.ent">
+<ui:UiBinder xmlns:ui='urn:ui:com.google.gwt.uibinder'
+	xmlns:g="urn:import:com.google.gwt.user.client.ui" xmlns:gxt="urn:import:com.sencha.gxt.widget.core.client"
+	xmlns:row="urn:import:com.sencha.gxt.widget.core.client.container"
+	xmlns:menu="urn:import:com.sencha.gxt.widget.core.client.menu"
+	xmlns:button="urn:import:com.sencha.gxt.widget.core.client.button"
+	xmlns:form="urn:import:com.sencha.gxt.widget.core.client.form"
+	xmlns:toolbar="urn:import:com.sencha.gxt.widget.core.client.toolbar"
+	xmlns:grid="urn:import:com.sencha.gxt.widget.core.client.grid"
+	xmlns:att="urn:import:com.attestator.admin.client.ui.widgets">
+
+	<ui:with
+		type="com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData"
+		field="maxWidthMinHeightVLData">
+		<ui:attributes width="1" height="-1" />
+	</ui:with>
+
+	<ui:with
+		type="com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData"
+		field="maxWidthMinHeightVLDataVertMargins">
+		<ui:attributes width="1" height="-1" margins="{marginsT5B5}" />
+	</ui:with>
+
+	<ui:with
+		type="com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData"
+		field="maxWidthMaxHeightVLData">
+		<ui:attributes width="1" height="1" />
+	</ui:with>
+
+	<ui:with type="com.sencha.gxt.core.client.util.Margins" field="marginsBottom">
+		<ui:attributes top="0" right="0" bottom="5" left="0" />
+	</ui:with>
+
+	<ui:with type="com.sencha.gxt.core.client.util.Margins" field="marginsTop">
+		<ui:attributes top="10" right="0" bottom="0" left="0" />
+	</ui:with>
+
+	<ui:with type="com.sencha.gxt.core.client.util.Margins" field="marginsT5B5">
+		<ui:attributes top="5" right="0" bottom="5" left="0" />
+	</ui:with>
+
+	<ui:with type="com.sencha.gxt.core.client.util.Margins" field="marginsB5L5">
+		<ui:attributes top="0" right="0" bottom="5" left="5" />
+	</ui:with>
+
+	<ui:with type="com.sencha.gxt.core.client.util.Margins" field="marginsRowFields">
+		<ui:attributes top="0" right="20" bottom="0" left="0" />
+	</ui:with>
+
+	<ui:with type="com.sencha.gxt.core.client.util.Margins" field="margins5">
+		<ui:attributes top="5" right="5" bottom="5" left="5" />
+	</ui:with>
+
+
+
+	<ui:style>
+		.bold {
+			font-weight: bold;
+		}
+	</ui:style>
+
+	<gxt:Window ui:field="window" pixelSize="600, 400" modal="true"
+		maximizable="false" resizable="true" blinkModal="true" headingText="Использование теста другими пользователями"
+		focusWidget="{cancelButton}">
+		<row:VerticalLayoutContainer ui:field="top">
+			<row:child layoutData="{maxWidthMinHeightVLDataVertMargins}">
+				<g:Label styleName='{style.bold}' ui:field="name" />
+			</row:child>
+			<row:child layoutData="{maxWidthMaxHeightVLData}">
+				<att:SharingEntriesList ui:field="sharingEntries" />
+			</row:child>
+		</row:VerticalLayoutContainer>
+		<gxt:button>
+			<button:TextButton ui:field="saveButton" text="Сохранить" />
+		</gxt:button>
+
+		<gxt:button>
+			<button:TextButton ui:field="cancelButton" text="Отмена" />
+		</gxt:button>
+
+	</gxt:Window>
+
+</ui:UiBinder>

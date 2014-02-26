@@ -232,10 +232,26 @@ public class AdminLogic extends CommonLogic {
         scheduleAllMetatestsSharingTasksAfter(now);
     }
     
-    public void saveMetatest(MetaTestVO metatest) {
-        CheckHelper.throwIfNull(metatest, "question");        
-        Singletons.ds().save(metatest);
+    public void saveMetatestSharingEntries(String metatestId, List<SharingEntryVO> sharingEntries) {
+        CheckHelper.throwIfNull(metatestId, "metatestId");        
+        CheckHelper.throwIfNull(sharingEntries, "sharingEntries");
+        
+        Query<MetaTestVO> q = Singletons.ds().createUpdateQuery(MetaTestVO.class);
+        q.field("_id").equals(metatestId);
+        
+        UpdateOperations<MetaTestVO> uo = Singletons.ds().createUpdateOperations(MetaTestVO.class);
+        uo.set("sharingEntries", sharingEntries);
+        
+        Singletons.ds().update(q, uo);
         refreshAllSharing();
+        
+        putGlobalChangesMarker();
+    }
+    
+    public void saveMetatest(MetaTestVO metatest) {
+        CheckHelper.throwIfNull(metatest, "metatest");        
+        Singletons.ds().save(metatest);
+        refreshAllSharing();        
         putGlobalChangesMarker();
     }
     

@@ -45,7 +45,7 @@ import com.metapossum.utils.scanner.reflect.ClassesInPackageScanner;
 public class DatabaseUpdater {
     private static Logger logger = Logger.getLogger(DatabaseUpdater.class);
     
-    public static final int DB_VERSION = 32;
+    public static final int DB_VERSION = 33;
     
     private Datastore rawDs;   
     
@@ -318,6 +318,13 @@ public class DatabaseUpdater {
             } catch (IOException e) {
                 logger.error(e.getMessage(), e);
             }            
+        }
+        
+        if (version.getVersionOrZero() < 33) {
+            Query<MetaTestVO> q = rawDs.createQuery(MetaTestVO.class);
+            UpdateOperations<MetaTestVO> uo = rawDs.createUpdateOperations(MetaTestVO.class);
+            uo.disableValidation().unset("numberOfQuestions").enableValidation();
+            rawDs.update(q, uo);
         }
         
         if (version.getVersionOrZero() < DB_VERSION) {

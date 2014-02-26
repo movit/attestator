@@ -80,13 +80,15 @@
 		focusWidget="{cancelButton}">
 
 		<row:VerticalLayoutContainer ui:field="top" scrollMode="AUTOY" adjustForScroll="true">
+		    <row:child>
+		        <g:HTML ui:field="readOnlyBanner" visible="false"/>
+		    </row:child>
 			<row:child layoutData="{hlWithHeightVLData}">
 				<row:HorizontalLayoutContainer>
 					<row:child layoutData="{minWidthMinHeightHLData}">
 						<form:FieldLabel labelAlign="TOP" text="Группа">
 							<form:widget>
 								<att:GroupsComboBox ui:field="groupId"/>
-<!-- 								<form:TextField ui:field="groupId" allowBlank="false" /> -->
 							</form:widget>
 						</form:FieldLabel>
 					</row:child>
@@ -122,7 +124,7 @@
 			<row:child layoutData="{maxWidthMinHeightVLData}">
 				<form:FieldLabel labelAlign="TOP" text="Текст вопроса">
 					<form:widget>
-						<form:HtmlEditor enableLinks="false"
+						<att:HtmlEditorExt enableLinks="false"
 							enableAlignments="false" enableFont="false" ui:field="text" />
 					</form:widget>
 				</form:FieldLabel>

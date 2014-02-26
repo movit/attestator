@@ -7,7 +7,7 @@ import com.sencha.gxt.data.shared.PropertyAccess;
 
 public interface QuestionVOPropertyAccess extends PropertyAccess<QuestionVO> {
     ValueProvider<QuestionVO, String> text();
-
+    ValueProvider<QuestionVO, String> ownerUsername();
     ValueProvider<QuestionVO, String> groupName();
 
     ModelKeyProvider<QuestionVO> id();

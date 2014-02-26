@@ -4,10 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.mongodb.morphia.annotations.Entity;
-import org.mongodb.morphia.annotations.PrePersist;
-
-import com.attestator.common.server.db.annotation.PostUpdate;
-import com.attestator.common.shared.helper.NullHelper;
 
 @Entity("metatest")
 public class MetaTestVO extends ShareableVO implements PublicationsTreeItem {
@@ -15,7 +11,6 @@ public class MetaTestVO extends ShareableVO implements PublicationsTreeItem {
 	
     private String                 name;    
 	private List<MetaTestEntryVO>  entries = new ArrayList<MetaTestEntryVO>();
-	private Integer                numberOfQuestions;
 	private List<SharingEntryVO>   sharingEntries = new ArrayList<SharingEntryVO>();
 	
     public List<MetaTestEntryVO> getEntries() {
@@ -30,31 +25,20 @@ public class MetaTestVO extends ShareableVO implements PublicationsTreeItem {
     public void setName(String name) {
         this.name = name;
     }
-    public Integer getNumberOfQuestions() {
-        return numberOfQuestions;
-    }
     public int getNumberOfQuestionsOrZero() {
-        return NullHelper.nullSafeIntegerOrZerro(numberOfQuestions);
-    }
-    public void setNumberOfQuestions(Integer numberOfQuestions) {
-        this.numberOfQuestions = numberOfQuestions;
+        int result = 0;
+        if (entries != null) {
+            for (MetaTestEntryVO entry : entries) {
+                result += entry.getNumberOfQuestionsOrZero();
+            }
+        }
+        return result;
     }
     public List<SharingEntryVO> getSharingEntries() {
         return sharingEntries;
     }
     public void setSharingEntries(List<SharingEntryVO> sharingEntries) {
         this.sharingEntries = sharingEntries;
-    }
-    
-    @SuppressWarnings("unused")
-    @PrePersist
-    @PostUpdate
-    private void prePersist() {
-        int count = 0;
-        for (MetaTestEntryVO entry : entries) {
-            count += entry.getNumberOfQuestionsOrZero();
-        }
-        numberOfQuestions = count;
     }
     
     @Override
@@ -65,12 +49,21 @@ public class MetaTestVO extends ShareableVO implements PublicationsTreeItem {
                 entry.resetIdentity();
             }
         }
+        if (sharingEntries != null) {
+            sharingEntries = new ArrayList<SharingEntryVO>();
+        }
     }
     @Override
     public String toString() {
-        return "MetaTestVO [name=" + name + ", numberOfQuestions="
-                + numberOfQuestions + ", getTenantId()=" + getTenantId()
+        return "MetaTestVO [name=" + name + ", entries=" + entries
+                + ", sharingEntries=" + sharingEntries
+                + ", getNumberOfQuestionsOrZero()="
+                + getNumberOfQuestionsOrZero() + ", getSharedForTenantIds()="
+                + getSharedForTenantIds() + ", getOwnerUsername()="
+                + getOwnerUsername() + ", getTenantId()=" + getTenantId()
                 + ", getCreated()=" + getCreated() + ", getModified()="
                 + getModified() + ", getId()=" + getId() + "]";
     }
+    
+    
 }

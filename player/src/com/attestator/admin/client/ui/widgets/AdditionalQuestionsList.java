@@ -19,6 +19,7 @@ import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.client.ui.Widget;
 import com.sencha.gxt.widget.core.client.Composite;
+import com.sencha.gxt.widget.core.client.button.TextButton;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
@@ -74,6 +75,10 @@ public class AdditionalQuestionsList extends Composite implements IsEditor<ListE
     
     @UiField
     protected VerticalLayoutData maxWidthMinHeightVLData;
+    
+    @UiField
+    @Ignore
+    protected TextButton addButton;    
     
     // This source backs the ListEditor, which adds,inserts and removes child widgets from the list.
     private ListEditor<AdditionalQuestionVO, AdditionalQuestionItem> listEditor = ListEditor.of(new AdditonalQuestionEditorSource());
@@ -134,5 +139,25 @@ public class AdditionalQuestionsList extends Composite implements IsEditor<ListE
             }
         }
         return null;
+    }
+    
+    @Override
+    public void disable() {
+        super.disable();
+        addButton.disable();
+        for (int i = 0; i < aqContainer.getWidgetCount(); i++) {
+            AdditionalQuestionItem item = (AdditionalQuestionItem)aqContainer.getWidget(i);
+            item.disable();
+        }
+    }
+    
+    @Override
+    public void enable() {
+        super.enable();
+        addButton.enable();
+        for (int i = 0; i < aqContainer.getWidgetCount(); i++) {
+            AdditionalQuestionItem item = (AdditionalQuestionItem)aqContainer.getWidget(i);
+            item.enable();
+        }
     }
 }

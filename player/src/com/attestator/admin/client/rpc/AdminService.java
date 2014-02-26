@@ -10,6 +10,7 @@ import com.attestator.common.shared.vo.PublicationVO;
 import com.attestator.common.shared.vo.PublicationsTreeItem;
 import com.attestator.common.shared.vo.QuestionVO;
 import com.attestator.common.shared.vo.ReportVO;
+import com.attestator.common.shared.vo.SharingEntryVO;
 import com.attestator.common.shared.vo.UserVO;
 import com.google.gwt.user.client.rpc.RemoteService;
 import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
@@ -48,6 +49,7 @@ public interface AdminService extends RemoteService {
     void saveGroups(List<GroupVO> groups) throws IllegalStateException;
     void saveQuestion(QuestionVO question) throws IllegalStateException;
     void saveMetatest(MetaTestVO metatest) throws IllegalStateException;
+    void saveMetatestSharingEntries(String metatestId, List<SharingEntryVO> sharingEntries) throws IllegalStateException;
     void savePrintingProperties(PrintingPropertiesVO properties) throws IllegalStateException;
     void setPublicationsForMetatest(String metatestId, List<PublicationVO> publication) throws IllegalStateException;
     

@@ -21,8 +21,11 @@ import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.client.ui.Widget;
 import com.sencha.gxt.core.client.util.ToggleGroup;
 import com.sencha.gxt.widget.core.client.Composite;
+import com.sencha.gxt.widget.core.client.button.TextButton;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData;
+import com.sencha.gxt.widget.core.client.event.DisableEvent;
+import com.sencha.gxt.widget.core.client.event.EnableEvent;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
 
 public class ChoicesList extends Composite implements IsEditor<ListEditor<ChoiceVO, ChoicesListItem>>{
@@ -86,6 +89,9 @@ public class ChoicesList extends Composite implements IsEditor<ListEditor<Choice
     @UiField
     protected VerticalLayoutData maxWidthMinHeightVLData;
     
+    @UiField
+    protected TextButton addButton;
+    
     // This source backs the ListEditor, which adds,inserts and removes child widgets from the list.
     private ListEditor<ChoiceVO, ChoicesListItem> listEditor = ListEditor.of(new ChoiceEditorSource());
     
@@ -146,5 +152,27 @@ public class ChoicesList extends Composite implements IsEditor<ListEditor<Choice
             }
         }
         return null;
+    }
+    
+    @Override
+    public void disable() {
+        disabled = true;
+        fireEvent(new DisableEvent());
+        addButton.disable();
+        for (int i = 0; i < choicesContainer.getWidgetCount(); i++) {
+            ChoicesListItem item = (ChoicesListItem)choicesContainer.getWidget(i);
+            item.disable();
+        }
+    }
+    
+    @Override
+    public void enable() {
+        disabled = false;
+        fireEvent(new EnableEvent());
+        addButton.enable();
+        for (int i = 0; i < choicesContainer.getWidgetCount(); i++) {
+            ChoicesListItem item = (ChoicesListItem)choicesContainer.getWidget(i);
+            item.enable();
+        }
     }
 }

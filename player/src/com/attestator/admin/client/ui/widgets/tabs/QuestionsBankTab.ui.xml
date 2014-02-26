@@ -29,7 +29,7 @@
 	<ui:with type="com.sencha.gxt.data.shared.ListStore" field="questionsBankStore"></ui:with>
 	<ui:with type="com.sencha.gxt.widget.core.client.grid.GridView"
 		field="questionsBankView">
-		<ui:attributes stripeRows="true" forceFit="true"
+		<ui:attributes stripeRows="true" forceFit="false"
 			autoFill="true"></ui:attributes>
 	</ui:with>
 

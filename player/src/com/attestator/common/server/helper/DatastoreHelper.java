@@ -117,7 +117,10 @@ public class DatastoreHelper {
                         container.criteria(field).equal(filterValue);
                     }
                 }
-                if ("before".equals(filter.getComparison())) {
+                else if ("notEq".equals(filter.getComparison())) {
+                    container.criteria(field).notEqual(filterValue);
+                }
+                else if ("before".equals(filter.getComparison())) {
                     container.criteria(field).lessThan(filterValue);
                 }
                 else if ("after".equals(filter.getComparison())) {

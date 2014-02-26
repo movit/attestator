@@ -54,6 +54,14 @@ public class AdditionalQuestionItem extends Composite implements ValueAwareEdito
     @UiField
     CheckBox required; 
     
+    @UiField
+    @Ignore
+    TextButton upButton;
+    
+    @UiField
+    @Ignore
+    TextButton downButton;
+    
     protected SimpleEditor<Integer> order = SimpleEditor.of();
     
     @UiConstructor
@@ -139,5 +147,27 @@ public class AdditionalQuestionItem extends Composite implements ValueAwareEdito
     @Ignore
     public TextField getCheckValueField() {
         return checkValue;
+    }
+    
+    @Override
+    public void enable() {
+        super.enable();
+        deleteButton.enable();
+        answerType.enable();
+        checkValue.enable();
+        required.enable();
+        upButton.enable();
+        downButton.enable();
+    }
+    
+    @Override
+    public void disable() {        
+        super.disable();
+        deleteButton.disable();
+        answerType.disable();
+        checkValue.disable();
+        required.disable();
+        upButton.disable();
+        downButton.disable();
     }
 }

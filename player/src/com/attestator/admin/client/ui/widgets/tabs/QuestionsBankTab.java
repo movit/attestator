@@ -1,6 +1,7 @@
 package com.attestator.admin.client.ui.widgets.tabs;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
@@ -11,12 +12,16 @@ import com.attestator.admin.client.ui.EditMode;
 import com.attestator.admin.client.ui.GroupsWindow;
 import com.attestator.admin.client.ui.event.FilterEvent;
 import com.attestator.admin.client.ui.event.FilterEvent.FilterHandler;
+import com.attestator.admin.client.ui.event.MultyLinikSelectEvent;
+import com.attestator.admin.client.ui.event.MultyLinikSelectEvent.MultyLinikSelectHandler;
 import com.attestator.admin.client.ui.event.SaveEvent;
 import com.attestator.admin.client.ui.event.SaveEvent.SaveHandler;
 import com.attestator.admin.client.ui.question.SCQWindow;
 import com.attestator.admin.client.ui.widgets.ButtonFileUpload;
 import com.attestator.admin.client.ui.widgets.ButtonFileUpload.FileUploadFieldMessages;
+import com.attestator.admin.client.ui.widgets.MultylinkCell;
 import com.attestator.admin.client.ui.widgets.SearchField;
+import com.attestator.common.client.ui.resolurces.Resources;
 import com.attestator.common.shared.helper.StringHelper;
 import com.attestator.common.shared.helper.VOHelper;
 import com.attestator.common.shared.vo.GroupVO;
@@ -69,6 +74,11 @@ import com.sencha.gxt.widget.core.client.menu.SeparatorMenuItem;
 import com.sencha.gxt.widget.core.client.toolbar.PagingToolBar;
 
 public class QuestionsBankTab extends Tab {
+    private static final String EDIT_TEST_LINK_ID = "editTest";
+    private static final String DELETE_TEST_LINK_ID = "deleteTest";
+    private static final String COPY_TEST_LINK_ID = "copyTest";
+
+    
     interface UiBinderImpl extends UiBinder<Widget, QuestionsBankTab> {
     }
     private static UiBinderImpl uiBinder = GWT.create(UiBinderImpl.class);
@@ -150,6 +160,10 @@ public class QuestionsBankTab extends Tab {
                         + value + "</div>");
             }
         });
+        
+        ColumnConfig<QuestionVO, String> ownerUsernameColumn = new ColumnConfig<QuestionVO, String>(
+                props.ownerUsername(), 50, "Автор");
+        
 
         ColumnConfig<QuestionVO, String> groupNameColumn = new ColumnConfig<QuestionVO, String>(
                 props.groupName(), 50, "Группа");
@@ -165,10 +179,53 @@ public class QuestionsBankTab extends Tab {
             }
         });
 
+        ColumnConfig<QuestionVO, QuestionVO> multilinkColumn = new ColumnConfig<QuestionVO, QuestionVO>(new IdentityValueProvider<QuestionVO>());        
+        MultylinkCell<QuestionVO> cell = new MultylinkCell<QuestionVO>() {
+            @Override
+            public void render(Context context,
+                    QuestionVO value, SafeHtmlBuilder sb) {
+                sb.appendHtmlConstant("<div style='text-align: right;'>");
+                sb.append(createClickableElement(EDIT_TEST_LINK_ID, "редактировать вопрос", Resources.ICONS.edit16x16()));
+                sb.append(createClickableElement(COPY_TEST_LINK_ID, "копировать вопрос", Resources.ICONS.copy16x16()));
+                sb.append(createClickableElement(DELETE_TEST_LINK_ID, "удалить вопрос", Resources.ICONS.delete16x16()));
+                sb.appendHtmlConstant("</div>");
+            }
+        };        
+        cell.addMultyLinikSelectHandler(new MultyLinikSelectHandler<QuestionVO>() {
+            @Override
+            public void onSelect(MultyLinikSelectEvent<QuestionVO> event) {                
+                if (EDIT_TEST_LINK_ID.equals(event.getLinkType())) {
+                    showQuestionWindow(((QuestionVO)event.getValue()), EditMode.etExisting);
+                }                
+                else if (COPY_TEST_LINK_ID.equals(event.getLinkType())) {
+                    showQuestionWindow(((QuestionVO)event.getValue()), EditMode.etCopy);
+                }
+                else if (DELETE_TEST_LINK_ID.equals(event.getLinkType())) {
+                    QuestionVO question = (QuestionVO) event.getValue();
+                    Admin.RPC.deleteQuestions(Arrays.asList(question.getId()), new AdminAsyncCallback<Void>() {
+                        @Override
+                        public void onSuccess(Void result) {
+                            refreshGrid();
+                        }
+                    });
+                }
+            }
+        });
+        multilinkColumn.setCell(cell);
+        multilinkColumn.setHideable(false);
+        multilinkColumn.setResizable(false);
+        multilinkColumn.setWidth(90);
+        multilinkColumn.setFixed(true);
+        multilinkColumn.setMenuDisabled(true);
+        multilinkColumn.setSortable(false);
+        
         List<ColumnConfig<QuestionVO, ?>> l = new ArrayList<ColumnConfig<QuestionVO, ?>>();
         l.add(sm.getColumn());
         l.add(textColumn);
         l.add(groupNameColumn);
+        l.add(ownerUsernameColumn);
+        l.add(multilinkColumn);
+        
         ColumnModel<QuestionVO> result = new ColumnModel<QuestionVO>(l);
 
         return result;

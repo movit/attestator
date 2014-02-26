@@ -6,6 +6,7 @@ import com.attestator.common.shared.vo.BaseVO;
 import com.attestator.common.shared.vo.MetaTestVO;
 import com.attestator.common.shared.vo.PublicationVO;
 import com.attestator.common.shared.vo.PublicationsTreeItem;
+import com.attestator.common.shared.vo.ShareableVO;
 import com.google.gwt.i18n.client.DateTimeFormat;
 import com.google.gwt.i18n.client.DateTimeFormat.PredefinedFormat;
 import com.sencha.gxt.core.client.ValueProvider;
@@ -19,6 +20,17 @@ public class PublicationsTreePropertyAccess {
         public MetaTestVO getValue(PublicationsTreeItem object) {
             if (object instanceof PublicationVO) {
                 return ((PublicationVO) object).getMetatest();
+            }
+            return null;
+        }
+    };
+
+    public ValueProvider<PublicationsTreeItem, String> ownerUsername = new GetterValueProvider<PublicationsTreeItem, String>(
+            "ownerUsername") {
+        @Override
+        public String getValue(PublicationsTreeItem object) {
+            if (object instanceof ShareableVO) {
+                return ((ShareableVO) object).getOwnerUsername();
             }
             return null;
         }

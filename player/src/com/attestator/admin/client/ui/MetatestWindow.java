@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Set;
 
 import com.attestator.admin.client.Admin;
+import com.attestator.admin.client.helper.ClientHelper;
 import com.attestator.admin.client.helper.WidgetHelper;
 import com.attestator.admin.client.props.BoundedConverter;
 import com.attestator.admin.client.props.GroupVOPropertyAccess;
@@ -13,6 +14,9 @@ import com.attestator.admin.client.props.PublicationVOPropertyAccess;
 import com.attestator.admin.client.props.PublicationsTreePropertyAccess;
 import com.attestator.admin.client.props.QuestionVOPropertyAccess;
 import com.attestator.admin.client.rpc.AdminAsyncCallback;
+import com.attestator.admin.client.ui.event.CreateCopyNeededEvent;
+import com.attestator.admin.client.ui.event.CreateCopyNeededEvent.CreateCopyNeededHandler;
+import com.attestator.admin.client.ui.event.CreateCopyNeededEvent.HasCreateCopyNeededEventHandlers;
 import com.attestator.admin.client.ui.event.FilterEvent;
 import com.attestator.admin.client.ui.event.FilterEvent.FilterHandler;
 import com.attestator.admin.client.ui.event.MultyLinikSelectEvent;
@@ -20,6 +24,7 @@ import com.attestator.admin.client.ui.event.MultyLinikSelectEvent.MultyLinikSele
 import com.attestator.admin.client.ui.event.SaveEvent;
 import com.attestator.admin.client.ui.event.SaveEvent.HasSaveEventHandlers;
 import com.attestator.admin.client.ui.event.SaveEvent.SaveHandler;
+import com.attestator.admin.client.ui.widgets.AnchorImage;
 import com.attestator.admin.client.ui.widgets.MultylinkCell;
 import com.attestator.admin.client.ui.widgets.SearchField;
 import com.attestator.admin.client.ui.widgets.SharingEntriesList;
@@ -44,6 +49,7 @@ import com.google.gwt.core.client.Scheduler.ScheduledCommand;
 import com.google.gwt.editor.client.Editor;
 import com.google.gwt.editor.client.SimpleBeanEditorDriver;
 import com.google.gwt.editor.client.adapters.SimpleEditor;
+import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.logical.shared.ResizeEvent;
 import com.google.gwt.event.logical.shared.ResizeHandler;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
@@ -59,7 +65,9 @@ import com.google.gwt.uibinder.client.UiFactory;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.client.rpc.AsyncCallback;
+import com.google.gwt.user.client.ui.HTMLPanel;
 import com.google.gwt.user.client.ui.IsWidget;
+import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Widget;
 import com.sencha.gxt.cell.core.client.ResizeCell;
 import com.sencha.gxt.core.client.IdentityValueProvider;
@@ -85,10 +93,12 @@ import com.sencha.gxt.widget.core.client.Component;
 import com.sencha.gxt.widget.core.client.ContentPanel;
 import com.sencha.gxt.widget.core.client.ContentPanel.ContentPanelAppearance;
 import com.sencha.gxt.widget.core.client.PlainTabPanel;
+import com.sencha.gxt.widget.core.client.TabItemConfig;
 import com.sencha.gxt.widget.core.client.Window;
 import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
 import com.sencha.gxt.widget.core.client.button.TextButton;
 import com.sencha.gxt.widget.core.client.container.AccordionLayoutContainer;
+import com.sencha.gxt.widget.core.client.container.BorderLayoutContainer.BorderLayoutData;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
 import com.sencha.gxt.widget.core.client.event.BeforeStartEditEvent;
 import com.sencha.gxt.widget.core.client.event.BeforeStartEditEvent.BeforeStartEditHandler;
@@ -117,7 +127,7 @@ import com.sencha.gxt.widget.core.client.selection.SelectionChangedEvent.Selecti
 import com.sencha.gxt.widget.core.client.toolbar.PagingToolBar;
 import com.sencha.gxt.widget.core.client.toolbar.ToolBar;
 
-public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEventHandlers<MetaTestVO>,  HasHideHandlers{
+public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEventHandlers<MetaTestVO>,  HasCreateCopyNeededEventHandlers<MetaTestVO>,  HasHideHandlers{
     private static final String EDIT_PUBLICATION_LINK_ID = "editPublication";
     private static final String COPY_PUBLICATION_LINK_ID = "copyPublication";
     private static final String DELETE_PUBLICATION_LINK_ID = "deletePublication";
@@ -133,7 +143,9 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
         @XTemplate("<span class='{anchorClassName}'><a href='#'>{text}</a></span>")
         public SafeHtml textLinkAction(String anchorClassName, String text);        
         @XTemplate("<span class='{anchorClassName}'>{text}</span>")
-        public SafeHtml textAction(String anchorClassName, String text);        
+        public SafeHtml textAction(String anchorClassName, String text);  
+        @XTemplate("<div style='background-color: #FFFF99; border: 1px solid; padding: 5px;'>Вы не можете редактировать этот тест потому, что он создан пользователем <b>{ownerUsername}</b>. Но вы можете создать копию этого теста <a id='copyTest' href='#'><img src='{imgUrl}'/></a> и редактировать уже ее. Еще вы можете создавать или удалять публикации для этого теста.</div>")
+        public SafeHtml readOnlyBanner(String ownerUsername, SafeUri imgUrl);                
     }
     public static final Templates TEMPLATES = GWT.create(Templates.class);
     
@@ -178,15 +190,6 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
     @UiField
     @Ignore
     VerticalLayoutContainer sharingTop;
-    
-    
-//    @Ignore
-//    @UiField
-//    Widget sharingTab;
-//
-//    @Ignore
-//    @UiField
-//    Widget testTab;    
     
     @UiField
     @Ignore
@@ -310,6 +313,29 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
     @Ignore
     MetaTestVO originalMetatestInstance;
     
+    @Ignore
+    @UiField
+    BorderLayoutData westData;
+    
+    @Ignore
+    @UiField
+    TabItemConfig testTabConfig;
+    
+    @Ignore
+    @UiField
+    HTMLPanel readOnlyBanner;
+    
+    @Ignore
+    @UiField
+    AnchorImage robCopyMetatestButton;
+    
+    @Ignore
+    @UiField
+    Label robOwnerUsernameLabel;
+    
+    @Ignore
+    boolean readOnly = false;
+    
     @SuppressWarnings("rawtypes")
     @Ignore 
     SelectionChangedHandler dualListSelectionHandler = new SelectionChangedHandler() {
@@ -395,7 +421,6 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
         Grid<T> result = new Grid<T>(store, cm);
         result.setSelectionModel(sm);
         result.getView().setAutoFill(true);
-//        result.getView().setForceFit(true);
         result.setLoadMask(true);
         return result;
     }
@@ -407,7 +432,6 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
         result.setSelectionModel(sm);
         result.setLoader(loader);
         result.getView().setAutoFill(true);
-//        result.getView().setForceFit(true);
         result.setLoadMask(true);
         return result;
     }
@@ -447,7 +471,7 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
                     BeforeStartEditEvent<MetaTestEntryVO> event) {
                 int row = event.getEditCell().getRow();
                 MetaTestEntryVO entry = grid.getStore().get(row);
-                if (entry instanceof MTEQuestionVO) {
+                if (entry instanceof MTEQuestionVO || readOnly) {
                     event.setCancelled(true);
                 }
                 else {
@@ -471,17 +495,19 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
     }
 
     ColumnModel<MetaTestEntryVO> createEntriesCm(
-                CheckBoxSelectionModel<MetaTestEntryVO> sm, ColumnConfig<MetaTestEntryVO, Integer> questionsCountColumn) {
+                CheckBoxSelectionModel<MetaTestEntryVO> sm, ColumnConfig<MetaTestEntryVO, Integer> questionsCountColumn, boolean readOnly) {
     
             List<ColumnConfig<MetaTestEntryVO, ?>> l = new ArrayList<ColumnConfig<MetaTestEntryVO, ?>>();
-            l.add(sm.getColumn());
+            
+            if (!readOnly) {
+                l.add(sm.getColumn());
+            }
             
             ColumnConfig<MetaTestEntryVO, MetaTestEntryVO> entryColumn = createEntryDescriptionColumnConfig(new IdentityValueProvider<MetaTestEntryVO>(),
                     300, "Элемент теста"); 
             
             l.add(entryColumn);
             
-    //        ColumnConfig<MetaTestEntryVO, Integer> questionsCountColumn = createQuestonsCountColumnConfig(entryPropertyAccess.numberOfQuestions(), 60, "Вопросов");
             l.add(questionsCountColumn);
             
             ColumnModel<MetaTestEntryVO> result = new ColumnModel<MetaTestEntryVO>(l);
@@ -537,6 +563,9 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
             public void render(Context context,
                     Integer value, SafeHtmlBuilder sb) {
                 sb.append(value);
+                if (readOnly) {
+                    return;
+                }
                 MetaTestEntryVO entry = entriesStore.findModelWithKey((String)context.getKey());
                 if (entry instanceof MTEGroupVO) {
                     sb.append(
@@ -910,7 +939,7 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
         for (SharingEntryVO sharingEntry: sharingEntries.getListStore().getAll()) {
             if (sharingEntry.getStart() != null && sharingEntry.getEnd() != null) {
                 if (!DateHelper.afterOrEqualOrNull(sharingEntry.getEnd(), sharingEntry.getStart())) {
-                    sb.append("Начало периода для пользователя " + sharingEntry.getUsername() + " должно быть позже окончания" + "<br>");
+                    sb.append("Начало периода для пользователя " + sharingEntry.getUsername() + " должно быть раньше окончания" + "<br>");
                     if (ensureVisibleWidget == null) {
                         ensureVisibleWidget = sharingEntries;                        
                     }
@@ -962,20 +991,39 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
         }
         
         final MetaTestVO metatest = driver.flush();
-        Admin.RPC.saveMetatest(metatest, new AdminAsyncCallback<Void>() {
-            @Override
-            public void onSuccess(Void result) {
-                List<PublicationVO> publications = new ArrayList<PublicationVO>(publicationsStore.getAll());
-                Admin.RPC.setPublicationsForMetatest(metatest.getId(), publications, new AdminAsyncCallback<Void>() {
-                    @Override
-                    public void onSuccess(Void result) {
-                        window.hide();
-                        fireEvent(new SaveEvent<MetaTestVO>(metatest));
-                    }
-                });                
-            }
-        });
-        
+        if (readOnly) {
+            // Save publications only
+            List<PublicationVO> publications = new ArrayList<PublicationVO>(publicationsStore.getAll());
+            Admin.RPC.setPublicationsForMetatest(metatest.getId(), publications, new AdminAsyncCallback<Void>() {
+                @Override
+                public void onSuccess(Void result) {
+                    window.hide();
+                    fireEvent(new SaveEvent<MetaTestVO>(metatest));
+                }
+            });              
+        }
+        else {
+            // Save metatest and publications
+            Admin.RPC.saveMetatest(metatest, new AdminAsyncCallback<Void>() {
+                @Override
+                public void onSuccess(Void result) {
+                    List<PublicationVO> publications = new ArrayList<PublicationVO>(publicationsStore.getAll());
+                    Admin.RPC.setPublicationsForMetatest(metatest.getId(), publications, new AdminAsyncCallback<Void>() {
+                        @Override
+                        public void onSuccess(Void result) {
+                            window.hide();
+                            fireEvent(new SaveEvent<MetaTestVO>(metatest));
+                        }
+                    });
+                }
+            });
+        }
+    }
+    
+    @UiHandler("robCopyMetatestButton")
+    void robCopyMetatestButtonClick(ClickEvent event) {
+        window.hide();
+        fireEvent(new CreateCopyNeededEvent<MetaTestVO>(originalMetatestInstance));
     }
     
     @UiHandler("cancelButton")
@@ -1066,13 +1114,14 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
         boolean isSomeEntrySelected = entriesSm.getSelectedItems().size() > 0;
         addQuestionButton.setEnabled(isSomeQuestionSelected);
         addGroupButton.setEnabled(isSomeGroupSelected);
-        removeEntryButton.setEnabled(isSomeEntrySelected);
-        moveEntryUpButton.setEnabled(isSomeEntrySelected);
-        moveEntryDownButton.setEnabled(isSomeEntrySelected);
+        removeEntryButton.setEnabled(isSomeEntrySelected && !readOnly);
+        moveEntryUpButton.setEnabled(isSomeEntrySelected && !readOnly);
+        moveEntryDownButton.setEnabled(isSomeEntrySelected && !readOnly);
     }
 
     private MetatestWindow(MetaTestVO metatest, final EditMode editMode) {
-        originalMetatestInstance = metatest;
+        originalMetatestInstance = metatest;        
+        readOnly = ClientHelper.isOwnedByOthertUser(metatest);
         
         questionsSm = createSm(dualListSelectionHandler);
         questionsCm = createQuestionsCm(questionsSm);
@@ -1092,7 +1141,7 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
         
         entriesSm = createSm(dualListSelectionHandler);
         entriesQuestionsCountColumn = createQuestonsCountColumnConfig(entryPropertyAccess.numberOfQuestions(), 60, "Вопросов в тесте");
-        entriesCm = createEntriesCm(entriesSm, entriesQuestionsCountColumn);
+        entriesCm = createEntriesCm(entriesSm, entriesQuestionsCountColumn, readOnly);
         entriesStore = createStore(entryPropertyAccess.id());
         entries = createEntriesStoreEditor(entriesStore);
         entriesGrid = createGrid(entriesStore, entriesCm, entriesSm);
@@ -1151,8 +1200,20 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
             publication.setMetatest(metatest);
             publicationsStore.add(publication);
         }
+        
+        if (readOnly) {
+            switchToReadOnly(metatest);
+        }
     }
-
+    
+    private void switchToReadOnly(MetaTestVO metatest) {
+        westData.setHidden(true);
+        readOnlyBanner.setVisible(true);
+        robOwnerUsernameLabel.setText(metatest.getOwnerUsername());
+        name.disable();
+        tabs.remove(sharingTop);
+    }
+    
     @Override
     public Window asWidget() {
         return window;
@@ -1169,11 +1230,17 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
     }
 
     @Override
+    public HandlerRegistration addCreateCopyNeededHandler(
+            CreateCopyNeededHandler<MetaTestVO> handler) {
+        return window.addHandler(handler, CreateCopyNeededEvent.getType());    
+    }
+    
+    @Override
     public HandlerRegistration addHideHandler(HideHandler handler) {
         return window.addHideHandler(handler);
     }
     
-    public static void showWindow(final EditMode editMode, String id, final SaveHandler<MetaTestVO> saveHandler, final HideHandler hideHandler) {
+    public static void showWindow(final EditMode editMode, String id, final SaveHandler<MetaTestVO> saveHandler, final CreateCopyNeededHandler<MetaTestVO> creteCopyNeededHandler, final HideHandler hideHandler) {
         final AdminAsyncCallback<MetaTestVO> showWindowCallback = new AdminAsyncCallback<MetaTestVO>() {
             @Override
             public void onSuccess(MetaTestVO result) {
@@ -1183,6 +1250,9 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
                 }
                 if (saveHandler != null) {                
                     window.addSaveHandler(saveHandler);
+                }
+                if (creteCopyNeededHandler != null) {
+                    window.addCreateCopyNeededHandler(creteCopyNeededHandler);
                 }
                 window.asWidget().show();
             }

@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.Comparator;
 
 import com.attestator.admin.client.Admin;
+import com.attestator.admin.client.helper.ClientHelper;
 import com.attestator.admin.client.props.MilisecondsPropertyEditor;
 import com.attestator.admin.client.rpc.AdminAsyncCallback;
 import com.attestator.admin.client.rpc.AdminAsyncEmptyCallback;
@@ -14,6 +15,7 @@ import com.attestator.admin.client.ui.event.SaveEvent.SaveHandler;
 import com.attestator.admin.client.ui.widgets.ChoicesList;
 import com.attestator.admin.client.ui.widgets.ChoicesListItem;
 import com.attestator.admin.client.ui.widgets.GroupsComboBox;
+import com.attestator.admin.client.ui.widgets.HtmlEditorExt;
 import com.attestator.common.shared.helper.StringHelper;
 import com.attestator.common.shared.vo.ChoiceVO;
 import com.attestator.common.shared.vo.QuestionVO;
@@ -26,21 +28,24 @@ import com.google.gwt.editor.client.SimpleBeanEditorDriver;
 import com.google.gwt.event.shared.GwtEvent;
 import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.i18n.client.NumberFormat;
+import com.google.gwt.safehtml.shared.SafeHtml;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiHandler;
+import com.google.gwt.user.client.ui.HTML;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Widget;
+import com.sencha.gxt.core.client.XTemplates;
 import com.sencha.gxt.widget.core.client.Component;
 import com.sencha.gxt.widget.core.client.Window;
 import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
+import com.sencha.gxt.widget.core.client.button.TextButton;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
 import com.sencha.gxt.widget.core.client.event.HideEvent;
 import com.sencha.gxt.widget.core.client.event.HideEvent.HasHideHandlers;
 import com.sencha.gxt.widget.core.client.event.HideEvent.HideHandler;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.form.CheckBox;
-import com.sencha.gxt.widget.core.client.form.HtmlEditor;
 import com.sencha.gxt.widget.core.client.form.NumberField;
 import com.sencha.gxt.widget.core.client.form.NumberPropertyEditor;
 import com.sencha.gxt.widget.core.client.form.NumberPropertyEditor.DoublePropertyEditor;
@@ -49,8 +54,15 @@ import com.sencha.gxt.widget.core.client.form.NumberPropertyEditor.LongPropertyE
 public class SCQWindow implements IsWidget, Editor<SingleChoiceQuestionVO>, HasSaveEventHandlers<QuestionVO>,  HasHideHandlers {
     interface DriverImpl extends
             SimpleBeanEditorDriver<SingleChoiceQuestionVO, SCQWindow> {
+    }    
+    
+    
+    public static interface TextTemplates extends XTemplates{
+      @XTemplate("<div style='background-color: #FFFF99; border: 1px solid; padding: 5px;'>Вы не можете редактировать этот вопрос потому, что он создан пользователем <b>{ownerUsername}</b>. Но вы можете создать копию этого вопроса и редактировать уже ее.</div>")
+      public SafeHtml readOnlyBanner(String ownerUsername);
     }
-
+    public static final TextTemplates TEMPLATES = GWT.create(TextTemplates.class);
+    
     interface UiBinderImpl extends UiBinder<Widget, SCQWindow> {
     }
 
@@ -69,6 +81,10 @@ public class SCQWindow implements IsWidget, Editor<SingleChoiceQuestionVO>, HasS
     @UiField(provided = true)
     NumberFormat longNumberFormat = NumberFormat.getDecimalFormat();
     
+    @UiField
+    @Ignore
+    HTML readOnlyBanner;
+    
     @UiField(provided = true)
     NumberFormat doubleNumberFormat = NumberFormat.getFormat("0.00");
     
@@ -84,7 +100,7 @@ public class SCQWindow implements IsWidget, Editor<SingleChoiceQuestionVO>, HasS
     @UiField
     protected GroupsComboBox groupId;    
     @UiField
-    protected HtmlEditor text;
+    protected HtmlEditorExt text;
     @UiField
     protected NumberField<Long> maxQuestionAnswerTime;
     @UiField
@@ -96,14 +112,17 @@ public class SCQWindow implements IsWidget, Editor<SingleChoiceQuestionVO>, HasS
     @UiField
     protected CheckBox randomChoiceOrder;
     @UiField
-    protected VerticalLayoutContainer top;
+    protected VerticalLayoutContainer top;    
+    @UiField
+    @Ignore
+    protected TextButton saveButton;    
+    @UiField
+    @Ignore
+    protected TextButton cancelButton;
     
     private SCQWindow(SingleChoiceQuestionVO question) {
-        super();
-        if (question == null) {
-            question = new SingleChoiceQuestionVO();
-        }
-        
+        super();        
+
         if (question.getChoices().size() < 1) {
             question.getChoices().add(new ChoiceVO());
         }
@@ -112,8 +131,27 @@ public class SCQWindow implements IsWidget, Editor<SingleChoiceQuestionVO>, HasS
         
         driver.initialize(this);
         driver.edit(question);
+        
+        if (ClientHelper.isOwnedByOthertUser(question)) {
+            switchToReadOnly(question);
+        }
     }
+    
+    private void switchToReadOnly(QuestionVO question) {
+        readOnlyBanner.setVisible(true);
+        readOnlyBanner.setHTML(TEMPLATES.readOnlyBanner(question.getOwnerUsername()));
+        saveButton.setVisible(false);
+        cancelButton.setText("Закрыть");
 
+        groupId.disable();
+        text.disable();
+        maxQuestionAnswerTime.disable();
+        score.disable();
+        penalty.disable();
+        choices.disable();
+        randomChoiceOrder.disable();
+    }
+    
     @UiHandler("cancelButton")
     protected void cancelButtonClick(SelectEvent event) {
         window.hide();
@@ -228,7 +266,7 @@ public class SCQWindow implements IsWidget, Editor<SingleChoiceQuestionVO>, HasS
         return window.addHideHandler(handler);
     }
     
-    public static void showWindow(EditMode editMode, String id, final SaveHandler<QuestionVO> saveHandler, final HideHandler hideHandler) {
+    public static void showWindow(final EditMode editMode, String id, final SaveHandler<QuestionVO> saveHandler, final HideHandler hideHandler) {
         final AdminAsyncCallback<SingleChoiceQuestionVO> showWindowCallback = new AdminAsyncCallback<SingleChoiceQuestionVO>() {
             @Override
             public void onSuccess(SingleChoiceQuestionVO result) {
@@ -239,7 +277,7 @@ public class SCQWindow implements IsWidget, Editor<SingleChoiceQuestionVO>, HasS
                 if (saveHandler != null) {                
                     window.addSaveHandler(saveHandler);
                 }
-                window.asWidget().show();
+                window.asWidget().show();                
             }
         };
         

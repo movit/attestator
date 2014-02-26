@@ -10,6 +10,7 @@ import com.attestator.common.shared.vo.PublicationVO;
 import com.attestator.common.shared.vo.PublicationsTreeItem;
 import com.attestator.common.shared.vo.QuestionVO;
 import com.attestator.common.shared.vo.ReportVO;
+import com.attestator.common.shared.vo.SharingEntryVO;
 import com.attestator.common.shared.vo.UserVO;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.sencha.gxt.data.shared.loader.FilterPagingLoadConfig;
@@ -51,6 +52,7 @@ public interface AdminServiceAsync {
     
     void saveQuestion(QuestionVO question, AsyncCallback<Void> callback);
     void saveMetatest(MetaTestVO metatest, AsyncCallback<Void> callback);
+    void saveMetatestSharingEntries(String id, List<SharingEntryVO> sharingEntries, AsyncCallback<Void> callback);
     void savePrintingProperties(PrintingPropertiesVO properties, AsyncCallback<Void> callback);
     void savePublication(PublicationVO publication, AsyncCallback<Void> callback);
     void setPublicationsForMetatest(String metatestId, List<PublicationVO> publications, AsyncCallback<Void> callback);

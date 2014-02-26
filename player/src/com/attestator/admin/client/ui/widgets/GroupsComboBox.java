@@ -224,7 +224,19 @@ public class GroupsComboBox extends Composite implements LeafValueEditor<String>
         }
         valueHolder = value;
     }
-
+    
+    @Override
+    public void disable() {
+        super.disable();
+        comboBox.disable();
+    }
+    
+    @Override
+    public void enable() {
+        super.enable();
+        comboBox.enable();
+    }
+    
     @Override
     public String getValue() {
         if (comboBox.getValue() != null) {

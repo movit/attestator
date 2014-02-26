@@ -13,6 +13,7 @@ import com.attestator.common.shared.vo.PublicationVO;
 import com.attestator.common.shared.vo.PublicationsTreeItem;
 import com.attestator.common.shared.vo.QuestionVO;
 import com.attestator.common.shared.vo.ReportVO;
+import com.attestator.common.shared.vo.SharingEntryVO;
 import com.attestator.common.shared.vo.UserVO;
 import com.attestator.player.server.Singletons;
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
@@ -118,7 +119,7 @@ public class AdminServiceImpl extends RemoteServiceServlet implements
     public List<PublicationsTreeItem> loadPublicationsTree(PublicationsTreeItem root) throws IllegalStateException {
         try {
             if (root == null) {
-                return (List<PublicationsTreeItem>)((List<?>)Singletons.al().loadAllMetaTests("entries")); 
+                return (List<PublicationsTreeItem>)((List<?>)Singletons.al().loadAllMetaTests()); 
             }
             else if (root instanceof MetaTestVO) {
                 return (List<PublicationsTreeItem>)((List<?>)Singletons.al().loadPublicationsByMetatestId(((MetaTestVO) root).getId(), null));
@@ -366,7 +367,19 @@ public class AdminServiceImpl extends RemoteServiceServlet implements
     public PagingLoadResult<UserVO> loadUsers(FilterPagingLoadConfig loadConfig)
             throws IllegalStateException {
         try {
-            return Singletons.sl().loadUserPage(loadConfig);
+            return Singletons.sl().loadUserPage(loadConfig, "email");
+        }
+        catch (Throwable e) {
+            logger.error("Error: ", e);
+            throw new IllegalStateException(DEFAULT_ERROR_MESSAGE, e);
+        }
+    }
+
+    @Override
+    public void saveMetatestSharingEntries(String metatestId,
+            List<SharingEntryVO> sharingEntries) throws IllegalStateException {
+        try {
+            Singletons.al().saveMetatestSharingEntries(metatestId, sharingEntries);
         }
         catch (Throwable e) {
             logger.error("Error: ", e);

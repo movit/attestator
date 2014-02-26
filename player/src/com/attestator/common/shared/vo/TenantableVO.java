@@ -8,7 +8,11 @@ public abstract class TenantableVO extends ModificationDateAwareVO {
 	private static final long serialVersionUID = 2220524524737242868L;
 	
 	private String tenantId;
-	
+	@Override
+	public void resetIdentity() {	    
+	    super.resetIdentity();
+	    tenantId = null;
+	}
     public String getTenantId() {
         return tenantId;
     }

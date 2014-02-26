@@ -13,8 +13,11 @@ import com.attestator.admin.client.rpc.AdminAsyncCallback;
 import com.attestator.admin.client.ui.EditMode;
 import com.attestator.admin.client.ui.MetatestWindow;
 import com.attestator.admin.client.ui.PrintWindow;
+import com.attestator.admin.client.ui.ShareMetatestWindow;
 import com.attestator.admin.client.ui.PrintWindow.Mode;
 import com.attestator.admin.client.ui.PublicationWindow;
+import com.attestator.admin.client.ui.event.CreateCopyNeededEvent;
+import com.attestator.admin.client.ui.event.CreateCopyNeededEvent.CreateCopyNeededHandler;
 import com.attestator.admin.client.ui.event.MultyLinikSelectEvent;
 import com.attestator.admin.client.ui.event.MultyLinikSelectEvent.MultyLinikSelectHandler;
 import com.attestator.admin.client.ui.event.SaveEvent;
@@ -67,6 +70,7 @@ public class PublicationsTab extends Tab {
     private static final String COPY_TEST_LINK_ID = "copyTest";
     private static final String PRINT_TEST_LINK_ID = "printTest";
     private static final String PRINT_TO_PDF_TEST_LINK_ID = "printToPdfTest";
+    private static final String SHARE_TEST_LINK_ID = "shareTest";
 
     private static final String EDIT_PUBLICATION_LINK_ID = "editPublication";
     private static final String COPY_PUBLICATION_LINK_ID = "copyPublication";
@@ -209,6 +213,7 @@ public class PublicationsTab extends Tab {
                     sb.append(createClickableElement(DELETE_PUBLICATION_LINK_ID, "удалить публикацию", Resources.ICONS.delete16x16()));
                 }
                 else {
+                    sb.append(createClickableElement(SHARE_TEST_LINK_ID, "использование другими пользователями", Resources.ICONS.users16x16()));
                     sb.append(createClickableElement(PRINT_TEST_LINK_ID, "печать теста", Resources.ICONS.print16x16()));
                     sb.append(createClickableElement(PRINT_TO_PDF_TEST_LINK_ID, "печать теста в PDF", Resources.ICONS.pdf16x16()));
                     sb.append(createClickableElement(NEW_PUBLICATION_LINK_ID, "добавить публикацию", Resources.ICONS.addFile16x16()));
@@ -250,6 +255,10 @@ public class PublicationsTab extends Tab {
                 else if (COPY_TEST_LINK_ID.equals(event.getLinkType())) {
                     showMetatestWindow(((MetaTestVO)event.getValue()).getId(), EditMode.etCopy);
                 }
+                else if (SHARE_TEST_LINK_ID.equals(event.getLinkType())) { 
+                    final MetaTestVO metatest = (MetaTestVO) event.getValue();
+                    showShareMetatestWindow(metatest.getId());
+                }
                 else if (PRINT_TEST_LINK_ID.equals(event.getLinkType())) { 
                     final MetaTestVO metatest = (MetaTestVO) event.getValue();
                     PrintWindow.showWindow(metatest.getId(), Mode.print);
@@ -272,7 +281,7 @@ public class PublicationsTab extends Tab {
         result.setCell(cell);
         result.setHideable(false);
         result.setResizable(false);
-        result.setWidth(180);
+        result.setWidth(200);
         result.setFixed(true);
         result.setMenuDisabled(true);
         result.setSortable(false);
@@ -294,6 +303,8 @@ public class PublicationsTab extends Tab {
         l.add(new ColumnConfig<PublicationsTreeItem, String>(publicationProperties.minScore, 15, "Мин. баллов"));
         
         l.add(new ColumnConfig<PublicationsTreeItem, String>(publicationProperties.maxTakeTestTime, 20, "Времени на тест"));
+        l.add(new ColumnConfig<PublicationsTreeItem, String>(publicationProperties.ownerUsername, 30, "Автор"));        
+        
         l.add(createPublicationActionsColumnConfig(new IdentityValueProvider<PublicationsTreeItem>()));
         
         WidgetHelper.disableColumnHeaderOperations(l);
@@ -388,15 +399,32 @@ public class PublicationsTab extends Tab {
         gridStore.clear();
         gridLoader.load();
     }
-    
-    private void showMetatestWindow(String metatestId, EditMode editMode) {
+
+    private void showShareMetatestWindow(final String metatestId) {
         SaveHandler<MetaTestVO> metatestSaveHandler = new SaveHandler<MetaTestVO>() {
             @Override
             public void onSave(SaveEvent<MetaTestVO> event) {
                 refreshGrid(event.getValue().getId(), null);
             }
-        };        
-        MetatestWindow.showWindow(editMode, metatestId, metatestSaveHandler, null);
+        };   
+        ShareMetatestWindow.showWindow(metatestId, metatestSaveHandler, null);
+    }
+    
+    private void showMetatestWindow(final String metatestId, EditMode editMode) {
+        SaveHandler<MetaTestVO> metatestSaveHandler = new SaveHandler<MetaTestVO>() {
+            @Override
+            public void onSave(SaveEvent<MetaTestVO> event) {
+                refreshGrid(event.getValue().getId(), null);
+            }
+        };   
+        CreateCopyNeededHandler<MetaTestVO> createCopyNeededHandler = new CreateCopyNeededHandler<MetaTestVO>() {
+            @Override
+            public void onCreateCopyNeeded(
+                    CreateCopyNeededEvent<MetaTestVO> event) {
+                showMetatestWindow(metatestId, EditMode.etCopy);
+            }
+        };
+        MetatestWindow.showWindow(editMode, metatestId, metatestSaveHandler, createCopyNeededHandler, null);
     }
     
     private void showPublicationWindow(String publicationId, MetaTestVO metatest, EditMode editMode) {

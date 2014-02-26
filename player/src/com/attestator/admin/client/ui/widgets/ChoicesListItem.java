@@ -18,6 +18,7 @@ import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.client.ui.Widget;
 import com.sencha.gxt.widget.core.client.Composite;
 import com.sencha.gxt.widget.core.client.button.TextButton;
+import com.sencha.gxt.widget.core.client.event.EnableEvent;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.form.Radio;
 import com.sencha.gxt.widget.core.client.form.TextField;
@@ -30,7 +31,15 @@ public class ChoicesListItem extends Composite implements Editor<ChoiceVO>, HasD
     @UiField
     @Ignore
     protected TextButton deleteButton;
-    
+
+    @UiField
+    @Ignore
+    protected TextButton upButton;
+
+    @UiField
+    @Ignore
+    protected TextButton downButton;
+
     @UiField
     protected TextField text;
 
@@ -83,4 +92,27 @@ public class ChoicesListItem extends Composite implements Editor<ChoiceVO>, HasD
     public TextField getTextField() {
         return text;
     }
+    
+    @Override
+    public void enable() {
+        disabled = false;
+        fireEvent(new EnableEvent());        
+        deleteButton.enable();
+        right.enable();
+        text.enable();
+        upButton.enable();
+        downButton.enable();
+   }
+    
+    @Override
+    public void disable() {        
+        disabled = true;
+        fireEvent(new EnableEvent());
+        deleteButton.disable();
+        right.disable();
+        text.disable();
+        upButton.disable();
+        downButton.disable();
+    }
+
 }
