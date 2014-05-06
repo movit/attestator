@@ -67,10 +67,10 @@
 	<ui:with type="com.sencha.gxt.core.client.util.Margins" field="bottomMargin">
 		<ui:attributes top="0" right="0" bottom="10" left="0" />
 	</ui:with>
-	
+
 	<ui:with type="com.sencha.gxt.core.client.util.Margins" field="sharingEntryMargin">
-        <ui:attributes top="0" right="0" bottom="15" left="0" />
-    </ui:with>
+		<ui:attributes top="0" right="0" bottom="15" left="0" />
+	</ui:with>
 
 	<ui:with type="com.sencha.gxt.core.client.util.Margins" field="leftMargin">
 		<ui:attributes top="0" right="0" bottom="0" left="10" />
@@ -100,11 +100,11 @@
 		type="com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData">
 		<ui:attributes width="1" height="0.5" />
 	</ui:with>
-	
+
 	<ui:with field="maxSharingEntriesVLData"
-        type="com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData">
-        <ui:attributes width="550" height="1" margins="{sharingEntryMargin}"/>
-    </ui:with>
+		type="com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData">
+		<ui:attributes width="550" height="1" margins="{sharingEntryMargin}" />
+	</ui:with>
 
 	<ui:with
 		type="com.sencha.gxt.widget.core.client.container.HorizontalLayoutContainer.HorizontalLayoutData"
@@ -173,165 +173,154 @@
 		<ui:attributes text="Использование другими пользователями" />
 		  
 	</ui:with>
-    
+
 	<ui:style>
 		.transparentBackground {
 			background-color: transparent;
 		}
 		
 		.bold {
-	       font-weight: bold;
-        }
-        
-        .inline {
-	       display: inline;
-        }
+			font-weight: bold;
+		}
+		
+		.inline {
+			display: inline;
+		}
 	</ui:style>
 	<gxt:Window ui:field="window" pixelSize="1000, 600" modal="true"
 		maximizable="true" resizable="true" blinkModal="true" headingText="Тест"
 		focusWidget="{cancelButton}">
-		<row:VerticalLayoutContainer ui:field="top">
-		    <row:child>
-                <g:HTMLPanel ui:field="readOnlyBanner" visible="false">
-                    <div style='background-color: #FFFF99; border: 1px solid; padding: 5px;'>
-                        Вы не можете редактировать этот тест потому, что он создан пользователем 
-                        <g:Label ui:field="robOwnerUsernameLabel" styleName="{style.bold} {style.inline}"/>. 
-                        Но вы можете создать копию  <att:AnchorImage ui:field="robCopyMetatestButton"  href="#" image="{icons.copy16x16}"/> этого теста 
-                        и редактировать уже ее. Еще вы можете создавать или удалять публикации для этого теста.                        
-                    </div>                
-                </g:HTMLPanel>
-            </row:child>
+		<row:VerticalLayoutContainer ui:field="top"
+			styleName="{style.transparentBackground}">
+			<row:child>
+				<g:HTMLPanel ui:field="readOnlyBanner" visible="false">
+					<div style='background-color: #FFFF99; border: 1px solid; padding: 5px;'>
+						Вы не можете редактировать этот тест потому, что он создан
+						пользователем
+						<g:Label ui:field="robOwnerUsernameLabel" styleName="{style.bold} {style.inline}" />
+						.
+						Но вы можете создать копию
+						<att:AnchorImage ui:field="robCopyMetatestButton"
+							href="#" image="{icons.copy16x16}" />
+						этого теста
+						и редактировать уже ее. Еще вы можете создавать или удалять
+						публикации для этого теста.
+					</div>
+				</g:HTMLPanel>
+			</row:child>
+			<row:child layoutData="{maxWidthMinHeightBottomMarginVLData}">
+				<form:FieldLabel labelAlign="TOP" text="Название">
+					<form:widget>
+						<form:TextField ui:field="name" width="1"
+							allowBlank="true" />
+					</form:widget>
+				</form:FieldLabel>
+			</row:child>
 			<row:child layoutData="{maxWidthMaxHeightVLData}">
-				<gxt:PlainTabPanel ui:field="tabs" width="1"
-					bodyBorder="true">
-					<gxt:child config="{testTabConfig}">
-						<row:VerticalLayoutContainer ui:field="testTop"
-							styleName="{style.transparentBackground}">
-							<row:child layoutData="{maxWidthMinHeightBottomMarginVLData}">
-								<form:FieldLabel labelAlign="TOP" text="Название">
-									<form:widget>
-										<form:TextField ui:field="name" width="1"
-											allowBlank="true" />
-									</form:widget>
-								</form:FieldLabel>
-							</row:child>
-							<row:child layoutData="{maxWidthMaxHeightVLData}">
-								<row:BorderLayoutContainer borders="false">
-									<row:west layoutData="{westData}">
-										<gxt:ContentPanel appearance="{contentPanelAppearance}"
-											headingText="Элементы, которые можно добавить в тест">
-											<row:AccordionLayoutContainer
-												ui:field="elementsSourceLayout" borders="false" expandMode="SINGLE_FILL">
+				<row:BorderLayoutContainer borders="false">
+					<row:west layoutData="{westData}">
+						<gxt:ContentPanel appearance="{contentPanelAppearance}"
+							headingText="Элементы, которые можно добавить в тест">
+							<row:AccordionLayoutContainer
+								ui:field="elementsSourceLayout" borders="false" expandMode="SINGLE_FILL">
 
-												<gxt:ContentPanel ui:field="groupsPanel"
-													appearance="{accordionLayoutAppearance}" borders="false"
-													headingText="Группы" animCollapse="false">
-													<row:VerticalLayoutContainer>
-														<row:child layoutData="{minWidthMinHeightVLData}">
-															<toolbar:ToolBar ui:field="groupsToolbar"
-																visible="true">
-																<button:TextButton ui:field="addGroupButton"
-																	icon="{icons.next16x16}" iconAlign="RIGHT" text="Добавить в тест" />
-																<toolbar:FillToolItem />
-																<att:SearchField ui:field="groupsSearchField"
-																	validationDelay="700" emptyText="поиск / фильтр" />
-															</toolbar:ToolBar>
-														</row:child>
-														<row:child layoutData="{maxWidthMaxHeightVLData}">
-															<grid:Grid ui:field="groupsGrid" />
-														</row:child>
-														<row:child layoutData="{maxWidthMinHeightVLData}">
-															<toolbar:PagingToolBar ui:field="groupsPager"
-																pageSize="50" reuseConfig="false" visible="true" />
-														</row:child>
-													</row:VerticalLayoutContainer>
-												</gxt:ContentPanel>
+								<gxt:ContentPanel ui:field="groupsPanel"
+									appearance="{accordionLayoutAppearance}" borders="false"
+									headingText="Группы" animCollapse="false">
+									<row:VerticalLayoutContainer>
+										<row:child layoutData="{minWidthMinHeightVLData}">
+											<toolbar:ToolBar ui:field="groupsToolbar"
+												visible="true">
+												<button:TextButton ui:field="addGroupButton"
+													icon="{icons.next16x16}" iconAlign="RIGHT" text="Добавить в тест" />
+												<toolbar:FillToolItem />
+												<att:SearchField ui:field="groupsSearchField"
+													validationDelay="700" emptyText="поиск / фильтр" />
+											</toolbar:ToolBar>
+										</row:child>
+										<row:child layoutData="{maxWidthMaxHeightVLData}">
+											<grid:Grid ui:field="groupsGrid" />
+										</row:child>
+										<row:child layoutData="{maxWidthMinHeightVLData}">
+											<toolbar:PagingToolBar ui:field="groupsPager"
+												pageSize="50" reuseConfig="false" visible="true" />
+										</row:child>
+									</row:VerticalLayoutContainer>
+								</gxt:ContentPanel>
 
-												<gxt:ContentPanel ui:field="questionsPanel"
-													appearance="{accordionLayoutAppearance}" borders="false"
-													headingText="Вопросы" animCollapse="false">
-													<row:VerticalLayoutContainer>
-														<row:child layoutData="{maxWidthMinHeightVLData}">
-															<toolbar:ToolBar visible="true">
-																<button:TextButton ui:field="addQuestionButton"
-																	icon="{icons.next16x16}" iconAlign="RIGHT" text="Добавить в тест" />
-																<toolbar:FillToolItem />
-																<att:SearchField ui:field="questionsSearchField"
-																	validationDelay="700" emptyText="поиск / фильтр" />
-															</toolbar:ToolBar>
-														</row:child>
-														<row:child layoutData="{maxWidthMaxHeightVLData}">
-															<grid:Grid ui:field="questionsGrid" />
-														</row:child>
-														<row:child layoutData="{maxWidthMinHeightVLData}">
-															<toolbar:PagingToolBar ui:field="questionsPager"
-																pageSize="50" reuseConfig="false" />
-														</row:child>
-													</row:VerticalLayoutContainer>
-												</gxt:ContentPanel>
+								<gxt:ContentPanel ui:field="questionsPanel"
+									appearance="{accordionLayoutAppearance}" borders="false"
+									headingText="Вопросы" animCollapse="false">
+									<row:VerticalLayoutContainer>
+										<row:child layoutData="{maxWidthMinHeightVLData}">
+											<toolbar:ToolBar visible="true">
+												<button:TextButton ui:field="addQuestionButton"
+													icon="{icons.next16x16}" iconAlign="RIGHT" text="Добавить в тест" />
+												<toolbar:FillToolItem />
+												<att:SearchField ui:field="questionsSearchField"
+													validationDelay="700" emptyText="поиск / фильтр" />
+											</toolbar:ToolBar>
+										</row:child>
+										<row:child layoutData="{maxWidthMaxHeightVLData}">
+											<grid:Grid ui:field="questionsGrid" />
+										</row:child>
+										<row:child layoutData="{maxWidthMinHeightVLData}">
+											<toolbar:PagingToolBar ui:field="questionsPager"
+												pageSize="50" reuseConfig="false" />
+										</row:child>
+									</row:VerticalLayoutContainer>
+								</gxt:ContentPanel>
 
-											</row:AccordionLayoutContainer>
-										</gxt:ContentPanel>
-									</row:west>
-									<row:center layoutData="{centerData}">
-										<gxt:ContentPanel appearance="{contentPanelAppearance}"
-											headingText="Содержимое теста">
-											<row:VerticalLayoutContainer>
-												<row:child layoutData="{maxWidthMinHeightVLData}">
-													<toolbar:ToolBar visible="true">
-														<toolbar:FillToolItem />
-														<button:TextButton ui:field="removeEntryButton"
-															icon="{icons.prev16x16}" iconAlign="LEFT" text="Убрать из теста" />
-														<button:TextButton ui:field="moveEntryUpButton"
-															icon="{icons.up16x16}" iconAlign="LEFT"
-															toolTip="Переместить элементы к началу теста" />
-														<button:TextButton ui:field="moveEntryDownButton"
-															icon="{icons.down16x16}" iconAlign="LEFT"
-															toolTip="Переместить элементы к концу теста" />
-													</toolbar:ToolBar>
-												</row:child>
-												<row:child layoutData="{maxWidthMaxHeightVLData}">
-													<grid:Grid ui:field="entriesGrid" />
-												</row:child>
-											</row:VerticalLayoutContainer>
-										</gxt:ContentPanel>
-									</row:center>
-									<row:south layoutData="{southData}">
-										<gxt:ContentPanel appearance="{contentPanelAppearance}"
-											headingText="Публикации">
-											<row:VerticalLayoutContainer>
-												<row:child layoutData="{minWidthMinHeightVLData}">
-													<toolbar:ToolBar visible="true">
-														<button:TextButton ui:field="addPublicationButton"
-															icon="{icons.addFile16x16}" iconAlign="LEFT"
-															text="Добавить публикацию" />
-														<button:TextButton ui:field="editPublicationButton"
-															icon="{icons.edit16x16}" iconAlign="LEFT" text="Редактировать" />
-														<button:TextButton ui:field="copyPublicationButton"
-															icon="{icons.copy16x16}" iconAlign="LEFT" text="Копировать" />
-														<button:TextButton ui:field="removePublicationButton"
-															icon="{icons.delete16x16}" iconAlign="LEFT" text="Удалить" />
-													</toolbar:ToolBar>
-												</row:child>
+							</row:AccordionLayoutContainer>
+						</gxt:ContentPanel>
+					</row:west>
+					<row:center layoutData="{centerData}">
+						<gxt:ContentPanel appearance="{contentPanelAppearance}"
+							headingText="Содержимое теста">
+							<row:VerticalLayoutContainer>
+								<row:child layoutData="{maxWidthMinHeightVLData}">
+									<toolbar:ToolBar visible="true">
+										<toolbar:FillToolItem />
+										<button:TextButton ui:field="removeEntryButton"
+											icon="{icons.prev16x16}" iconAlign="LEFT" text="Убрать из теста" />
+										<button:TextButton ui:field="moveEntryUpButton"
+											icon="{icons.up16x16}" iconAlign="LEFT"
+											toolTip="Переместить элементы к началу теста" />
+										<button:TextButton ui:field="moveEntryDownButton"
+											icon="{icons.down16x16}" iconAlign="LEFT"
+											toolTip="Переместить элементы к концу теста" />
+									</toolbar:ToolBar>
+								</row:child>
+								<row:child layoutData="{maxWidthMaxHeightVLData}">
+									<grid:Grid ui:field="entriesGrid" />
+								</row:child>
+							</row:VerticalLayoutContainer>
+						</gxt:ContentPanel>
+					</row:center>
+					<row:south layoutData="{southData}">
+						<gxt:ContentPanel appearance="{contentPanelAppearance}"
+							headingText="Публикации">
+							<row:VerticalLayoutContainer>
+								<row:child layoutData="{minWidthMinHeightVLData}">
+									<toolbar:ToolBar visible="true">
+										<button:TextButton ui:field="addPublicationButton"
+											icon="{icons.addFile16x16}" iconAlign="LEFT" text="Добавить публикацию" />
+										<button:TextButton ui:field="editPublicationButton"
+											icon="{icons.edit16x16}" iconAlign="LEFT" text="Редактировать" />
+										<button:TextButton ui:field="copyPublicationButton"
+											icon="{icons.copy16x16}" iconAlign="LEFT" text="Копировать" />
+										<button:TextButton ui:field="removePublicationButton"
+											icon="{icons.delete16x16}" iconAlign="LEFT" text="Удалить" />
+									</toolbar:ToolBar>
+								</row:child>
 
-												<row:child layoutData="{maxWidthMaxHeightVLData}">
-													<grid:Grid ui:field="publicationsGrid" />
-												</row:child>
-											</row:VerticalLayoutContainer>
-										</gxt:ContentPanel>
-									</row:south>
-								</row:BorderLayoutContainer>
-							</row:child>
-						</row:VerticalLayoutContainer>
-					</gxt:child>
-					<gxt:child config="{sharingTabConfig}">
-						<row:VerticalLayoutContainer ui:field="sharingTop">
-						    <row:child layoutData="{maxSharingEntriesVLData}">
-						        <att:SharingEntriesList ui:field="sharingEntries"/>
-						    </row:child>
-						</row:VerticalLayoutContainer>
-					</gxt:child>
-				</gxt:PlainTabPanel>
+								<row:child layoutData="{maxWidthMaxHeightVLData}">
+									<grid:Grid ui:field="publicationsGrid" />
+								</row:child>
+							</row:VerticalLayoutContainer>
+						</gxt:ContentPanel>
+					</row:south>
+				</row:BorderLayoutContainer>
 			</row:child>
 		</row:VerticalLayoutContainer>
 		<gxt:button>

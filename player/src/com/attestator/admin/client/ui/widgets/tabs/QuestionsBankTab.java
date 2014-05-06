@@ -452,7 +452,7 @@ public class QuestionsBankTab extends Tab {
     }
     
     private void refreshGroups() {
-        Admin.RPC.loadGroups(new AdminAsyncCallback<List<GroupVO>>() {
+        Admin.RPC.loadOwnGroups(new AdminAsyncCallback<List<GroupVO>>() {
 
             @Override
             public void onSuccess(List<GroupVO> result) {

@@ -27,9 +27,7 @@ import com.attestator.admin.client.ui.event.SaveEvent.SaveHandler;
 import com.attestator.admin.client.ui.widgets.AnchorImage;
 import com.attestator.admin.client.ui.widgets.MultylinkCell;
 import com.attestator.admin.client.ui.widgets.SearchField;
-import com.attestator.admin.client.ui.widgets.SharingEntriesList;
 import com.attestator.common.client.ui.resolurces.Resources;
-import com.attestator.common.shared.helper.DateHelper;
 import com.attestator.common.shared.helper.NullHelper;
 import com.attestator.common.shared.helper.ReportHelper;
 import com.attestator.common.shared.helper.StringHelper;
@@ -41,7 +39,6 @@ import com.attestator.common.shared.vo.MetaTestEntryVO;
 import com.attestator.common.shared.vo.MetaTestVO;
 import com.attestator.common.shared.vo.PublicationVO;
 import com.attestator.common.shared.vo.QuestionVO;
-import com.attestator.common.shared.vo.SharingEntryVO;
 import com.google.gwt.cell.client.AbstractCell;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.core.client.Scheduler;
@@ -92,7 +89,6 @@ import com.sencha.gxt.data.shared.loader.PagingLoader;
 import com.sencha.gxt.widget.core.client.Component;
 import com.sencha.gxt.widget.core.client.ContentPanel;
 import com.sencha.gxt.widget.core.client.ContentPanel.ContentPanelAppearance;
-import com.sencha.gxt.widget.core.client.PlainTabPanel;
 import com.sencha.gxt.widget.core.client.TabItemConfig;
 import com.sencha.gxt.widget.core.client.Window;
 import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
@@ -172,24 +168,13 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
     @UiField
     TextField name;
     
-    @UiField
-    SharingEntriesList sharingEntries;    
-
     @Ignore
     @UiField
     Window window;
     
     @UiField
     @Ignore
-    PlainTabPanel tabs;
-    
-    @UiField
-    @Ignore
-    VerticalLayoutContainer testTop;
-    
-    @UiField
-    @Ignore
-    VerticalLayoutContainer sharingTop;
+    VerticalLayoutContainer top;
     
     @UiField
     @Ignore
@@ -908,7 +893,7 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
         
         int index = entriesStore.indexOf(entries.get(0));
         
-        for(MetaTestEntryVO entry: entries) {
+        for (MetaTestEntryVO entry: entries) {
             entriesStore.remove(entry);
         }
         
@@ -936,17 +921,6 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
             sb.append("В тесте должен быть хотя бы одинн элемент" + "<br>");            
         }
         
-        for (SharingEntryVO sharingEntry: sharingEntries.getListStore().getAll()) {
-            if (sharingEntry.getStart() != null && sharingEntry.getEnd() != null) {
-                if (!DateHelper.afterOrEqualOrNull(sharingEntry.getEnd(), sharingEntry.getStart())) {
-                    sb.append("Начало периода для пользователя " + sharingEntry.getUsername() + " должно быть раньше окончания" + "<br>");
-                    if (ensureVisibleWidget == null) {
-                        ensureVisibleWidget = sharingEntries;                        
-                    }
-                }
-            }
-        }
-            
         if (sb.length() > 0) {
             AlertMessageBox alert = new AlertMessageBox("Ошибка", sb.toString());
             
@@ -959,15 +933,9 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
                         Scheduler.get().scheduleDeferred(new ScheduledCommand() {                            
                             @Override
                             public void execute() {
-                                if (WidgetHelper.isParent(testTop, finalEnsureVisibleWidget)) {
-                                    tabs.setActiveWidget(testTop);
-                                    testTop.getScrollSupport().ensureVisible(finalEnsureVisibleWidget);
-                                    if (finalFocusWiget != null) {
-                                        finalFocusWiget.focus();
-                                    }
-                                }
-                                else if (WidgetHelper.isParent(sharingTop, finalEnsureVisibleWidget)) {
-                                    tabs.setActiveWidget(sharingTop);
+                                top.getScrollSupport().ensureVisible(finalEnsureVisibleWidget);
+                                if (finalFocusWiget != null) {
+                                    finalFocusWiget.focus();
                                 }
                             }
                         });
@@ -980,8 +948,6 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
         }
         
         return true;
-        
-        
     }
     
     @UiHandler("saveButton")
@@ -1211,7 +1177,6 @@ public class MetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEven
         readOnlyBanner.setVisible(true);
         robOwnerUsernameLabel.setText(metatest.getOwnerUsername());
         name.disable();
-        tabs.remove(sharingTop);
     }
     
     @Override

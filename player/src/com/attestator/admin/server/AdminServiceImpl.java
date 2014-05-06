@@ -56,9 +56,20 @@ public class AdminServiceImpl extends RemoteServiceServlet implements
     }
 
     @Override
-    public List<GroupVO> loadGroups() throws IllegalStateException {
+    public List<GroupVO> loadAllGroups() throws IllegalStateException {
         try {
             return Singletons.al().loadAllGroups();
+        }
+        catch (Throwable e) {
+            logger.error("Error: ", e);
+            throw new IllegalStateException(DEFAULT_ERROR_MESSAGE, e);
+        }
+    }
+
+    @Override
+    public List<GroupVO> loadOwnGroups() throws IllegalStateException {
+        try {
+            return Singletons.al().loadOwnGroups();
         }
         catch (Throwable e) {
             logger.error("Error: ", e);

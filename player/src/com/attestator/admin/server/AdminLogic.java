@@ -54,6 +54,22 @@ public class AdminLogic extends CommonLogic {
         Query<GroupVO> q = Singletons.ds().createFetchQuery(GroupVO.class).order("name, _id");
         List<GroupVO> result = q.asList();
         
+        putDefaultGroupOnTop(result);
+        
+        return result;
+    }
+    
+    public List<GroupVO> loadOwnGroups() {
+        Query<GroupVO> q = Singletons.ds().createFetchQuery(GroupVO.class).order("name, _id");
+        q.field("tenantId").equal(LoginManager.getThreadLocalTenatId());
+        List<GroupVO> result = q.asList();
+        
+        putDefaultGroupOnTop(result);
+        
+        return result;
+    }
+    
+    private void putDefaultGroupOnTop(List<GroupVO> result) {
         // Put default group to the top of list
         int defaultIndex = 0;
         GroupVO defaultGroup = null;
@@ -69,9 +85,8 @@ public class AdminLogic extends CommonLogic {
             result.remove(defaultIndex);
             result.add(0, defaultGroup);
         }
-        
-        return result;
-    }
+    }    
+    
     
     public <T> PagingLoadResult<T> loadPage(Class<T> clazz, FilterPagingLoadConfig loadConfig, String ... excludFields) {
         CheckHelper.throwIfNull(loadConfig, "loadConfig");
@@ -237,7 +252,7 @@ public class AdminLogic extends CommonLogic {
         CheckHelper.throwIfNull(sharingEntries, "sharingEntries");
         
         Query<MetaTestVO> q = Singletons.ds().createUpdateQuery(MetaTestVO.class);
-        q.field("_id").equals(metatestId);
+        q.field("_id").equal(metatestId);
         
         UpdateOperations<MetaTestVO> uo = Singletons.ds().createUpdateOperations(MetaTestVO.class);
         uo.set("sharingEntries", sharingEntries);
@@ -295,7 +310,7 @@ public class AdminLogic extends CommonLogic {
         
         GroupVO defaultGroup = getDeafultGroup(); 
                 
-        List<GroupVO> groupsToDelete = loadAllGroups();
+        List<GroupVO> groupsToDelete = loadOwnGroups();
         
         List<String>  groupsToDeleteIds = VOHelper.getIds(groupsToDelete);
         List<String>  groupsToSaveIds = VOHelper.getIds(groupsToSave);
@@ -513,6 +528,24 @@ public class AdminLogic extends CommonLogic {
         return result;
     }
     
+    private Set<String> getMetatestGroupIds(MetaTestVO metatest) {
+        CheckHelper.throwIfNull(metatest, "metatest");
+        CheckHelper.throwIfNull(metatest.getEntries(), "metatest.getEntries()");
+        
+        Set<String> result = new HashSet<String>();
+        for (MetaTestEntryVO entry: metatest.getEntries()) {
+            if (entry instanceof MTEQuestionVO) {
+                result.add(((MTEQuestionVO) entry).getQuestion().getGroupId());
+            }
+            else if (entry instanceof MTEGroupVO) {
+                result.add(((MTEGroupVO) entry).getGroupId());
+            }
+        }
+        
+        return result;
+    }
+
+    
     private Set<String> getMetatestSharedOnDateTenantIds(MetaTestVO metatest, Date date) {
         CheckHelper.throwIfNull(date, "date");
         CheckHelper.throwIfNull(metatest, "metatest");
@@ -567,15 +600,18 @@ public class AdminLogic extends CommonLogic {
             LockManager.lockBlocking(lock);
             
             resetSharingForObjects(MetaTestVO.class);
+            resetSharingForObjects(GroupVO.class);
             resetSharingForObjects(QuestionVO.class);
             
             List<MetaTestVO> metatests = loadAllMetaTests();
             for (MetaTestVO metatest: metatests) {
                 Set<String> questionIds = getMetatestQuestionsIds(metatest);
+                Set<String> groupIds = getMetatestGroupIds(metatest);
                 Set<String> sharedNowTenantIds = getMetatestSharedOnDateTenantIds(metatest, date);
                 
                 addSharingForObjects(MetaTestVO.class, Arrays.asList(metatest.getId()), sharedNowTenantIds);
                 addSharingForObjects(QuestionVO.class, questionIds, sharedNowTenantIds);
+                addSharingForObjects(GroupVO.class, groupIds, sharedNowTenantIds);
             }
         }
         finally {

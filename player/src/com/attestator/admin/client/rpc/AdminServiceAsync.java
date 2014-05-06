@@ -47,7 +47,8 @@ public interface AdminServiceAsync {
 
     void setQuestionsGroup(List<String> questionIds, String groupId, AsyncCallback<Void> callback);
     
-    void loadGroups(AsyncCallback<List<GroupVO>> callback);
+    void loadAllGroups(AsyncCallback<List<GroupVO>> callback);
+    void loadOwnGroups(AsyncCallback<List<GroupVO>> callback);
     void saveGroups(List<GroupVO> groups, AsyncCallback<Void> callback);
     
     void saveQuestion(QuestionVO question, AsyncCallback<Void> callback);

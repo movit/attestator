@@ -2,8 +2,10 @@ package com.attestator.common.shared.helper;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import com.attestator.common.shared.vo.BaseVO;
@@ -11,6 +13,7 @@ import com.attestator.common.shared.vo.GroupVO;
 import com.attestator.common.shared.vo.MTEGroupVO;
 import com.attestator.common.shared.vo.MTEQuestionVO;
 import com.attestator.common.shared.vo.MetaTestEntryVO;
+import com.attestator.common.shared.vo.MetaTestVO;
 
 public class VOHelper {
     public static <T extends BaseVO> T getById(Collection<T> vos, String id) {
@@ -67,6 +70,25 @@ public class VOHelper {
                 if (entry instanceof MTEGroupVO && !StringHelper.isEmptyOrNull(((MTEGroupVO) entry).getGroupId())) {
                     result.add(((MTEGroupVO) entry).getGroupId());
                 }
+            }
+        }
+        return result;
+    }
+    
+    public static Map<String, String> getOwnersTenantIds(MetaTestVO metatest) {
+        HashMap<String, String> result = new HashMap<String, String>();
+        result.put(metatest.getTenantId(), metatest.getOwnerUsername());
+        for (MetaTestEntryVO entry: metatest.getEntries()) {
+            if (entry instanceof MTEQuestionVO) {
+                result.put(((MTEQuestionVO) entry).getQuestion().getTenantId(), 
+                        ((MTEQuestionVO) entry).getQuestion().getOwnerUsername());
+            }
+            else if (entry instanceof MTEGroupVO) {
+                result.put(((MTEGroupVO) entry).getGroup().getTenantId(), 
+                        ((MTEGroupVO) entry).getGroup().getOwnerUsername());
+            }
+            else {
+                throw new IllegalArgumentException("Unsupported MetaTestEntryVO class");
             }
         }
         return result;

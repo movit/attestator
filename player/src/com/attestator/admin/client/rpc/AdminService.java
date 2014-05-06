@@ -36,7 +36,8 @@ public interface AdminService extends RemoteService {
     ListLoadResult<PublicationVO> loadPublicationsByMetatestId(String metatestId, ListLoadConfig config) throws IllegalStateException;
     List<PublicationsTreeItem> loadPublicationsTree(PublicationsTreeItem root) throws IllegalStateException;
 
-    List<GroupVO> loadGroups() throws IllegalStateException;
+    List<GroupVO> loadAllGroups() throws IllegalStateException;
+    List<GroupVO> loadOwnGroups() throws IllegalStateException;
     
     PrintingPropertiesVO getPrintPropertiesByMetatestId(String metatestId) throws IllegalStateException;
     String getHtmlForPrinting(String printingPropertiesId) throws IllegalStateException;

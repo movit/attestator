@@ -1,13 +1,17 @@
 package com.attestator.admin.client.ui;
 
+import java.util.Collection;
+import java.util.Map;
+
 import com.attestator.admin.client.Admin;
-import com.attestator.admin.client.helper.WidgetHelper;
 import com.attestator.admin.client.rpc.AdminAsyncCallback;
 import com.attestator.admin.client.ui.event.SaveEvent;
 import com.attestator.admin.client.ui.event.SaveEvent.HasSaveEventHandlers;
 import com.attestator.admin.client.ui.event.SaveEvent.SaveHandler;
 import com.attestator.admin.client.ui.widgets.SharingEntriesList;
 import com.attestator.common.shared.helper.DateHelper;
+import com.attestator.common.shared.helper.StringHelper;
+import com.attestator.common.shared.helper.VOHelper;
 import com.attestator.common.shared.vo.MetaTestVO;
 import com.attestator.common.shared.vo.SharingEntryVO;
 import com.google.gwt.core.client.GWT;
@@ -20,17 +24,16 @@ import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiHandler;
-import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Widget;
-import com.sencha.gxt.widget.core.client.Component;
 import com.sencha.gxt.widget.core.client.Window;
 import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
+import com.sencha.gxt.widget.core.client.box.MessageBox;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
+import com.sencha.gxt.widget.core.client.event.HideEvent;
 import com.sencha.gxt.widget.core.client.event.HideEvent.HasHideHandlers;
 import com.sencha.gxt.widget.core.client.event.HideEvent.HideHandler;
-import com.sencha.gxt.widget.core.client.event.HideEvent;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
 
 public class ShareMetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSaveEventHandlers<MetaTestVO>,  HasHideHandlers {
@@ -133,6 +136,23 @@ public class ShareMetatestWindow implements IsWidget, Editor<MetaTestVO>, HasSav
         final AdminAsyncCallback<MetaTestVO> showWindowCallback = new AdminAsyncCallback<MetaTestVO>() {
             @Override
             public void onSuccess(MetaTestVO result) {
+                Map<String, String> ownersTenantIds = VOHelper.getOwnersTenantIds(result);
+                ownersTenantIds.remove(Admin.getLoggedUser().getTenantId());
+                
+                if (ownersTenantIds.size() > 0) {
+                    Collection<String> ownersUsernames = ownersTenantIds.values();
+                    String users = StringHelper.concatAllNotEmpty(", ", ownersUsernames);
+                    MessageBox messageBox = new MessageBox("Нельзя менять доступ", 
+                            "Этот тест содержит элементы созданные " + 
+                            ((ownersUsernames.size() > 1) ? "другим пользователем" : "другими пользователями") +
+                            " (" + users + ")." + 
+                            "<br>Поэтому вы не можете разрешать его использование еще кому-то."
+                            );
+                    messageBox.setIcon(MessageBox.ICONS.warning());                    
+                    messageBox.show();
+                    return;
+                }
+
                 ShareMetatestWindow window = new ShareMetatestWindow(result);
                 if (hideHandler != null) {
                     window.addHideHandler(hideHandler);
