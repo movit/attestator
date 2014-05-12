@@ -71,11 +71,9 @@ public class ButtonFileUpload extends Component implements IsField<String>, HasC
 
   private FileUploadFieldMessages messages;
   private final FileUploadFieldAppearance appearance;
-//  private int buttonOffset = 3;
   private TextButton button;
   private XElement file;
   private String name;
-//  private TextField input;
 
   /**
    * Creates a new file upload field.
@@ -89,17 +87,14 @@ public class ButtonFileUpload extends Component implements IsField<String>, HasC
    * 
    * @param appearance the appearance
    */
-  public ButtonFileUpload(FileUploadFieldAppearance appearance) {
+  @SuppressWarnings("deprecation")
+public ButtonFileUpload(FileUploadFieldAppearance appearance) {
     this.appearance = appearance;
 
     SafeHtmlBuilder builder = new SafeHtmlBuilder();
     this.appearance.render(builder);
 
     setElement(XDOM.create(builder.toSafeHtml()));
-
-//    input = new TextField();
-//    input.setReadOnly(true);
-//    getElement().appendChild(input.getElement());
 
     sinkEvents(Event.ONCHANGE | Event.ONCLICK | Event.MOUSEEVENTS);
 
@@ -241,19 +236,16 @@ public class ButtonFileUpload extends Component implements IsField<String>, HasC
    */
   public void setReadOnly(boolean readonly) {
     button.setEnabled(readonly);
-//    input.setReadOnly(readonly);
   }
 
   @Override
   public void setValue(String value) {
       getFileInput().setValue(value);
-//    throw new UnsupportedOperationException("You cannot set the value for file upload field");
   }
 
   @Override
   public boolean validate(boolean preventMark) {
       return true;
-//    return input.validate(preventMark);
   }
 
   protected void createFileInput() {
@@ -269,21 +261,17 @@ public class ButtonFileUpload extends Component implements IsField<String>, HasC
     ((InputElement) file.cast()).setName(name);
 
     getElement().insertFirst(file);
-
-    // file.setEnabled(isEnabled());
   }
 
   @Override
   protected void doAttachChildren() {
     super.doAttachChildren();
-//    ComponentHelper.doAttach(input);
     ComponentHelper.doAttach(button);
   }
 
   @Override
   protected void doDetachChildren() {
     super.doDetachChildren();
-//    ComponentHelper.doDetach(input);
     ComponentHelper.doDetach(button);
   }
 
@@ -298,7 +286,6 @@ public class ButtonFileUpload extends Component implements IsField<String>, HasC
   @Override
   protected XElement getFocusEl() {
     return button.getElement();
-//    return input.getElement();
   }
 
   @Override
@@ -319,21 +306,9 @@ public class ButtonFileUpload extends Component implements IsField<String>, HasC
     super.onBlur(event);
   }
 
-//  protected void onChange(Event event) {
-//    if (GXT.isIE()) {
-//      input.setReadOnly(false);
-//    }
-//    input.setValue(getFileInput().getValue());
-//    if (GXT.isIE()) {
-//      input.setReadOnly(true);
-//    }
-////    input.focus();
-//  }
-
   @Override
   protected void onResize(int width, int height) {
     super.onResize(width, height);
-//    input.setWidth(width - button.getOffsetWidth() - buttonOffset);
     resizeFile();
   }
 
@@ -351,7 +326,6 @@ public class ButtonFileUpload extends Component implements IsField<String>, HasC
   @Override
   public void finishEditing() {
       // TODO Auto-generated method stub
-        
   }
     
   @Override

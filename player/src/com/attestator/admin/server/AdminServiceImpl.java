@@ -411,10 +411,9 @@ public class AdminServiceImpl extends RemoteServiceServlet implements
     }
 
     @Override
-    public void updateLoggedUser(String oldPassword, String email,
-            String newPassword) throws IllegalStateException {
+    public void updateLoggedUser(String oldPassword, String newPassword, UserVO user) throws IllegalStateException {
         try {
-            Singletons.al().updateLoggedUser(oldPassword, email, newPassword);
+            Singletons.al().updateLoggedUser(oldPassword, newPassword, user);
             LoginManager.refreshLoggedUser(getThreadLocalRequest().getSession());
         }
         catch (Throwable e) {

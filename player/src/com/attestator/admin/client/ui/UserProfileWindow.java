@@ -25,7 +25,7 @@ import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.form.PasswordField;
 import com.sencha.gxt.widget.core.client.form.TextField;
 
-public class UserProfileWindow implements IsWidget, Editor<UserVO>{
+public class UserProfileWindow implements IsWidget, Editor<UserVO> {
     interface DriverImpl extends
             SimpleBeanEditorDriver<UserVO, UserProfileWindow> {
     }    
@@ -41,6 +41,19 @@ public class UserProfileWindow implements IsWidget, Editor<UserVO>{
     
     @UiField
     protected TextField email;    
+    
+    @UiField
+    protected TextField firstName;    
+    
+    @UiField
+    protected TextField lastName;    
+    
+    @UiField
+    protected TextField middleName;    
+    
+    @UiField
+    protected TextField organization;    
+
     
     @UiField
     @Ignore
@@ -80,13 +93,14 @@ public class UserProfileWindow implements IsWidget, Editor<UserVO>{
         String oldPasswordStr = oldPassword.getValue();
         String newPasswordStr = newPassword.getValue();
         String newPasswordAgainStr = newPasswordAgain.getValue();
+        final UserVO user = driver.flush();
         
         if (!StringHelper.allEmptyOrNull(oldPasswordStr, newPasswordStr, newPasswordAgainStr)) {
             Admin.RPC.isThisLoggedUserPassword(oldPasswordStr, new AdminAsyncCallback<Boolean>() {
                 @Override
                 public void onSuccess(Boolean result) {
                     if (NullHelper.nullSafeTrue(result)) {
-                        validateAndSave();
+                        validateAndSave(user);
                     }
                     else {
                         AlertMessageBox alert = new AlertMessageBox("Ошибка", "Неверный пароль");
@@ -96,17 +110,16 @@ public class UserProfileWindow implements IsWidget, Editor<UserVO>{
             });            
         }
         else {
-            validateAndSave();
+            validateAndSave(user);
         }
     }
     
-    private void validateAndSave() {
-        if (validate()) {
+    private void validateAndSave(final UserVO user) {
+        if (validate(user)) {
             String oldPasswordStr = oldPassword.getValue();
             String newPasswordStr = newPassword.getValue();
-            String emailStr = email.getValue();
             
-            Admin.RPC.updateLoggedUser(oldPasswordStr, emailStr, newPasswordStr, new AdminAsyncCallback<Void>() {
+            Admin.RPC.updateLoggedUser(oldPasswordStr, newPasswordStr, user, new AdminAsyncCallback<Void>() {
                 @Override
                 public void onSuccess(Void result) {
                     Admin.refreshLoggedUser();
@@ -116,11 +129,10 @@ public class UserProfileWindow implements IsWidget, Editor<UserVO>{
         }
     }
     
-    private boolean validate() {
+    private boolean validate(UserVO user) {
         String oldPasswordStr = oldPassword.getValue();
         String newPasswordStr = newPassword.getValue();
         String newPasswordAgainStr = newPasswordAgain.getValue();
-        String emailStr = email.getValue();
 
         StringBuilder sb = new StringBuilder();        
         Component focusWidget = null;        
@@ -131,7 +143,7 @@ public class UserProfileWindow implements IsWidget, Editor<UserVO>{
             }
         }
         
-        if (!emailStr.matches("^[_A-Za-z0-9-\\+]+(\\.[_A-Za-z0-9-]+)*@[A-Za-z0-9-]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$")) {
+        if (user.getEmail() == null || !user.getEmail().matches("^[_A-Za-z0-9-\\+]+(\\.[_A-Za-z0-9-]+)*@[A-Za-z0-9-]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$")) {
             sb.append("Неверный <b>Email</b>");
             if (focusWidget == null) {
                 focusWidget = email;

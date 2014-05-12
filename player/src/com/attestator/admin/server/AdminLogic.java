@@ -1,5 +1,6 @@
 package com.attestator.admin.server;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -49,7 +50,7 @@ import com.sencha.gxt.data.shared.loader.PagingLoadResult;
 import com.sencha.gxt.data.shared.loader.PagingLoadResultBean;
 
 public class AdminLogic extends CommonLogic {
-    @SuppressWarnings("unused")
+    
     private static final Logger logger = Logger.getLogger(AdminLogic.class);
     
     public List<GroupVO> loadAllGroups() {
@@ -674,7 +675,7 @@ public class AdminLogic extends CommonLogic {
         }
     }
     
-    public void updateLoggedUser(String oldPassword, String email, String newPassword) {        
+    public void updateLoggedUser(String oldPassword, String newPassword, UserVO user) {        
         Query<UserVO> q = Singletons.ds().createUpdateQuery(UserVO.class);
         q.field("_id").equal(LoginManager.getThreadLocalLoggedUser().getId());
         
@@ -683,18 +684,31 @@ public class AdminLogic extends CommonLogic {
         }
         
         UpdateOperations<UserVO> uo = Singletons.ds().createUpdateOperations(UserVO.class);        
-        boolean updateNeeded = false;        
-        if (!StringHelper.isEmptyOrNull(email)) {
-            uo.set("email", email);
-            updateNeeded = true;
-        }        
+        
         if (!StringHelper.isEmptyOrNull(newPassword)) {
             uo.set("password", newPassword);
-            updateNeeded = true;
         }
         
-        if (updateNeeded) {
-            Singletons.ds().update(q, uo);
+        Field[] fields = ReflectionHelper.getMongoStoredFields(UserVO.class, false);
+        for (Field field: fields) {
+            field.setAccessible(true);
+            if ("password".equals(field.getName())) {
+                continue;
+            }
+            try {
+                Object value = field.get(user);
+                if (value != null) {
+                    uo.set(field.getName(), value);
+                }
+                else {
+                    uo.unset(field.getName());
+                }
+            }
+            catch (IllegalAccessException e) {
+                logger.error("Error while updating user field " + field.getName(), e);
+            }
         }
+        
+        Singletons.ds().update(q, uo);
     }
 }

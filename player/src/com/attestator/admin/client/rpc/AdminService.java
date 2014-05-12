@@ -66,5 +66,5 @@ public interface AdminService extends RemoteService {
     void logout() throws IllegalStateException;
     
     Boolean isThisLoggedUserPassword(String password) throws IllegalStateException;
-    void updateLoggedUser(String oldPassword, String email, String newPassword) throws IllegalStateException;
+    void updateLoggedUser(String oldPassword, String newPassword, UserVO user) throws IllegalStateException;
 }

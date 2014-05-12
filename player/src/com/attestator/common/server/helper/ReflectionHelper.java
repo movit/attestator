@@ -4,9 +4,13 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+
+import org.mongodb.morphia.annotations.NotSaved;
+import org.mongodb.morphia.annotations.Transient;
 
 @SuppressWarnings("rawtypes")
 public class ReflectionHelper {
@@ -91,6 +95,8 @@ public class ReflectionHelper {
         
         return field;
     }
+    
+    
 
     /**
      * Retrieving fields list of specified class 
@@ -146,6 +152,40 @@ public class ReflectionHelper {
         }
 
         return fields.toArray(new Field[fields.size()]);
+    }
+    
+    private static Field[] leaveOnlyMongoFields(Field[] fields) {
+        List<Field> result = new ArrayList<Field>();
+        for (Field field: fields) {
+            if (java.lang.reflect.Modifier.isStatic(field.getModifiers())) {
+                continue;
+            }
+            if (field.isAnnotationPresent(NotSaved.class)) {
+                continue;
+            }
+            if (field.isAnnotationPresent(Transient.class)) {
+                continue;
+            }
+            result.add(field);
+        }
+        return result.toArray(new Field[0]);
+    }
+    
+    /**
+     * Retrieving fields list of specified class If recursively is true,
+     * retrieving fields from all class hierarchy. Filter fields what will not
+     * stored in mongo (static, Transient etc)
+     * 
+     * @param clazz
+     *            where fields are searching
+     * @param recursively
+     *            param
+     * @return list of fields
+     */
+    public static Field[] getMongoStoredFields(Class clazz, boolean recursively) {
+        Field[] fields = getDeclaredFields(clazz, recursively);
+        Field[] result = leaveOnlyMongoFields(fields);
+        return result;
     }
 
     /**

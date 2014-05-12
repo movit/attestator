@@ -15,17 +15,17 @@
 		<ui:attributes width="1" height="-1" />
 	</ui:with>
 
-    <ui:with
-        type="com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData"
-        field="minWidthMinHeightVLData">
-        <ui:attributes width="-1" height="-1" />
-    </ui:with>
-    
-    <ui:with
-        type="com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData"
-        field="minWidthMaxHeightVLData">
-        <ui:attributes width="-1" height="1" />
-    </ui:with>
+	<ui:with
+		type="com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData"
+		field="minWidthMinHeightVLData">
+		<ui:attributes width="-1" height="-1" />
+	</ui:with>
+
+	<ui:with
+		type="com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData"
+		field="minWidthMaxHeightVLData">
+		<ui:attributes width="-1" height="1" />
+	</ui:with>
 
 	<ui:with
 		type="com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData"
@@ -33,39 +33,80 @@
 		<ui:attributes width="1" height="1" />
 	</ui:with>
 
-	<gxt:Window ui:field="window" pixelSize="400, 600" modal="true"
-		maximizable="false" resizable="false" blinkModal="true" headingText="Настройки пользователя"
-		focusWidget="{cancelButton}">
-
+	<gxt:Window ui:field="window" pixelSize="400, 530" modal="true"
+		maximizable="false" resizable="false" blinkModal="true"
+		headingText="Настройки пользователя" focusWidget="{cancelButton}">
 		<row:VerticalLayoutContainer ui:field="top">
+			<row:child>
+				<form:FieldSet headingText="Данные пользователя"
+					collapsible="false">
+					<row:VerticalLayoutContainer>
+						<row:child layoutData="{maxWidthMinHeightVLData}">
+							<form:FieldLabel labelAlign="TOP" text="Email">
+								<form:widget>
+									<form:TextField ui:field="email" />
+								</form:widget>
+							</form:FieldLabel>
+						</row:child>
+						<row:child layoutData="{maxWidthMinHeightVLData}">
+							<form:FieldLabel labelAlign="TOP" text="Фамилия">
+								<form:widget>
+									<form:TextField ui:field="lastName" />
+								</form:widget>
+							</form:FieldLabel>
+						</row:child>
+						<row:child layoutData="{maxWidthMinHeightVLData}">
+							<form:FieldLabel labelAlign="TOP" text="Имя">
+								<form:widget>
+									<form:TextField ui:field="firstName" />
+								</form:widget>
+							</form:FieldLabel>
+						</row:child>
+						<row:child layoutData="{maxWidthMinHeightVLData}">
+							<form:FieldLabel labelAlign="TOP" text="Отчество">
+								<form:widget>
+									<form:TextField ui:field="middleName" />
+								</form:widget>
+							</form:FieldLabel>
+						</row:child>
+						<row:child layoutData="{maxWidthMinHeightVLData}">
+							<form:FieldLabel labelAlign="TOP" text="Организация">
+								<form:widget>
+									<form:TextField ui:field="organization" />
+								</form:widget>
+							</form:FieldLabel>
+						</row:child>
+					</row:VerticalLayoutContainer>
+				</form:FieldSet>
+			</row:child>
 			<row:child layoutData="{maxWidthMinHeightVLData}">
-				<form:FieldLabel labelAlign="TOP" text="Email">
-					<form:widget>
-					    <form:TextField ui:field="email"/>
-					</form:widget>
-				</form:FieldLabel>
-	        </row:child>
-            <row:child layoutData="{maxWidthMinHeightVLData}">
-                <form:FieldLabel labelAlign="TOP" text="Старый пароль">
-                    <form:widget>
-                        <form:PasswordField ui:field="oldPassword" emptyText="При смене пароля на новый"/>
-                    </form:widget>
-                </form:FieldLabel>
-            </row:child>
-            <row:child layoutData="{maxWidthMinHeightVLData}">
-                <form:FieldLabel labelAlign="TOP" text="Новый пароль">
-                    <form:widget>
-                        <form:PasswordField ui:field="newPassword"/>
-                    </form:widget>
-                </form:FieldLabel>
-            </row:child>
-            <row:child layoutData="{maxWidthMinHeightVLData}">
-                <form:FieldLabel labelAlign="TOP" text="Новый пароль еще раз">
-                    <form:widget>
-                        <form:PasswordField ui:field="newPasswordAgain"/>
-                    </form:widget>
-                </form:FieldLabel>
-            </row:child>
+				<form:FieldSet headingText="Смена пароля" collapsible="false">
+					<row:VerticalLayoutContainer>
+						<row:child layoutData="{maxWidthMinHeightVLData}">
+							<form:FieldLabel labelAlign="TOP" text="Старый пароль">
+								<form:widget>
+									<form:PasswordField ui:field="oldPassword" />
+								</form:widget>
+							</form:FieldLabel>
+						</row:child>
+						<row:child layoutData="{maxWidthMinHeightVLData}">
+							<form:FieldLabel labelAlign="TOP" text="Новый пароль">
+								<form:widget>
+									<form:PasswordField ui:field="newPassword" />
+								</form:widget>
+							</form:FieldLabel>
+						</row:child>
+						<row:child layoutData="{maxWidthMinHeightVLData}">
+							<form:FieldLabel labelAlign="TOP"
+								text="Новый пароль еще раз">
+								<form:widget>
+									<form:PasswordField ui:field="newPasswordAgain" />
+								</form:widget>
+							</form:FieldLabel>
+						</row:child>
+					</row:VerticalLayoutContainer>
+				</form:FieldSet>
+			</row:child>
 		</row:VerticalLayoutContainer>
 
 		<gxt:button>
