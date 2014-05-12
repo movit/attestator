@@ -70,7 +70,7 @@ public class UploadQuestionsServlet extends BaseFileUploadServlet {
                 String groupName = groupId;
                 if (!StringHelper.isEmptyOrNull(groupId)) {
                     // Guarantee group id be unique 
-                    groupId = LoginManager.getThreadLocalTenatId() + groupId;
+                    groupId = LoginManager.getThreadLocalTenantId() + groupId;
                     
                     GroupVO group = Singletons.al().getById(GroupVO.class, groupId);
                     if (group == null) {
@@ -91,7 +91,7 @@ public class UploadQuestionsServlet extends BaseFileUploadServlet {
                     continue;
                 }
                 else {
-                    questionId = LoginManager.getThreadLocalTenatId() + questionId;
+                    questionId = LoginManager.getThreadLocalTenantId() + questionId;
                 }
                 
                 String questionText = record.get(questionTextPos).trim();                

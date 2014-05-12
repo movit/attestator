@@ -1,0 +1,80 @@
+<!DOCTYPE ui:UiBinder SYSTEM "http://dl.google.com/gwt/DTD/xhtml.ent">
+<ui:UiBinder xmlns:ui='urn:ui:com.google.gwt.uibinder'
+	xmlns:g="urn:import:com.google.gwt.user.client.ui" xmlns:gxt="urn:import:com.sencha.gxt.widget.core.client"
+	xmlns:row="urn:import:com.sencha.gxt.widget.core.client.container"
+	xmlns:menu="urn:import:com.sencha.gxt.widget.core.client.menu"
+	xmlns:button="urn:import:com.sencha.gxt.widget.core.client.button"
+	xmlns:form="urn:import:com.sencha.gxt.widget.core.client.form"
+	xmlns:toolbar="urn:import:com.sencha.gxt.widget.core.client.toolbar"
+	xmlns:grid="urn:import:com.sencha.gxt.widget.core.client.grid"
+	xmlns:att="urn:import:com.attestator.admin.client.ui.widgets">
+
+	<ui:with
+		type="com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData"
+		field="maxWidthMinHeightVLData">
+		<ui:attributes width="1" height="-1" />
+	</ui:with>
+
+    <ui:with
+        type="com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData"
+        field="minWidthMinHeightVLData">
+        <ui:attributes width="-1" height="-1" />
+    </ui:with>
+    
+    <ui:with
+        type="com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData"
+        field="minWidthMaxHeightVLData">
+        <ui:attributes width="-1" height="1" />
+    </ui:with>
+
+	<ui:with
+		type="com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData"
+		field="maxWidthMaxHeightVLData">
+		<ui:attributes width="1" height="1" />
+	</ui:with>
+
+	<gxt:Window ui:field="window" pixelSize="400, 600" modal="true"
+		maximizable="false" resizable="false" blinkModal="true" headingText="Настройки пользователя"
+		focusWidget="{cancelButton}">
+
+		<row:VerticalLayoutContainer ui:field="top">
+			<row:child layoutData="{maxWidthMinHeightVLData}">
+				<form:FieldLabel labelAlign="TOP" text="Email">
+					<form:widget>
+					    <form:TextField ui:field="email"/>
+					</form:widget>
+				</form:FieldLabel>
+	        </row:child>
+            <row:child layoutData="{maxWidthMinHeightVLData}">
+                <form:FieldLabel labelAlign="TOP" text="Старый пароль">
+                    <form:widget>
+                        <form:PasswordField ui:field="oldPassword" emptyText="При смене пароля на новый"/>
+                    </form:widget>
+                </form:FieldLabel>
+            </row:child>
+            <row:child layoutData="{maxWidthMinHeightVLData}">
+                <form:FieldLabel labelAlign="TOP" text="Новый пароль">
+                    <form:widget>
+                        <form:PasswordField ui:field="newPassword"/>
+                    </form:widget>
+                </form:FieldLabel>
+            </row:child>
+            <row:child layoutData="{maxWidthMinHeightVLData}">
+                <form:FieldLabel labelAlign="TOP" text="Новый пароль еще раз">
+                    <form:widget>
+                        <form:PasswordField ui:field="newPasswordAgain"/>
+                    </form:widget>
+                </form:FieldLabel>
+            </row:child>
+		</row:VerticalLayoutContainer>
+
+		<gxt:button>
+			<button:TextButton ui:field="saveButton" text="Сохранить" />
+		</gxt:button>
+		<gxt:button>
+			<button:TextButton ui:field="cancelButton" text="Отмена" />
+		</gxt:button>
+
+	</gxt:Window>
+
+</ui:UiBinder>

@@ -75,7 +75,7 @@
 					<g:Label />
 				</row:child>
 				<row:child layoutData="{boxLayoutDataMargins4}">
-					<g:Hyperlink text="Мои настройки" targetHistoryToken="settings" />
+					<g:Hyperlink ui:field="settings" text="Мои настройки" targetHistoryToken="" />
 				</row:child>
 				<row:child layoutData="{boxLayoutDataMargins4}">
 					<g:Hyperlink ui:field="logout" text="Выход" targetHistoryToken="" />

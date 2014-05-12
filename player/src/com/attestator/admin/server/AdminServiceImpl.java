@@ -397,4 +397,29 @@ public class AdminServiceImpl extends RemoteServiceServlet implements
             throw new IllegalStateException(DEFAULT_ERROR_MESSAGE, e);
         }
     }
+
+    @Override
+    public Boolean isThisLoggedUserPassword(String password)
+            throws IllegalStateException {
+        try {
+            return Singletons.al().isThisLoggedUserPassword(password);
+        }
+        catch (Throwable e) {
+            logger.error("Error: ", e);
+            throw new IllegalStateException(DEFAULT_ERROR_MESSAGE, e);
+        }
+    }
+
+    @Override
+    public void updateLoggedUser(String oldPassword, String email,
+            String newPassword) throws IllegalStateException {
+        try {
+            Singletons.al().updateLoggedUser(oldPassword, email, newPassword);
+            LoginManager.refreshLoggedUser(getThreadLocalRequest().getSession());
+        }
+        catch (Throwable e) {
+            logger.error("Error: ", e);
+            throw new IllegalStateException(DEFAULT_ERROR_MESSAGE, e);
+        }
+    }
 }

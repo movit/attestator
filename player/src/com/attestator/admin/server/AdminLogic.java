@@ -20,6 +20,7 @@ import com.attestator.common.server.helper.ReflectionHelper;
 import com.attestator.common.shared.helper.CheckHelper;
 import com.attestator.common.shared.helper.DateHelper;
 import com.attestator.common.shared.helper.NullHelper;
+import com.attestator.common.shared.helper.StringHelper;
 import com.attestator.common.shared.helper.VOHelper;
 import com.attestator.common.shared.vo.BaseVO;
 import com.attestator.common.shared.vo.CacheType;
@@ -37,6 +38,7 @@ import com.attestator.common.shared.vo.SharingEntryVO;
 import com.attestator.common.shared.vo.TenantableCronTaskVO;
 import com.attestator.common.shared.vo.UpdateAllMetattestsVisiblityLockVO;
 import com.attestator.common.shared.vo.UpdateMetatestsSharingTaskVO;
+import com.attestator.common.shared.vo.UserVO;
 import com.attestator.player.server.Singletons;
 import com.mongodb.WriteResult;
 import com.sencha.gxt.data.shared.SortInfo;
@@ -61,7 +63,7 @@ public class AdminLogic extends CommonLogic {
     
     public List<GroupVO> loadOwnGroups() {
         Query<GroupVO> q = Singletons.ds().createFetchQuery(GroupVO.class).order("name, _id");
-        q.field("tenantId").equal(LoginManager.getThreadLocalTenatId());
+        q.field("tenantId").equal(LoginManager.getThreadLocalTenantId());
         List<GroupVO> result = q.asList();
         
         putDefaultGroupOnTop(result);
@@ -573,7 +575,7 @@ public class AdminLogic extends CommonLogic {
         }
         
         UpdateOperations<T> uo = Singletons.ds().createUpdateOperations(clazz);
-        uo.set("sharedForTenantIds", new HashSet<String>(Arrays.asList(LoginManager.getThreadLocalTenatId())));
+        uo.set("sharedForTenantIds", new HashSet<String>(Arrays.asList(LoginManager.getThreadLocalTenantId())));
         
         Singletons.ds().update(q, uo);
     }
@@ -595,7 +597,7 @@ public class AdminLogic extends CommonLogic {
     }
     
     public void updateAllMetatestsVisibilityOnDate(Date date) {
-        UpdateAllMetattestsVisiblityLockVO lock = new UpdateAllMetattestsVisiblityLockVO(LoginManager.getThreadLocalTenatId());
+        UpdateAllMetattestsVisiblityLockVO lock = new UpdateAllMetattestsVisiblityLockVO(LoginManager.getThreadLocalTenantId());
         try {
             LockManager.lockBlocking(lock);
             
@@ -661,5 +663,38 @@ public class AdminLogic extends CommonLogic {
     
     public void removeCronTask(TenantableCronTaskVO cronTask) {
         Singletons.ds().delete(cronTask);
+    }
+    
+    public Boolean isThisLoggedUserPassword(String password) {
+        if (StringHelper.isEmptyOrNull(password)) {
+            return false;
+        }
+        else {
+            return password.equals(LoginManager.getThreadLocalLoggedUser().getPassword());
+        }
+    }
+    
+    public void updateLoggedUser(String oldPassword, String email, String newPassword) {        
+        Query<UserVO> q = Singletons.ds().createUpdateQuery(UserVO.class);
+        q.field("_id").equal(LoginManager.getThreadLocalLoggedUser().getId());
+        
+        if (!StringHelper.isEmptyOrNull(newPassword)) {
+            q.field("password").equal(oldPassword);
+        }
+        
+        UpdateOperations<UserVO> uo = Singletons.ds().createUpdateOperations(UserVO.class);        
+        boolean updateNeeded = false;        
+        if (!StringHelper.isEmptyOrNull(email)) {
+            uo.set("email", email);
+            updateNeeded = true;
+        }        
+        if (!StringHelper.isEmptyOrNull(newPassword)) {
+            uo.set("password", newPassword);
+            updateNeeded = true;
+        }
+        
+        if (updateNeeded) {
+            Singletons.ds().update(q, uo);
+        }
     }
 }

@@ -74,7 +74,7 @@ public class PlayerLogic extends CommonLogic{
         
         // If no time marker return all changes
         if (time == null) {
-            return Arrays.asList(new ChangeMarkerVO(null, LoginManager.getThreadLocalTenatId(), null));
+            return Arrays.asList(new ChangeMarkerVO(null, LoginManager.getThreadLocalTenantId(), null));
         }
         
         Query<ChangeMarkerVO> q = Singletons.ds().createFetchQuery(ChangeMarkerVO.class);
@@ -110,7 +110,7 @@ public class PlayerLogic extends CommonLogic{
         );
         
         if (qp.countAll() > 0) {
-            ChangeMarkerVO activePublicationsMarker = new ChangeMarkerVO(null, LoginManager.getThreadLocalTenatId(), CacheType.getActivePublications);            
+            ChangeMarkerVO activePublicationsMarker = new ChangeMarkerVO(null, LoginManager.getThreadLocalTenantId(), CacheType.getActivePublications);            
             allChanges.add(activePublicationsMarker);
         }
         

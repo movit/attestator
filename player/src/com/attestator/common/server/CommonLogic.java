@@ -152,7 +152,7 @@ public class CommonLogic {
     }
 
     protected void putChangesMarker(String clientId, CacheType type, String ... entries) {
-        ChangeMarkerVO marker = new ChangeMarkerVO(clientId, LoginManager.getThreadLocalTenatId(), type, entries);
+        ChangeMarkerVO marker = new ChangeMarkerVO(clientId, LoginManager.getThreadLocalTenantId(), type, entries);
         Singletons.ds().save(marker);
     }
 }

@@ -1,14 +1,18 @@
 package com.attestator.admin.client.ui.widgets;
 
 
+import java.util.List;
+
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.DivElement;
 import com.google.gwt.dom.client.Document;
 import com.google.gwt.dom.client.Element;
 import com.google.gwt.dom.client.InputElement;
+import com.google.gwt.editor.client.EditorError;
 import com.google.gwt.event.dom.client.ChangeEvent;
 import com.google.gwt.event.dom.client.ChangeHandler;
 import com.google.gwt.event.dom.client.HasChangeHandlers;
+import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.google.gwt.user.client.Event;
@@ -337,4 +341,22 @@ public class ButtonFileUpload extends Component implements IsField<String>, HasC
     file.setWidth(button.getOffsetWidth());
   }
 
+  @Override
+  public HandlerRegistration addValueChangeHandler(
+      ValueChangeHandler<String> handler) {
+      // TODO Auto-generated method stub
+      return null;
+  }
+    
+  @Override
+  public void finishEditing() {
+      // TODO Auto-generated method stub
+        
+  }
+    
+  @Override
+  public List<EditorError> getErrors() {
+      // TODO Auto-generated method stub
+      return null;
+  }
 }

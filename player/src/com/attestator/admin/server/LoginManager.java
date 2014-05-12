@@ -33,23 +33,26 @@ public class LoginManager implements Filter {
     public static UserVO login(HttpSession session, String tenantId) {
         UserVO user = Singletons.sl().getUserByTenantId(tenantId);
         
-        if (session != null) {
-            if (user != null) {
-                session.setAttribute(USER_ATTR_NAME, user);
-            }
-            else {
-                session.removeAttribute(USER_ATTR_NAME);
-            }
-        }
+        login(session, user);
         
-        loggedUser.set(user);        
         return user;
     }
     
+    public static void refreshLoggedUser(HttpSession session) {
+        UserVO user = Singletons.sl().getUserByTenantId(getThreadLocalTenantId());
+        
+        login(session, user);
+    }
     
     public static UserVO login(HttpSession session, String email, String md5EncodedPassword) {                
         UserVO user = Singletons.sl().getUserByLoginPassword(email, md5EncodedPassword);
         
+        login(session, user);
+        
+        return user;
+    }
+    
+    private static void login(HttpSession session, UserVO user) {
         if (session != null) {
             if (user != null) {
                 session.setAttribute(USER_ATTR_NAME, user);
@@ -60,7 +63,6 @@ public class LoginManager implements Filter {
         }
         
         loggedUser.set(user);        
-        return user;
     }
     
     public static void logout(HttpSession session) { 
@@ -80,14 +82,6 @@ public class LoginManager implements Filter {
         loggedUser.set(value);
     }
     
-    public static UserVO getThreadLocalLoggedUserThrowIfNull() {
-        UserVO result = loggedUser.get();
-        if (result == null) {
-            throw new IllegalStateException("Logged user not set. Looks like user not logged in.");
-        }
-        return result;
-    }
-
     public static UserVO getThreadLocalLoggedUser() {
         UserVO result = loggedUser.get();
         if (result == null) {
@@ -96,7 +90,7 @@ public class LoginManager implements Filter {
         return result;
     }
     
-    public static String getThreadLocalTenatId() {
+    public static String getThreadLocalTenantId() {
         String result = null;
         if (loggedUser.get() != null) {
             result = loggedUser.get().getTenantId(); 

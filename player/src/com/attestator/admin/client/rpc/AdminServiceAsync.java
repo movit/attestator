@@ -61,5 +61,8 @@ public interface AdminServiceAsync {
     
     void getLoggedUser(AsyncCallback<UserVO> callback);
     void login(String login, String password, AsyncCallback<UserVO> callback);
-    void logout(AsyncCallback<Void> callback);    
+    void logout(AsyncCallback<Void> callback);  
+    
+    void isThisLoggedUserPassword(String password, AsyncCallback<Boolean> callback);
+    void updateLoggedUser(String oldPassword, String email, String newPassword, AsyncCallback<Void> callback);
 }

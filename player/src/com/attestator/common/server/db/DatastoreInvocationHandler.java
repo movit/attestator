@@ -48,13 +48,13 @@ public class DatastoreInvocationHandler implements InvocationHandler {
             
             Class<?> clazz = (Class<?>)args[0];
             if (ShareableVO.class.isAssignableFrom(clazz)) {
-                result.field("sharedForTenantIds").hasThisOne(LoginManager.getThreadLocalTenatId());
+                result.field("sharedForTenantIds").hasThisOne(LoginManager.getThreadLocalTenantId());
             }
             else if (TenantableVO.class.isAssignableFrom(clazz)) {
-                result.field("tenantId").equal(LoginManager.getThreadLocalTenatId());
+                result.field("tenantId").equal(LoginManager.getThreadLocalTenantId());
             }
             else if (TenantableCronTaskVO.class.isAssignableFrom(clazz)) {
-                result.field("tenantId").equal(LoginManager.getThreadLocalTenatId());
+                result.field("tenantId").equal(LoginManager.getThreadLocalTenantId());
             }
             
             return result;
@@ -65,10 +65,10 @@ public class DatastoreInvocationHandler implements InvocationHandler {
             
             Class<?> clazz = (Class<?>)args[0];
             if (TenantableVO.class.isAssignableFrom(clazz)) {
-                result.field("tenantId").equal(LoginManager.getThreadLocalTenatId());
+                result.field("tenantId").equal(LoginManager.getThreadLocalTenantId());
             }
             else if (TenantableCronTaskVO.class.isAssignableFrom(clazz)) {
-                result.field("tenantId").equal(LoginManager.getThreadLocalTenatId());
+                result.field("tenantId").equal(LoginManager.getThreadLocalTenantId());
             }
             return result;
         }        
@@ -143,8 +143,8 @@ public class DatastoreInvocationHandler implements InvocationHandler {
             
             TenantableVO dbObj = (TenantableVO)q.get();
             
-            if (dbObj != null && !LoginManager.getThreadLocalTenatId().equals(dbObj.getTenantId())) {
-                throw new IllegalArgumentException("Object us not writeable for tenant: " + LoginManager.getThreadLocalTenatId() + ", obj: " + obj.toString());               
+            if (dbObj != null && !LoginManager.getThreadLocalTenantId().equals(dbObj.getTenantId())) {
+                throw new IllegalArgumentException("Object us not writeable for tenant: " + LoginManager.getThreadLocalTenantId() + ", obj: " + obj.toString());               
             }
         }
         else if (obj instanceof TenantableCronTaskVO) {
@@ -154,21 +154,21 @@ public class DatastoreInvocationHandler implements InvocationHandler {
             
             TenantableCronTaskVO dbObj = (TenantableCronTaskVO)q.get();
             
-            if (dbObj != null && !LoginManager.getThreadLocalTenatId().equals(dbObj.getTenantId())) {
-                throw new IllegalArgumentException("Object us not writeable for tenant: " + LoginManager.getThreadLocalTenatId() + ", obj: " + obj.toString());               
+            if (dbObj != null && !LoginManager.getThreadLocalTenantId().equals(dbObj.getTenantId())) {
+                throw new IllegalArgumentException("Object us not writeable for tenant: " + LoginManager.getThreadLocalTenantId() + ", obj: " + obj.toString());               
             }
         }        
     }
     
     private void prepareForSave(Object obj) {        
         if (obj instanceof TenantableVO) {
-            ((TenantableVO) obj).setTenantId(LoginManager.getThreadLocalTenatId());
+            ((TenantableVO) obj).setTenantId(LoginManager.getThreadLocalTenantId());
         }
         if (obj instanceof TenantableCronTaskVO) {
-            ((TenantableCronTaskVO) obj).setTenantId(LoginManager.getThreadLocalTenatId());
+            ((TenantableCronTaskVO) obj).setTenantId(LoginManager.getThreadLocalTenantId());
         }        
         if (obj instanceof ShareableVO) {
-            ((ShareableVO) obj).getSharedForTenantIds().add(LoginManager.getThreadLocalTenatId());
+            ((ShareableVO) obj).getSharedForTenantIds().add(LoginManager.getThreadLocalTenantId());
         }
         if (obj instanceof ModificationDateAwareVO) {
             Date now = new Date();

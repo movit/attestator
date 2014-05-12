@@ -43,7 +43,12 @@ public class AdminScreen implements IsWidget {
     public void logoutClick(ClickEvent event) {
         Admin.logout();
     }
-    
+
+    @UiHandler("settings")
+    public void settingsClick(ClickEvent event) {
+        UserProfileWindow.showWindow();
+    }
+
     public Widget asWidget() {
         return top;
     }    
