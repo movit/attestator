@@ -54,8 +54,8 @@ body {
 }
 
 .question {
-	padding-top:       1em;
-	margin-bottom:     1em;
+	padding-top:       0.7em;
+	margin-bottom:     0.7em;
 	page-break-inside: avoid;
 }
 
@@ -100,8 +100,8 @@ body {
 }
 
 .scq-answer {
-	font-size:   1.5em;
+	font-size:   15pt;
 	display:     inline-block;
-	width:       4em;
+	width:       60pt;
 	white-space: nowrap;
 }
