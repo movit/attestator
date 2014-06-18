@@ -16,6 +16,7 @@ import com.sencha.gxt.widget.core.client.PlainTabPanel;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
 
 public class AdminScreen implements IsWidget {
+    public static String HISTORY_TOKEN = "admin";
 
     interface UiBinderImpl extends UiBinder<Widget, AdminScreen> {
     }
@@ -41,7 +42,7 @@ public class AdminScreen implements IsWidget {
 
     @UiHandler("logout")
     public void logoutClick(ClickEvent event) {
-        Admin.logout();
+        Admin.logout(null);
     }
 
     @UiHandler("settings")

@@ -1,11 +1,11 @@
 package com.attestator.player.client;
 
+import com.attestator.common.client.helper.HistoryHelper;
 import com.attestator.common.client.helper.WindowHelper;
+import com.attestator.common.client.helper.HistoryHelper.HistoryToken;
 import com.attestator.common.client.ui.resolurces.Resources;
 import com.attestator.player.client.cache.PlayerStorageServiceAsync;
 import com.attestator.player.client.helper.ApplicationCache;
-import com.attestator.player.client.helper.HistoryHelper;
-import com.attestator.player.client.helper.HistoryHelper.HistoryToken;
 import com.attestator.player.client.rpc.PlayerService;
 import com.attestator.player.client.rpc.PlayerServiceAsync;
 import com.attestator.player.client.ui.PublicationsScreen;
@@ -68,13 +68,6 @@ public class Player implements EntryPoint {
                 else {
                     Player.rpc = rpc;
                 }
-                
-//                Scheduler.get().scheduleDeferred(new ScheduledCommand() {
-//                    @Override
-//                    public void execute() {                    
-//                        Info.display("Version", "VERSION: " + VERSION);
-//                    }
-//                });
                 
                 History.addValueChangeHandler(new ValueChangeHandler<String>() {            
                     @Override

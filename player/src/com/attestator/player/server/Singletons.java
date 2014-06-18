@@ -69,16 +69,22 @@ public class Singletons {
             }
         }
         
+        // Prepare raw database access objects for SystemLogic
+        Morphia rawMorphia = new Morphia();
+        Datastore rawDs = rawMorphia.createDatastore(mongo, "attestator");
+        rawMorphia.mapPackage("com.attestator.common.shared.vo");
+        DatabaseUpdater dbUpdater = new DatabaseUpdater(rawDs);
+        dbUpdater.updateDatabase();
+        sl = new SystemLogic(rawDs);
+        
         morphia = new Morphia();
-        Datastore rawDs = morphia.createDatastore(mongo, "attestator");
-        ds      = (SafeDatastore) Proxy.newProxyInstance(SafeDatastore.class.getClassLoader(), new Class[] {SafeDatastore.class}, new DatastoreInvocationHandler(rawDs)); 
+        Datastore rawDsForSafeDs = morphia.createDatastore(mongo, "attestator");
+        ds      = (SafeDatastore) Proxy.newProxyInstance(SafeDatastore.class.getClassLoader(), new Class[] {SafeDatastore.class}, new DatastoreInvocationHandler(rawDsForSafeDs)); 
         morphia.mapPackage("com.attestator.common.shared.vo");
+        
         // Update database should be called before installing interceptor.
         // Because interceptor must work only with logged in environment.
         // DatabaseUpdater can't rely on annotation handling which done by interceptor.
-        sl      = new SystemLogic(rawDs);
-        DatabaseUpdater dbUpdater = new DatabaseUpdater(rawDs);
-        dbUpdater.updateDatabase();
         
         morphia.getMapper().addInterceptor(new Interceptor());
         pl      = new PlayerLogic();

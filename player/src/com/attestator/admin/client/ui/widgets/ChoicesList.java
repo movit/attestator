@@ -35,7 +35,8 @@ public class ChoicesList extends Composite implements IsEditor<ListEditor<Choice
             ChoicesListItem item = new ChoicesListItem();
             
             choicesContainer.insert(item, index, maxWidthMinHeightVLData);
-                        
+            choicesContainer.forceLayout();
+            
             tg.add(item.getRight());
             
             item.addDeleteHandler(new DeleteHandler() {                
@@ -55,7 +56,7 @@ public class ChoicesList extends Composite implements IsEditor<ListEditor<Choice
             });
             
             updateOrders();
-
+            
             return item;
         }
         

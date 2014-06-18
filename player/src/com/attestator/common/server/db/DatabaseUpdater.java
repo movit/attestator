@@ -361,9 +361,7 @@ public class DatabaseUpdater {
     }
     
     private void addTestData() {
-        Singletons.sl().createNewUser("test2@test.com", "test");
-        
-        UserVO user = Singletons.sl().createNewUser("test@test.com", "test");        
+        UserVO user = Singletons.sl().createNewUser("test@test.com", "test", "test");        
         LoginManager.setThreadLocalLoggedUser(user);
         
         GroupVO grOther = new GroupVO();

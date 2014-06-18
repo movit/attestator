@@ -1,10 +1,12 @@
 package com.attestator.admin.server;
 
 import java.util.List;
+import java.util.Set;
 
 import org.apache.log4j.Logger;
 
 import com.attestator.admin.client.rpc.AdminService;
+import com.attestator.common.shared.dto.UserValidationError;
 import com.attestator.common.shared.vo.BaseVO;
 import com.attestator.common.shared.vo.GroupVO;
 import com.attestator.common.shared.vo.MetaTestVO;
@@ -415,6 +417,30 @@ public class AdminServiceImpl extends RemoteServiceServlet implements
         try {
             Singletons.al().updateLoggedUser(oldPassword, newPassword, user);
             LoginManager.refreshLoggedUser(getThreadLocalRequest().getSession());
+        }
+        catch (Throwable e) {
+            logger.error("Error: ", e);
+            throw new IllegalStateException(DEFAULT_ERROR_MESSAGE, e);
+        }
+    }
+
+    @Override
+    public Set<UserValidationError> validateForCreateNewUser(String email,
+            String username, String password) throws IllegalStateException {
+        try {
+            return Singletons.sl().validateForCreateNewUser(email, username, password);
+        }
+        catch (Throwable e) {
+            logger.error("Error: ", e);
+            throw new IllegalStateException(DEFAULT_ERROR_MESSAGE, e);
+        }
+    }
+
+    @Override
+    public UserVO createNewUser(String email, String username, String password)
+            throws IllegalStateException {
+        try {
+            return Singletons.sl().createNewUser(email, username, password);
         }
         catch (Throwable e) {
             logger.error("Error: ", e);

@@ -23,7 +23,7 @@
 	<extend-property name="locale" values="ru"/>
 	
 	<set-property name="locale" value="ru"/>
-<!--     <set-configuration-property name="CssResource.style" value="pretty"/>		 -->
+    <set-configuration-property name="CssResource.style" value="pretty"/>		
 	
 	<source path="client" />
 	<source path="shared" />

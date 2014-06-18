@@ -4,18 +4,22 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.Query;
 
 import com.attestator.common.server.helper.DatastoreHelper;
+import com.attestator.common.shared.SharedConstants;
+import com.attestator.common.shared.dto.UserValidationError;
 import com.attestator.common.shared.helper.CheckHelper;
+import com.attestator.common.shared.helper.StringHelper;
+import com.attestator.common.shared.vo.BaseVO;
 import com.attestator.common.shared.vo.CronTaskVO;
 import com.attestator.common.shared.vo.GroupVO;
 import com.attestator.common.shared.vo.PrintingPropertiesVO;
 import com.attestator.common.shared.vo.PublicationVO;
 import com.attestator.common.shared.vo.UserVO;
-import com.attestator.player.server.Singletons;
 import com.sencha.gxt.data.shared.loader.FilterPagingLoadConfig;
 import com.sencha.gxt.data.shared.loader.PagingLoadResult;
 import com.sencha.gxt.data.shared.loader.PagingLoadResultBean;
@@ -33,23 +37,61 @@ public class SystemLogic {
         this.rawDs = rawDs;
     }
     
-    public UserVO createNewUser(String email, String password) {
-        return Singletons.sl().createNewUser(email, password, null); 
+    public Set<UserValidationError> validateForCreateNewUser(String email, String username, String password) {
+        HashSet<UserValidationError> result = new HashSet<UserValidationError>();
+        
+        if (StringHelper.isEmptyOrNull(email)) {
+            result.add(UserValidationError.incorrectEmail);
+        }
+        else if (!email.matches(SharedConstants.EMAIL_VALIDATION_REGEX)) {
+            result.add(UserValidationError.incorrectEmail);
+        }
+        else {
+            Query<UserVO> q = rawDs.createQuery(UserVO.class);
+            q.field("email").equal(email);
+            if (q.countAll() > 0) {
+                result.add(UserValidationError.emailAlreadyExists);
+            }
+        }
+        
+        if (StringHelper.isEmptyOrNull(username)) {
+            result.add(UserValidationError.incorrectUsername);
+        }
+        else if (!username.matches(SharedConstants.USERNAME_VALIDATION_REGEX)) {
+            result.add(UserValidationError.incorrectUsername);
+        }
+        else {
+            Query<UserVO> q = rawDs.createQuery(UserVO.class);
+            q.field("username").equal(username);
+            if (q.countAll() > 0) {
+                result.add(UserValidationError.usernameAlreadyExists);
+            }
+        }
+        
+        return result;
+    }
+    
+    public UserVO createNewUser(String email, String username, String password) {
+        return createNewUser(email, username, password, null); 
     }    
 
-    public UserVO createNewUser(String email, String password, String tenantId) {
+    public UserVO createNewUser(String email, String username, String password, String id) {
         CheckHelper.throwIfNullOrEmpty(email, "email");
         CheckHelper.throwIfNullOrEmpty(password, "password");
+        CheckHelper.throwIfNullOrEmpty(username, "username");
         
         UserVO result = new UserVO();
         result.setEmail(email);
+        result.setUsername(username);
         result.setPassword(password);
         
-        if (tenantId != null) {
-            result.setId(tenantId);
-            result.setTenantId(tenantId);
-            result.setDefaultGroupId(tenantId);
+        if (id == null) {
+            id = BaseVO.idString();
         }
+        
+        result.setId(id);
+        result.setTenantId(id);
+        result.setDefaultGroupId(id);
         
         rawDs.save(result);
         
@@ -57,18 +99,20 @@ public class SystemLogic {
         defaultGroup.setId(result.getDefaultGroupId());
         defaultGroup.setTenantId(result.getTenantId());
         defaultGroup.setName(GroupVO.DEFAULT_GROUP_INITIAL_NAME);
+        defaultGroup.getSharedForTenantIds().add(result.getTenantId());
+        defaultGroup.setOwnerUsername(result.getUsername());
         
         rawDs.save(defaultGroup);
         
         return result;
     }
     
-    public UserVO getUserByLoginPassword(String email, String password) {
-        CheckHelper.throwIfNullOrEmpty(email, "email");
+    public UserVO getUserByLoginPassword(String emailOrUsername, String password) {
+        CheckHelper.throwIfNullOrEmpty(emailOrUsername, "email");
         CheckHelper.throwIfNullOrEmpty(password, "password");
         
         Query<UserVO> q = rawDs.createQuery(UserVO.class);
-        q.field("email").equal(email);
+        q.or(q.criteria("email").equal(emailOrUsername), q.criteria("username").equal(emailOrUsername));
         q.field("password").equal(password);
         UserVO user = q.get();
         

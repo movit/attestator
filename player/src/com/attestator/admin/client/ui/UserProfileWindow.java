@@ -2,6 +2,7 @@ package com.attestator.admin.client.ui;
 
 import com.attestator.admin.client.Admin;
 import com.attestator.admin.client.rpc.AdminAsyncCallback;
+import com.attestator.common.shared.SharedConstants;
 import com.attestator.common.shared.helper.NullHelper;
 import com.attestator.common.shared.helper.StringHelper;
 import com.attestator.common.shared.vo.UserVO;
@@ -122,7 +123,7 @@ public class UserProfileWindow implements IsWidget, Editor<UserVO> {
             Admin.RPC.updateLoggedUser(oldPasswordStr, newPasswordStr, user, new AdminAsyncCallback<Void>() {
                 @Override
                 public void onSuccess(Void result) {
-                    Admin.refreshLoggedUser();
+                    Admin.refreshLoggedUser(null);
                     window.hide();
                 }
             });
@@ -143,7 +144,7 @@ public class UserProfileWindow implements IsWidget, Editor<UserVO> {
             }
         }
         
-        if (user.getEmail() == null || !user.getEmail().matches("^[_A-Za-z0-9-\\+]+(\\.[_A-Za-z0-9-]+)*@[A-Za-z0-9-]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$")) {
+        if (user.getEmail() == null || !user.getEmail().matches(SharedConstants.EMAIL_VALIDATION_REGEX)) {
             sb.append("Неверный <b>Email</b>");
             if (focusWidget == null) {
                 focusWidget = email;

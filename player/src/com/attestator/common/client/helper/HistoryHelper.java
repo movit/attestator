@@ -1,4 +1,4 @@
-package com.attestator.player.client.helper;
+package com.attestator.common.client.helper;
 
 import java.util.HashMap;
 import java.util.Map;

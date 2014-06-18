@@ -35,9 +35,6 @@
 		<row:child layoutData="{maxWidthMinHeightVLData}">
 			<row:VerticalLayoutContainer ui:field="aqContainer">
 			</row:VerticalLayoutContainer>
-<!-- 			<row:VerticalLayoutContainer ui:field="aqContainer" -->
-<!-- 				scrollMode="AUTOY" adjustForScroll="true"> -->
-<!-- 			</row:VerticalLayoutContainer> -->
 		</row:child>
 		<row:child layoutData="{addButtonVLData}">
 			<button:TextButton ui:field="addButton" text="Добавить" />

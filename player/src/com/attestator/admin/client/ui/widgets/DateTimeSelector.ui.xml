@@ -28,7 +28,7 @@
 		<ui:attributes flex="1" />
 	</ui:with>
      
-	<toolbar:ToolBar ui:field="container" borders="false" height="23" styleName="{style.noBackground}" width="180">
+	<toolbar:ToolBar ui:field="container" borders="false" height="23" styleName="{style.noBackground}" width="190">
 	    <form:DateField ui:field="dateField" propertyEditor="{datePropertyEditor}" width="90"/>
 	    <form:TimeField ui:field="timeField" width="60"/>
         <button:TextButton ui:field="clearButton"

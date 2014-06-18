@@ -30,7 +30,8 @@ public class AdditionalQuestionsList extends Composite implements IsEditor<ListE
         public AdditionalQuestionItem create(final int index) {
             AdditionalQuestionItem item = new AdditionalQuestionItem();
             aqContainer.insert(item, index, maxWidthMinHeightVLData);
-                        
+            aqContainer.forceLayout();
+            
             item.addDeleteHandler(new DeleteHandler() {                
                 @Override
                 public void onDelete(DeleteEvent event) {

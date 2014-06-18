@@ -2,8 +2,8 @@ package com.attestator.player.client;
 
 import java.util.ArrayList;
 
-import com.attestator.player.client.helper.HistoryHelper;
-import com.attestator.player.client.helper.HistoryHelper.HistoryToken;
+import com.attestator.common.client.helper.HistoryHelper;
+import com.attestator.common.client.helper.HistoryHelper.HistoryToken;
 import com.google.gwt.user.client.ui.IsWidget;
 
 public abstract class MainScreen implements IsWidget {

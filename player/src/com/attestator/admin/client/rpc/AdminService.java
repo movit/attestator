@@ -1,7 +1,9 @@
 package com.attestator.admin.client.rpc;
 
 import java.util.List;
+import java.util.Set;
 
+import com.attestator.common.shared.dto.UserValidationError;
 import com.attestator.common.shared.vo.BaseVO;
 import com.attestator.common.shared.vo.GroupVO;
 import com.attestator.common.shared.vo.MetaTestVO;
@@ -64,6 +66,9 @@ public interface AdminService extends RemoteService {
     UserVO getLoggedUser() throws IllegalStateException;
     UserVO login(String login, String password) throws IllegalStateException;
     void logout() throws IllegalStateException;
+    
+    Set<UserValidationError> validateForCreateNewUser(String email, String username, String password) throws IllegalStateException;
+    UserVO createNewUser(String email, String username, String password) throws IllegalStateException;
     
     Boolean isThisLoggedUserPassword(String password) throws IllegalStateException;
     void updateLoggedUser(String oldPassword, String newPassword, UserVO user) throws IllegalStateException;

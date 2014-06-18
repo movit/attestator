@@ -4,6 +4,7 @@ import java.lang.reflect.Field;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.log4j.Logger;
+import org.mongodb.morphia.mapping.Mapper;
 
 import com.attestator.common.server.helper.ReflectionHelper;
 import com.attestator.common.shared.helper.CheckHelper;
@@ -40,7 +41,7 @@ public class LockManager {
     private static DBObject createDBObject(LockVO lock) {
         String id = createId(lock);
         lock.setId(id);
-        DBObject result = Singletons.morphia().getMapper().toDBObject(lock);
+        DBObject result = (new Mapper()).toDBObject(lock);
         return result;
     }
     

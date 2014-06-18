@@ -1,0 +1,90 @@
+<!DOCTYPE ui:UiBinder SYSTEM "http://dl.google.com/gwt/DTD/xhtml.ent">
+<ui:UiBinder xmlns:ui='urn:ui:com.google.gwt.uibinder'
+	xmlns:g="urn:import:com.google.gwt.user.client.ui" 
+	xmlns:gxt="urn:import:com.sencha.gxt.widget.core.client"
+	xmlns:row="urn:import:com.sencha.gxt.widget.core.client.container"
+	xmlns:menu="urn:import:com.sencha.gxt.widget.core.client.menu"
+	xmlns:button="urn:import:com.sencha.gxt.widget.core.client.button"
+	xmlns:form="urn:import:com.sencha.gxt.widget.core.client.form"
+	xmlns:toolbar="urn:import:com.sencha.gxt.widget.core.client.toolbar"
+	xmlns:grid="urn:import:com.sencha.gxt.widget.core.client.grid"
+	xmlns:att="urn:import:com.attestator.admin.client.ui.widgets"
+	xmlns:tabs="urn:import:com.attestator.admin.client.ui.widgets.tabs">
+    
+    <ui:with type="com.sencha.gxt.core.client.util.Margins" field="buttonsMargins">
+        <ui:attributes top="10" right="0" bottom="0" left="0" />
+    </ui:with>
+
+	<ui:with
+		type="com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData"
+		field="verticalLayoutData">
+		<ui:attributes width="1" height="-1"/>
+	</ui:with>
+
+    <ui:with
+        type="com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData"
+        field="fixedHeightVLData">
+        <ui:attributes width="1" height="24"  margins="{buttonsMargins}"/>
+    </ui:with>
+
+    <ui:with
+        type="com.sencha.gxt.widget.core.client.container.HorizontalLayoutContainer.HorizontalLayoutData"
+        field="minWidthHLData">
+        <ui:attributes width="-1" height="1" />
+    </ui:with>
+
+    <ui:with
+        type="com.sencha.gxt.widget.core.client.container.HorizontalLayoutContainer.HorizontalLayoutData"
+        field="maxWidthHLData">
+        <ui:attributes width="1" height="1" />
+    </ui:with>
+
+	<row:CenterLayoutContainer >
+		<row:child>
+			<gxt:FramedPanel headingText="Регистрация пользователя" width="330" height="280"
+				bodyStyle="background: none; padding: 5px">
+				<row:VerticalLayoutContainer>
+                    <row:child layoutData="{verticalLayoutData}">
+                        <form:FieldLabel text="Придумайте логин*" labelAlign="TOP">
+                            <form:widget>
+                                <form:TextField ui:field="username" />
+                            </form:widget>
+                        </form:FieldLabel>
+                    </row:child>
+					<row:child layoutData="{verticalLayoutData}">
+						<form:FieldLabel text="Придумайте пароль*" labelAlign="TOP">
+							<form:widget>
+								<form:PasswordField ui:field="password" />
+							</form:widget>
+						</form:FieldLabel>
+					</row:child>
+                    <row:child layoutData="{verticalLayoutData}">
+                        <form:FieldLabel text="Повторите, чтобы не ошибиться*" labelAlign="TOP">
+                            <form:widget>
+                                <form:PasswordField ui:field="passwordAgain" />
+                            </form:widget>
+                        </form:FieldLabel>
+                    </row:child>
+                    <row:child layoutData="{verticalLayoutData}">
+                        <form:FieldLabel text="Email*" labelAlign="TOP">
+                            <form:widget>
+                                <form:TextField ui:field="email" />
+                            </form:widget>
+                        </form:FieldLabel>
+                    </row:child>
+	                <row:child layoutData="{fixedHeightVLData}">
+	                    <row:HorizontalLayoutContainer>
+	                        <row:child layoutData="{maxWidthHLData}">
+	                            <g:Label />
+	                        </row:child>
+	                        <row:child layoutData="{minWidthHLData}">
+	                            <button:TextButton ui:field="registerButton" text="Зарегистрироваться"/>
+	                        </row:child>
+	                    </row:HorizontalLayoutContainer>
+	                </row:child>
+				</row:VerticalLayoutContainer>
+			</gxt:FramedPanel>
+		</row:child>
+	</row:CenterLayoutContainer>
+
+</ui:UiBinder>

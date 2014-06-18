@@ -120,7 +120,7 @@
         }
     </ui:style>
      
-	<gxt:Window ui:field="window" pixelSize="700, 500" modal="true"
+	<gxt:Window ui:field="window" pixelSize="750, 500" modal="true"
 		maximizable="false" resizable="false" blinkModal="true" headingText="Публикация"
 		focusWidget="{cancelButton}">
         <row:VerticalLayoutContainer ui:field="top" scrollMode="AUTOY" adjustForScroll="true">
@@ -205,7 +205,7 @@
                                                 <form:widget>
                                                     <form:NumberField ui:field="maxTakeTestTime"
                                                         editor="{milisecondsPropertyEditor}" format="{longNumberFormat}"
-                                                        width="176" allowBlank="true" emptyText="неограничено" />
+                                                        width="184" allowBlank="true" emptyText="неограничено" />
                                                 </form:widget>
                                             </form:FieldLabel>
                                         </row:child>
@@ -214,7 +214,7 @@
                                                 <form:widget>
                                                     <form:NumberField ui:field="maxAttempts"
                                                         editor="{integerPropertyEditor}" format="{longNumberFormat}"
-                                                        width="176" allowBlank="true" emptyText="неограничено" />
+                                                        width="184" allowBlank="true" emptyText="неограничено" />
                                                 </form:widget>
                                             </form:FieldLabel>
                                         </row:child>
@@ -240,7 +240,7 @@
                                                 <form:widget>
                                                     <form:NumberField ui:field="maxQuestionAnswerTime"
                                                         editor="{milisecondsPropertyEditor}" format="{longNumberFormat}"
-                                                        width="176" allowBlank="true" emptyText="неограничено" />
+                                                        width="184" allowBlank="true" emptyText="неограничено" />
                                                 </form:widget>
                                             </form:FieldLabel>
                                         </row:child>
@@ -249,7 +249,7 @@
                                                 <form:widget>
                                                     <form:NumberField ui:field="minScore"
                                                         editor="{doublePropertyEditor}" format="{doubleNumberFormat}"
-                                                        width="176" allowBlank="true" emptyText="неважно" />
+                                                        width="184" allowBlank="true" emptyText="неважно" />
                                                 </form:widget>
                                             </form:FieldLabel>
                                         </row:child>

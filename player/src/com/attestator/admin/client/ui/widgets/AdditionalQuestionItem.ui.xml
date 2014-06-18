@@ -18,25 +18,31 @@
 
 	<ui:with
 		type="com.sencha.gxt.widget.core.client.container.BoxLayoutContainer.BoxLayoutData"
-		field="flexToolbarItem">
-		<ui:attributes flex="1" />
+		field="flex3ToolbarItem">
+		<ui:attributes flex="3" />
 	</ui:with>
+
+    <ui:with
+        type="com.sencha.gxt.widget.core.client.container.BoxLayoutContainer.BoxLayoutData"
+        field="flex1ToolbarItem">
+        <ui:attributes flex="1" />
+    </ui:with>
 	
 	<toolbar:ToolBar ui:field="container" borders="true" height="-1" >
-        <form:ComboBox ui:field="answerType" width="130"/>
-		<form:TextField layoutData="{flexToolbarItem}"
-			ui:field="text" emptyText="Название поля" allowBlank="true" />
+        <form:ComboBox ui:field="answerType"/>
+		<form:TextField 
+			ui:field="text" emptyText="Название поля" layoutData="{flex3ToolbarItem}" allowBlank="true" />
         <form:TextField
-            ui:field="checkValue" emptyText="Секретное значение" visible="false" allowBlank="true" />
+            ui:field="checkValue" emptyText="Секретное значение" layoutData="{flex1ToolbarItem}" visible="false" allowBlank="true" />
 		<toolbar:SeparatorToolItem />
-        <form:CheckBox ui:field="required" boxLabel="Обязательно" />		
+        <form:CheckBox ui:field="required" layoutData="{flex1ToolbarItem}" boxLabel="Обязательно" />		
         <toolbar:SeparatorToolItem />
-		<button:TextButton ui:field="upButton" iconAlign="TOP"
+		<button:TextButton ui:field="upButton" layoutData="{flex1ToolbarItem}" iconAlign="TOP"
 			icon="{icons.up16x16}" />
-		<button:TextButton ui:field="downButton" iconAlign="TOP"
+		<button:TextButton ui:field="downButton" layoutData="{flex1ToolbarItem}" iconAlign="TOP"
 			icon="{icons.down16x16}" />
 		<toolbar:SeparatorToolItem />
-		<button:TextButton ui:field="deleteButton"
+		<button:TextButton ui:field="deleteButton" layoutData="{flex1ToolbarItem}"
 			iconAlign="TOP" icon="{icons.delete16x16}" />
 	</toolbar:ToolBar>
 
