@@ -32,9 +32,8 @@
 	</ui:with>
 
 	<row:VerticalLayoutContainer ui:field="topContainer">
-		<row:child layoutData="{maxWidthMaxHeightVLData}">
-			<row:VerticalLayoutContainer ui:field="itemsContainer"
-				scrollMode="AUTOY" adjustForScroll="true">
+		<row:child layoutData="{maxWidthMinHeightVLData}">
+			<row:VerticalLayoutContainer ui:field="itemsContainer">
 			</row:VerticalLayoutContainer>
 		</row:child>
 		<row:child layoutData="{addButtonVLData}">

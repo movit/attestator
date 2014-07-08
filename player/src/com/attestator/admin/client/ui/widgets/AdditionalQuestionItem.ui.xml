@@ -12,37 +12,33 @@
 	<ui:with type="com.attestator.common.client.ui.resolurces.Resources.Icons"
 		field="icons" />
 
-	<ui:with type="com.sencha.gxt.core.client.util.Margins" field="marginsRight5">
-		<ui:attributes top="0" right="5" bottom="0" left="0" />
-	</ui:with>
-
 	<ui:with
 		type="com.sencha.gxt.widget.core.client.container.BoxLayoutContainer.BoxLayoutData"
-		field="flex3ToolbarItem">
-		<ui:attributes flex="3" />
+		field="flexToolbarItem">
+		<ui:attributes flex="1.0" />
 	</ui:with>
 
     <ui:with
         type="com.sencha.gxt.widget.core.client.container.BoxLayoutContainer.BoxLayoutData"
-        field="flex1ToolbarItem">
-        <ui:attributes flex="1" />
+        field="commonToolbarItem">
     </ui:with>
 	
 	<toolbar:ToolBar ui:field="container" borders="true" height="-1" >
-        <form:ComboBox ui:field="answerType"/>
+        <form:ComboBox ui:field="answerType" layoutData="{commonToolbarItem}"/>
 		<form:TextField 
-			ui:field="text" emptyText="Название поля" layoutData="{flex3ToolbarItem}" allowBlank="true" />
+			ui:field="text" emptyText="Название поля" layoutData="{commonToolbarItem}" allowBlank="true" />
         <form:TextField
-            ui:field="checkValue" emptyText="Секретное значение" layoutData="{flex1ToolbarItem}" visible="false" allowBlank="true" />
+            ui:field="checkValue" emptyText="Секретное значение" layoutData="{commonToolbarItem}" visible="false" allowBlank="true" />
+		<toolbar:FillToolItem />
 		<toolbar:SeparatorToolItem />
-        <form:CheckBox ui:field="required" layoutData="{flex1ToolbarItem}" boxLabel="Обязательно" />		
+        <form:CheckBox ui:field="required" layoutData="{commonToolbarItem}" boxLabel="Обязательно" />		
         <toolbar:SeparatorToolItem />
-		<button:TextButton ui:field="upButton" layoutData="{flex1ToolbarItem}" iconAlign="TOP"
+		<button:TextButton ui:field="upButton" layoutData="{commonToolbarItem}" iconAlign="TOP"
 			icon="{icons.up16x16}" />
-		<button:TextButton ui:field="downButton" layoutData="{flex1ToolbarItem}" iconAlign="TOP"
+		<button:TextButton ui:field="downButton" layoutData="{commonToolbarItem}" iconAlign="TOP"
 			icon="{icons.down16x16}" />
 		<toolbar:SeparatorToolItem />
-		<button:TextButton ui:field="deleteButton" layoutData="{flex1ToolbarItem}"
+		<button:TextButton ui:field="deleteButton" layoutData="{commonToolbarItem}"
 			iconAlign="TOP" icon="{icons.delete16x16}" />
 	</toolbar:ToolBar>
 

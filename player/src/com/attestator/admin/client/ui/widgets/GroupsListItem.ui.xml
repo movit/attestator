@@ -18,7 +18,7 @@
 		<ui:attributes flex="1" />
 	</ui:with>
 
-	<toolbar:ToolBar ui:field="container" borders="true" height="-1" >
+	<toolbar:ToolBar ui:field="container" borders="true">
 		<form:TextField layoutData="{flexToolbarItem}"
 			ui:field="name" allowBlank="true" />
 		<toolbar:SeparatorToolItem />

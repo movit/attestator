@@ -275,16 +275,19 @@ public class ReportsTab extends Tab {
                     String[] oldHeaderParts = oldHeader.split(" \\(", 2);
                     String   fieldDisplayName = oldHeaderParts[0];
                     
-                    StringBuilder newHeaderSb = new StringBuilder();
-                    newHeaderSb.append(fieldDisplayName);
-                    
-                    if (filterTooltips.size() > 0) {
-                        newHeaderSb.append(" (");
-                        newHeaderSb.append(StringHelper.concatAll(", ", filterTooltips));
-                        newHeaderSb.append(")"); 
+                    // Something to add or remove from header
+                    if (filterTooltips.size() > 0 || oldHeaderParts.length > 1) {
+                        StringBuilder newHeaderSb = new StringBuilder();
+                        newHeaderSb.append(fieldDisplayName);
+                        
+                        if (filterTooltips.size() > 0) {
+                            newHeaderSb.append(" (");
+                            newHeaderSb.append(StringHelper.concatAll(", ", filterTooltips));
+                            newHeaderSb.append(")"); 
+                        }
+                        
+                        cc.setHeader(newHeaderSb.toString());
                     }
-                    
-                    cc.setHeader(newHeaderSb.toString());
                 }
                 
                 grid.getView().getHeader().refresh();

@@ -19,7 +19,7 @@
 	<ui:with
 		type="com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData"
 		field="topVLData">
-		<ui:attributes width="1" height="40" margins="{margins4}" />
+		<ui:attributes width="1" height="80" margins="{margins4}" />
 	</ui:with>
 
 
@@ -64,12 +64,16 @@
 		field="studentsTabConfig">
 		<ui:attributes text="Студенты" enabled="false" />
 	</ui:with>
+    
+    <ui:with type="com.attestator.common.client.ui.resolurces.Resources.Icons"
+        field="icons" />
 
 	<row:VerticalLayoutContainer ui:field="top">
 		<row:child layoutData="{topVLData}">
 			<row:HBoxLayoutContainer hBoxLayoutAlign="TOP">
 				<row:child layoutData="{boxLayoutDataMargins4}">
-					<g:Hyperlink text="Лого" targetHistoryToken="main" />
+				    <att:AnchorImage ui:field="robCopyMetatestButton"
+                            href="#" image="{icons.logoSmall}" />
 				</row:child>
 				<row:child layoutData="{boxLayoutDataFlex1}">
 					<g:Label />

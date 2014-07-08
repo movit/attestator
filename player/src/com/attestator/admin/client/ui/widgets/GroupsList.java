@@ -7,8 +7,6 @@ import com.attestator.admin.client.ui.event.DeleteEvent.DeleteHandler;
 import com.attestator.common.shared.helper.StringHelper;
 import com.attestator.common.shared.vo.GroupVO;
 import com.google.gwt.core.client.GWT;
-import com.google.gwt.core.client.Scheduler;
-import com.google.gwt.core.client.Scheduler.ScheduledCommand;
 import com.google.gwt.editor.client.Editor.Ignore;
 import com.google.gwt.editor.client.IsEditor;
 import com.google.gwt.editor.client.adapters.EditorSource;
@@ -23,12 +21,12 @@ import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
 
-public class GroupsList extends Composite implements IsEditor<ListEditor<GroupVO, GroupsListItem>>{
+public class GroupsList extends Composite implements IsEditor<ListEditor<GroupVO, GroupsListItem>> {
     private class GroupEditorSource extends EditorSource<GroupsListItem> {
         @Override
         public GroupsListItem create(final int index) {
             final GroupsListItem item = new GroupsListItem();
-            itemsContainer.insert(item, index, maxWidthMinHeightVLData);            
+            itemsContainer.insert(item, index, maxWidthMinHeightVLData);
             itemsContainer.forceLayout();
             
             item.addDeleteHandler(new DeleteHandler() {                
@@ -46,13 +44,11 @@ public class GroupsList extends Composite implements IsEditor<ListEditor<GroupVO
         @Override
         public void dispose(GroupsListItem item) {
             item.removeFromParent();
-            itemsContainer.forceLayout();
         }
         
         @Override 
         public void setIndex(GroupsListItem item, int index) {
             itemsContainer.insert(item, index, maxWidthMinHeightVLData);
-            itemsContainer.forceLayout();
         }
     }
     
@@ -90,12 +86,12 @@ public class GroupsList extends Composite implements IsEditor<ListEditor<GroupVO
     @UiHandler("addButton")
     public void addButtonClick(SelectEvent event) {
         listEditor.getList().add(new GroupVO());
-        Scheduler.get().scheduleDeferred(new ScheduledCommand() {
-            @Override
-            public void execute() {
-                itemsContainer.getScrollSupport().scrollToBottom();
-            }
-        });
+//        Scheduler.get().scheduleDeferred(new ScheduledCommand() {
+//            @Override
+//            public void execute() {
+//                itemsContainer.getScrollSupport().scrollToBottom();
+//            }
+//        });
     }
     
     @Ignore

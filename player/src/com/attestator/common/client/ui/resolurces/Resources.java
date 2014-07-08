@@ -53,6 +53,8 @@ public class Resources {
         
         ImageResource checkBoxUnchecked16x16();
         ImageResource checkBoxChecked16x16();
+        
+        ImageResource logoSmall();
     }
     
     public static Icons  ICONS  = GWT.create(Icons.class);

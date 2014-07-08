@@ -19,7 +19,7 @@
 		maximizable="false" resizable="false" blinkModal="true" headingText="Группы вопросов"
 		focusWidget="{cancelButton}">
 		
-		<row:VerticalLayoutContainer ui:field="topContainer">
+		<row:VerticalLayoutContainer ui:field="topContainer" scrollMode="AUTOY" adjustForScroll="true">
 			<row:child layoutData="{maxWidthMaxHeightVLData}"> 
 				<att:GroupsList ui:field="groups"/>
 			</row:child>

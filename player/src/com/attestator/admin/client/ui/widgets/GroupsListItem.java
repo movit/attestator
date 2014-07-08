@@ -18,11 +18,15 @@ import com.sencha.gxt.widget.core.client.Composite;
 import com.sencha.gxt.widget.core.client.button.TextButton;
 import com.sencha.gxt.widget.core.client.event.SelectEvent;
 import com.sencha.gxt.widget.core.client.form.TextField;
+import com.sencha.gxt.widget.core.client.toolbar.ToolBar;
 
 public class GroupsListItem extends Composite implements ValueAwareEditor<GroupVO>, HasDeleteEventHandlers {
     interface UiBinderImpl extends UiBinder<Widget, GroupsListItem> {
     }
     private static UiBinderImpl uiBinder = GWT.create(UiBinderImpl.class);
+    
+    @UiField
+    ToolBar container;
     
     @UiField
     @Ignore
@@ -73,5 +77,9 @@ public class GroupsListItem extends Composite implements ValueAwareEditor<GroupV
         if (Admin.getLoggedUser().getDefaultGroupId().equals(value.getId())) {
             deleteButton.disable();
         }
+    }
+    
+    public ToolBar getContainter() {
+        return container;
     }
 }
