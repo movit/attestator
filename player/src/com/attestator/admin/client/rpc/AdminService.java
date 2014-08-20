@@ -69,7 +69,9 @@ public interface AdminService extends RemoteService {
     
     Set<UserValidationError> validateForCreateNewUser(String email, String username, String password) throws IllegalStateException;
     UserVO createNewUser(String email, String username, String password) throws IllegalStateException;
+    void restorePassword(String emeil) throws IllegalStateException;
     
     Boolean isThisLoggedUserPassword(String password) throws IllegalStateException;
+    Boolean isThisEmailExists(String email) throws IllegalStateException;
     void updateLoggedUser(String oldPassword, String newPassword, UserVO user) throws IllegalStateException;
 }

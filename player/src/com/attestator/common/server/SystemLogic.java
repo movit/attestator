@@ -8,10 +8,13 @@ import java.util.Set;
 
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.Query;
+import org.mongodb.morphia.query.UpdateOperations;
 
 import com.attestator.common.server.helper.DatastoreHelper;
+import com.attestator.common.server.helper.MailHelper;
 import com.attestator.common.shared.SharedConstants;
 import com.attestator.common.shared.dto.UserValidationError;
+import com.attestator.common.shared.helper.Base62Helper;
 import com.attestator.common.shared.helper.CheckHelper;
 import com.attestator.common.shared.helper.StringHelper;
 import com.attestator.common.shared.vo.BaseVO;
@@ -71,9 +74,30 @@ public class SystemLogic {
         return result;
     }
     
+    public boolean isThisEmailExists(String email) {
+        CheckHelper.throwIfNullOrEmpty(email, "email");
+        
+        Query<UserVO> q = rawDs.createQuery(UserVO.class);        
+        q.field("email").equal(email);
+        
+        return q.countAll() > 0;
+    }
+    
     public UserVO createNewUser(String email, String username, String password) {
         return createNewUser(email, username, password, null); 
     }    
+    
+    
+    private static final String CREATE_USER_SUBJECT = "Регистрация нового пользователя на examator.ru";
+    private static final String CREATE_USER_BODY = 
+            "Здравствуйте!\n" +
+    		"На сайте examator.ru был зарегистрирован новый пользователь.\n" +
+    		"Логин: %s\n" +
+    		"Пароль: %s\n" +
+    		"Используйте эти данные для входа в сервис по адресу http://examator.ru/admin\n" +
+            "\n" +
+            "С уважением,\n" +
+            "Администрация examator.ru";    
 
     public UserVO createNewUser(String email, String username, String password, String id) {
         CheckHelper.throwIfNullOrEmpty(email, "email");
@@ -104,7 +128,42 @@ public class SystemLogic {
         
         rawDs.save(defaultGroup);
         
+        String body = String.format(CREATE_USER_BODY, username, password);
+        MailHelper.sendMail("support@examator.ru", email, CREATE_USER_SUBJECT, body);        
+        
         return result;
+    }
+    
+    private static final String UPDATE_PASSWORD_SUBJECT = "Новый пароль на examator.ru";
+    private static final String UPDATE_PASSWORD_BODY = 
+            "Здравствуйте!\n" +
+            "Пароль для пользователя %s на сайте examator.ru был изменен.\n" +
+            "Новый пароль: %s\n" +
+            "Используйте этот пароль для входа в сервис по адресу http://examator.ru/admin\n" +
+            "\n" +
+            "С уважением,\n" +
+            "Администрация examator.ru" ;
+    
+    public void restorePassword(String email) {
+        CheckHelper.throwIfNullOrEmpty(email, "email");
+
+        Query<UserVO> q = rawDs.createQuery(UserVO.class);        
+        q.field("email").equal(email);
+
+        UserVO user = q.get();
+        if (user == null) {
+            throw new IllegalStateException("No user with email: " + email);
+        }
+        
+        String newPassword = Base62Helper.getRandomBase62IntId();
+        
+        UpdateOperations<UserVO> uo = rawDs.createUpdateOperations(UserVO.class);
+        uo.set("password", newPassword);
+        
+        rawDs.update(user, uo);
+        
+        String body = String.format(UPDATE_PASSWORD_BODY, user.getUsername(), newPassword);
+        MailHelper.sendMail("support@examator.ru", email, UPDATE_PASSWORD_SUBJECT, body);
     }
     
     public UserVO getUserByLoginPassword(String emailOrUsername, String password) {

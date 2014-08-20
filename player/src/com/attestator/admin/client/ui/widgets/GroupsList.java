@@ -86,12 +86,6 @@ public class GroupsList extends Composite implements IsEditor<ListEditor<GroupVO
     @UiHandler("addButton")
     public void addButtonClick(SelectEvent event) {
         listEditor.getList().add(new GroupVO());
-//        Scheduler.get().scheduleDeferred(new ScheduledCommand() {
-//            @Override
-//            public void execute() {
-//                itemsContainer.getScrollSupport().scrollToBottom();
-//            }
-//        });
     }
     
     @Ignore

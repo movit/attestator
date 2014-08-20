@@ -11,6 +11,7 @@ import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.client.ui.IsWidget;
+import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Widget;
 import com.sencha.gxt.widget.core.client.PlainTabPanel;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
@@ -29,8 +30,14 @@ public class AdminScreen implements IsWidget {
     @UiField
     PlainTabPanel tabs;
     
+    @UiField
+    Label userName;
+    
     public AdminScreen() {
         uiBinder.createAndBindUi(this);
+        
+        userName.setText(Admin.getLoggedUser().getUsername());
+        
         tabs.addSelectionHandler(new SelectionHandler<Widget>() {            
             @SuppressWarnings("unchecked")
             @Override

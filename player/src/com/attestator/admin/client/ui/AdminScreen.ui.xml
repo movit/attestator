@@ -67,6 +67,12 @@
     
     <ui:with type="com.attestator.common.client.ui.resolurces.Resources.Icons"
         field="icons" />
+        
+    <ui:style>
+        .userName {
+	       font-weight: bold;
+        }
+    </ui:style>    
 
 	<row:VerticalLayoutContainer ui:field="top">
 		<row:child layoutData="{topVLData}">
@@ -78,6 +84,9 @@
 				<row:child layoutData="{boxLayoutDataFlex1}">
 					<g:Label />
 				</row:child>
+                <row:child layoutData="{boxLayoutDataMargins4}">
+                    <g:Label ui:field="userName" styleName="{style.userName}"/>
+                </row:child>
 				<row:child layoutData="{boxLayoutDataMargins4}">
 					<g:Hyperlink ui:field="settings" text="Мои настройки" targetHistoryToken="" />
 				</row:child>

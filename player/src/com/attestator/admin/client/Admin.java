@@ -6,6 +6,7 @@ import com.attestator.admin.client.rpc.AdminService;
 import com.attestator.admin.client.rpc.AdminServiceAsync;
 import com.attestator.admin.client.ui.AdminScreen;
 import com.attestator.admin.client.ui.LoginScreen;
+import com.attestator.admin.client.ui.RestorePasswordScreen;
 import com.attestator.admin.client.ui.UserRegistrationScreen;
 import com.attestator.common.client.helper.HistoryHelper;
 import com.attestator.common.client.helper.HistoryHelper.HistoryToken;
@@ -89,11 +90,19 @@ public class Admin implements EntryPoint {
         
         if (!NullHelper.nullSafeEquals(AdminScreen.HISTORY_TOKEN, token)
         &&  !NullHelper.nullSafeEquals(LoginScreen.HISTORY_TOKEN, token)
-        &&  !NullHelper.nullSafeEquals(UserRegistrationScreen.HISTORY_TOKEN, token)) {
+        &&  !NullHelper.nullSafeEquals(UserRegistrationScreen.HISTORY_TOKEN, token)
+        &&  !NullHelper.nullSafeEquals(RestorePasswordScreen.HISTORY_TOKEN, token)) {
             return LoginScreen.HISTORY_TOKEN;
         }
         
         return token;
+    }
+    
+    public static void navigateTo(String tokenStr) {
+        String   url = Window.Location.getHref();
+        String[] urlParts = url.split("#", 2);
+        url = urlParts[0] + "#" + tokenStr;
+        Window.Location.assign(url);
     }
     
     private static void switchTo(String tokenStr) {        
@@ -113,6 +122,9 @@ public class Admin implements EntryPoint {
         }
         else if (LoginScreen.HISTORY_TOKEN.equals(token.getName())) {
             newMainScreen = new LoginScreen();
+        }
+        else if (RestorePasswordScreen.HISTORY_TOKEN.equals(token.getName())) {
+            newMainScreen = new RestorePasswordScreen();
         }
         
         if (newMainScreen != null) {

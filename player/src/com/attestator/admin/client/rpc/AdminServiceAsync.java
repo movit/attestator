@@ -65,9 +65,11 @@ public interface AdminServiceAsync {
     void login(String login, String password, AsyncCallback<UserVO> callback);
     void logout(AsyncCallback<Void> callback);  
 
-    void validateForCreateNewUser(String email, String username, String password, AsyncCallback<Set<UserValidationError>> callback) throws IllegalStateException;
-    void createNewUser(String email, String username, String password, AsyncCallback<UserVO> callback) throws IllegalStateException;
+    void validateForCreateNewUser(String email, String username, String password, AsyncCallback<Set<UserValidationError>> callback);
+    void createNewUser(String email, String username, String password, AsyncCallback<UserVO> callback);
+    void restorePassword(String email, AsyncCallback<Void> callback);
 
     void isThisLoggedUserPassword(String password, AsyncCallback<Boolean> callback);
+    void isThisEmailExists(String email, AsyncCallback<Boolean> callback);
     void updateLoggedUser(String oldPassword, String newPassword, UserVO user, AsyncCallback<Void> callback);
 }

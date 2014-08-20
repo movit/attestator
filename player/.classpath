@@ -30,5 +30,6 @@
 	<classpathentry kind="lib" path="war/WEB-INF/lib/gxt-chart-3.1.0.jar"/>
 	<classpathentry kind="lib" path="war/WEB-INF/lib/gxt-legacy-3.1.0.jar"/>
 	<classpathentry kind="lib" path="war/WEB-INF/lib/gxt-theme-neptune-3.1.0.jar"/>
+	<classpathentry kind="lib" path="war/WEB-INF/lib/javax.mail.jar"/>
 	<classpathentry kind="output" path="war/WEB-INF/classes"/>
 </classpath>

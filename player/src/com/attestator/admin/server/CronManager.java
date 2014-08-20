@@ -72,7 +72,7 @@ public class CronManager {
     }
     
     public static void start() {
-        scheduler.scheduleAtFixedRate(pollCronTasks, (int)Math.random() * TASK_POLLING_INTERVAL, TASK_POLLING_INTERVAL, TimeUnit.MILLISECONDS);
+        scheduler.scheduleAtFixedRate(pollCronTasks, (int)(Math.random() * TASK_POLLING_INTERVAL), TASK_POLLING_INTERVAL, TimeUnit.MILLISECONDS);
     }
     
     public static void stop() {

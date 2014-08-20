@@ -447,4 +447,26 @@ public class AdminServiceImpl extends RemoteServiceServlet implements
             throw new IllegalStateException(DEFAULT_ERROR_MESSAGE, e);
         }
     }
+
+    @Override
+    public void restorePassword(String email) throws IllegalStateException {
+        try {
+            Singletons.sl().restorePassword(email);
+        }
+        catch (Throwable e) {
+            logger.error("Error: ", e);
+            throw new IllegalStateException(DEFAULT_ERROR_MESSAGE, e);
+        }
+    }
+
+    @Override
+    public Boolean isThisEmailExists(String email) throws IllegalStateException {
+        try {
+            return Singletons.sl().isThisEmailExists(email);
+        }
+        catch (Throwable e) {
+            logger.error("Error: ", e);
+            throw new IllegalStateException(DEFAULT_ERROR_MESSAGE, e);
+        }
+    }
 }

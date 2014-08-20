@@ -104,10 +104,10 @@
 							<g:Hyperlink styleName='{style.link}' text="Зарегистрироваться"
 								targetHistoryToken="userRegistration" />
 						</row:child>
-<!-- 						<row:child layoutData="{linkHLData}"> -->
-<!-- 							<g:Hyperlink styleName='{style.link}' text="Напомнить пароль" -->
-<!-- 								targetHistoryToken="restorePassword" /> -->
-<!-- 						</row:child> -->
+						<row:child layoutData="{linkHLData}">
+							<g:Hyperlink styleName='{style.link}' text="Напомнить пароль"
+								targetHistoryToken="restorePassword" />
+						</row:child>
 					</row:HorizontalLayoutContainer>
 				</row:child>
 			</row:VerticalLayoutContainer>
