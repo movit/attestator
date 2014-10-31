@@ -62,6 +62,8 @@
 				<button:TextButton ui:field="deleteQuestionsButton"
 					text="Удалить" enabled="false" />
 				<toolbar:SeparatorToolItem />
+                <button:TextButton ui:field="exportQuestionsButton"
+                    text="Экспорт" enabled="true" />
 				<form:FormPanel ui:field="uploadQuestionsForm"
 					action="admin/uploadquestions" encoding="MULTIPART" method="POST">
 					<att:ButtonFileUpload ui:field="uploadQuestionsField" name="uploadField"

@@ -21,6 +21,7 @@ import com.attestator.admin.client.ui.widgets.ButtonFileUpload;
 import com.attestator.admin.client.ui.widgets.ButtonFileUpload.FileUploadFieldMessages;
 import com.attestator.admin.client.ui.widgets.MultylinkCell;
 import com.attestator.admin.client.ui.widgets.SearchField;
+import com.attestator.common.client.helper.WindowHelper;
 import com.attestator.common.client.ui.resolurces.Resources;
 import com.attestator.common.shared.helper.StringHelper;
 import com.attestator.common.shared.helper.VOHelper;
@@ -309,6 +310,8 @@ public class QuestionsBankTab extends Tab {
     protected TextButton editQuestionButton;
     @UiField
     protected TextButton deleteQuestionsButton;
+    @UiField
+    protected TextButton exportQuestionsButton;
     
     @UiField 
     protected Menu saveMenu;
@@ -522,6 +525,12 @@ public class QuestionsBankTab extends Tab {
         });
     }
     
+    @UiHandler("exportQuestionsButton")
+    protected void exportQuestionsClick(SelectEvent event) {
+        String url = "admin/exportquestions";
+        WindowHelper.downloadFile(url);
+    }
+
     private void enableButtons() {
         boolean isOneSelected = questionsBankSm.getSelectedItems().size() == 1;
         boolean isSomeSelected = questionsBankSm.getSelectedItems().size() > 0;

@@ -72,6 +72,11 @@
 		<servlet-name>printTestServlet</servlet-name>
 		<servlet-class>com.attestator.admin.server.PrintTestServlet</servlet-class>
 	</servlet>
+    
+    <servlet>
+        <servlet-name>exportQuestionsServlet</servlet-name>
+        <servlet-class>com.attestator.admin.server.ExportQuestionsServlet</servlet-class>
+    </servlet>
 
 	<servlet>
 		<servlet-name>downloadPdfServlet</servlet-name>
@@ -97,6 +102,11 @@
 		<servlet-name>printTestServlet</servlet-name>
 		<url-pattern>/admin/printtest/*</url-pattern>
 	</servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>exportQuestionsServlet</servlet-name>
+        <url-pattern>/admin/exportquestions/*</url-pattern>
+    </servlet-mapping>
 
 	<servlet-mapping>
 		<servlet-name>downloadPdfServlet</servlet-name>
