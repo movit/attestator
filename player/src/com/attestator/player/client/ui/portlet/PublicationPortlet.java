@@ -3,16 +3,17 @@ package com.attestator.player.client.ui.portlet;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.attestator.common.client.helper.WindowHelper;
 import com.attestator.common.client.ui.widgets.NameField;
 import com.attestator.common.shared.helper.StringHelper;
 import com.attestator.common.shared.vo.AdditionalQuestionAnswerVO;
 import com.attestator.common.shared.vo.AdditionalQuestionVO;
 import com.attestator.common.shared.vo.PublicationVO;
 import com.attestator.common.shared.vo.ReportVO;
+import com.google.gwt.dom.client.Style.Unit;
 import com.google.gwt.user.client.ui.HTML;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Widget;
-import com.sencha.gxt.core.client.util.Margins;
 import com.sencha.gxt.widget.core.client.Component;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData;
@@ -46,19 +47,20 @@ public class PublicationPortlet implements IsWidget {
             return;
         }
         
-        if (publication.getIntroduction() != null) {
+        if (StringHelper.isEmptyOrNull(publication.getIntroduction())) {
             introduction.setHTML(publication.getIntroduction());
-            vl.add(introduction, new VerticalLayoutData(-1, -1, new Margins(5, 0, 20, 0)));
+            WindowHelper.setElementMargins(introduction.getElement(), 5, 0, 20, 0, Unit.PX);
+            vl.add(introduction, new VerticalLayoutData(-1, -1));
         }
         
         if (publication.isThisAskLastName()) {
-        	addNameField("lastName", "Фамилия", publication.isThisAskLastNameRequired(), null);
+            addNameField("lastName", "Фамилия", publication.isThisAskLastNameRequired(), null);
         }
         if (publication.isThisAskFirstName()) {
-        	addNameField("firstName", "Имя", publication.isThisAskFirstNameRequired(), null);
+            addNameField("firstName", "Имя", publication.isThisAskFirstNameRequired(), null);
         }
         if (publication.isThisAskMiddleName()) {
-        	addNameField("middleName", "Отчество", publication.isThisAskMiddleNameRequired(), null);
+            addNameField("middleName", "Отчество", publication.isThisAskMiddleNameRequired(), null);
         }
         if (publication.isThisAskEmail()) {
             addQuestionField("email", "email", publication.isThisAskEmailRequired(), new RegExValidator("^[_a-z0-9-]+(\\.[_a-z0-9-]+)*@[a-z0-9-]+(\\.[a-z0-9-]+)*(\\.[a-z]{2,4})$", "Неправильный email"));

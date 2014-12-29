@@ -2,11 +2,13 @@ package com.attestator.player.client.ui.portlet.question;
 
 import java.util.Date;
 
+import com.attestator.common.client.helper.WindowHelper;
 import com.attestator.common.shared.helper.NullHelper;
 import com.attestator.common.shared.vo.AnswerVO;
 import com.attestator.common.shared.vo.ChoiceVO;
 import com.attestator.common.shared.vo.SCQAnswerVO;
 import com.attestator.common.shared.vo.SingleChoiceQuestionVO;
+import com.google.gwt.dom.client.Style.Unit;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
@@ -51,7 +53,8 @@ public class SCQuestionPortlet implements QuestionPortlet {
     private void clear() {
         tg.clear();
         vl.clear();
-        vl.add(questionHtml, new VerticalLayoutData(-1, -1, new Margins(10, 0, 10, 0)));
+        WindowHelper.setElementMargins(questionHtml.getElement(), 10, 0, 10, 0, Unit.PX);
+        vl.add(questionHtml, new VerticalLayoutData(-1, -1));
     }
     
     public void init(SingleChoiceQuestionVO question) {

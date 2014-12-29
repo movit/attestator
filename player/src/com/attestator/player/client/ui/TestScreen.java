@@ -6,8 +6,8 @@ import java.util.Date;
 import java.util.List;
 
 import com.attestator.common.client.helper.HistoryHelper;
-import com.attestator.common.client.helper.WindowHelper;
 import com.attestator.common.client.helper.HistoryHelper.HistoryToken;
+import com.attestator.common.client.helper.WindowHelper;
 import com.attestator.common.client.ui.resolurces.Resources;
 import com.attestator.common.shared.helper.DateHelper;
 import com.attestator.common.shared.helper.NullHelper;
@@ -26,6 +26,8 @@ import com.attestator.player.client.rpc.PlayerAsyncEmptyCallback;
 import com.attestator.player.client.ui.portlet.PublicationPortlet;
 import com.attestator.player.client.ui.portlet.question.QuestionPortlet;
 import com.attestator.player.client.ui.portlet.question.SCQuestionPortlet;
+import com.google.gwt.core.client.Scheduler;
+import com.google.gwt.core.client.Scheduler.ScheduledCommand;
 import com.google.gwt.dom.client.Style.TextAlign;
 import com.google.gwt.dom.client.Style.Unit;
 import com.google.gwt.event.logical.shared.AttachEvent;
@@ -36,6 +38,7 @@ import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Widget;
 import com.sencha.gxt.cell.core.client.ButtonCell.IconAlign;
 import com.sencha.gxt.core.client.util.Margins;
+import com.sencha.gxt.core.client.util.Padding;
 import com.sencha.gxt.widget.core.client.ContentPanel;
 import com.sencha.gxt.widget.core.client.box.AlertMessageBox;
 import com.sencha.gxt.widget.core.client.button.ButtonBar;
@@ -207,20 +210,20 @@ public class TestScreen extends MainScreen {
         topPanel.setHeaderVisible(false);
         topPanel.setBodyBorder(false);
         topPanel.setBorders(false);
-        mainLayout.add(topPanel, new VerticalLayoutData(-1, -1, new Margins(5,
-                5, 0, 5)));
+        WindowHelper.setElementMargins(topPanel.getElement(), 5, 5, 0, 5, Unit.PX);
+        mainLayout.add(topPanel, new VerticalLayoutData(1, -1));
 
         centerPanel.setHeaderVisible(false);
         centerPanel.setBodyBorder(false);
         centerPanel.setBorders(false);
-        mainLayout.add(centerPanel, new VerticalLayoutData(-1, -1, new Margins(
-                5, 5, 0, 5)));
+        WindowHelper.setElementMargins(centerPanel.getElement(), 5, 5, 0, 5, Unit.PX);
+        mainLayout.add(centerPanel, new VerticalLayoutData(1, -1));
 
         buttonsPanel.setHeaderVisible(false);
         buttonsPanel.setBodyBorder(false);
         buttonsPanel.setBorders(false);
-        mainLayout.add(buttonsPanel, new VerticalLayoutData(-1, -1,
-                new Margins(5, 5, 0, 5)));
+        WindowHelper.setElementMargins(buttonsPanel.getElement(), 5, 5, 0, 2, Unit.PX);
+        mainLayout.add(buttonsPanel, new VerticalLayoutData(1, -1));
 
         navigationPanel.setHeadingText("Вопросы");
         navigationPanel.setHeaderVisible(true);
@@ -228,8 +231,8 @@ public class TestScreen extends MainScreen {
         navigationPanel.collapse();
         navigationPanel.setBodyBorder(false);
         navigationPanel.setBorders(false);
-        mainLayout.add(navigationPanel, new VerticalLayoutData(-1, -1,
-                new Margins(5, 5, 5, 5)));
+        WindowHelper.setElementMargins(navigationPanel.getElement(), 5, 5, 5, 5, Unit.PX);        
+        mainLayout.add(navigationPanel, new VerticalLayoutData(-1, -1));
 
         mainPanel.setWidget(mainLayout);
         mainPanel.getElement().disableTextSelection(true);
@@ -367,7 +370,7 @@ public class TestScreen extends MainScreen {
     private void showButtons(TextButton... buttons) {
         buttonsPanel.clear();
 
-        ButtonBar bb = new ButtonBar();
+        final ButtonBar bb = new ButtonBar();
 
         ArrayList<TextButton> buttonsList = new ArrayList<TextButton>(
                 Arrays.asList(buttons));
@@ -394,7 +397,15 @@ public class TestScreen extends MainScreen {
             bb.add(buttonsList.get(i), blData);
         }
 
+        bb.setPadding(new Padding(0, 5, 0, 0));
         buttonsPanel.setWidget(bb);
+        
+        Scheduler.get().scheduleDeferred(new ScheduledCommand() {            
+            @Override
+            public void execute() {
+                buttonsPanel.forceLayout();
+            }
+        });
     }
 
     private void switchTo(State newState, int... questionNo) {

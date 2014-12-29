@@ -2,8 +2,8 @@ package com.attestator.player.client.ui;
 
 import java.util.List;
 
-import com.attestator.common.client.helper.WindowHelper;
 import com.attestator.common.client.helper.HistoryHelper.HistoryToken;
+import com.attestator.common.client.helper.WindowHelper;
 import com.attestator.common.client.ui.resolurces.Resources;
 import com.attestator.common.shared.helper.HtmlBuilder;
 import com.attestator.common.shared.helper.NullHelper;
@@ -11,37 +11,44 @@ import com.attestator.player.client.MainScreen;
 import com.attestator.player.client.Player;
 import com.attestator.player.client.rpc.PlayerAsyncCallback;
 import com.attestator.player.shared.dto.ActivePublicationDTO;
+import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.Style.Unit;
+import com.google.gwt.safehtml.shared.SafeHtml;
+import com.google.gwt.uibinder.client.UiBinder;
+import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.user.client.ui.HTML;
 import com.google.gwt.user.client.ui.Widget;
-import com.sencha.gxt.core.client.util.Margins;
+import com.sencha.gxt.core.client.XTemplates;
 import com.sencha.gxt.widget.core.client.ContentPanel;
-import com.sencha.gxt.widget.core.client.container.MarginData;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer;
 import com.sencha.gxt.widget.core.client.container.VerticalLayoutContainer.VerticalLayoutData;
 
 public class PublicationsScreen extends MainScreen {
+    interface UiBinderImpl extends UiBinder<Widget, PublicationsScreen> {
+    }
+    private static UiBinderImpl uiBinder = GWT.create(UiBinderImpl.class);
+    
+    public static interface TextTemplates extends XTemplates{
+        @XTemplate("<b>Доступных тестов нет</b>")
+        public SafeHtml emptyPublicationsMessage();
+    }
+    
+    public static final TextTemplates TEMPLATES = GWT.create(TextTemplates.class);
+
     public static final String HISTORY_TOKEN = "publications";
     private static PublicationsScreen instance;
     
-    private VerticalLayoutContainer vl = new VerticalLayoutContainer();
-    private ContentPanel            cp = new ContentPanel();
-    
-    public PublicationsScreen() {
-        cp.getElement().getStyle().setWidth(600, Unit.PX);
-        cp.getElement().getStyle().setProperty("margin", "auto");        
-        cp.getElement().getStyle().setMarginTop(40, Unit.PX);
-        cp.setHeadingText("Доступные тесты");        
-        cp.add(vl, new MarginData(0, 5, 5, 5));
-    }
+    @UiField
+    protected VerticalLayoutContainer vl;
+    @UiField
+    protected ContentPanel cp;
     
     private void clear() {
         vl.clear();
     }
     
-    private void initEmpty() {
-        clear();
-        vl.add(new HTML("<b>Доступных тестов нет</b>"));
+    private PublicationsScreen() {
+        uiBinder.createAndBindUi(this);
     }
     
     private String preparePublicationItem(ActivePublicationDTO publicationData) {
@@ -82,14 +89,20 @@ public class PublicationsScreen extends MainScreen {
         return hb.toString();
     }
     
+    private void initEmpty() {
+        clear();
+        vl.add(new HTML(TEMPLATES.emptyPublicationsMessage()));
+    }
+
     private void initFromPublications(List<ActivePublicationDTO> publications) {
         clear();
         
         for (int i = 0; i < publications.size(); i++) {
             ActivePublicationDTO publicationData = publications.get(i);
             String publicationItem = preparePublicationItem(publicationData);
-            
-            vl.add(new HTML(publicationItem), new VerticalLayoutData(-1, -1, new Margins(8, 0, 0, 0)));
+            HTML publicationItemHtml = new HTML(publicationItem);
+            WindowHelper.setElementMargins(publicationItemHtml.getElement(), 8, 0, 0, 0, Unit.PX);
+            vl.add(publicationItemHtml, new VerticalLayoutData(1, -1));
         }
     }
     
@@ -101,7 +114,7 @@ public class PublicationsScreen extends MainScreen {
     }
 
     @Override
-    public Widget asWidget() {        
+    public Widget asWidget() {
         return cp;
     }
 

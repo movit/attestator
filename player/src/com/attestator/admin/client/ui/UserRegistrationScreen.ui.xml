@@ -59,7 +59,7 @@
 						</form:FieldLabel>
 					</row:child>
                     <row:child layoutData="{verticalLayoutData}">
-                        <form:FieldLabel text="Повторите, чтобы не ошибиться*" labelAlign="TOP">
+                        <form:FieldLabel text="Повторите пароль, чтобы не ошибиться*" labelAlign="TOP">
                             <form:widget>
                                 <form:PasswordField ui:field="passwordAgain" />
                             </form:widget>

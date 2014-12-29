@@ -1,6 +1,8 @@
 package com.attestator.common.client.helper;
 
 import com.google.gwt.dom.client.Document;
+import com.google.gwt.dom.client.Element;
+import com.google.gwt.dom.client.Style.Unit;
 import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.Event;
 import com.google.gwt.user.client.ui.Frame;
@@ -52,4 +54,11 @@ public class WindowHelper {
     public static native void forceReload() /*-{
         $wnd.location.reload(true);
     }-*/;
+    
+    public static void setElementMargins(Element element, double top, double right, double bottom, double left, Unit unit) {
+        element.getStyle().setMarginTop(top, unit);
+        element.getStyle().setMarginRight(right, unit);
+        element.getStyle().setMarginBottom(bottom, unit);
+        element.getStyle().setMarginLeft(left, unit);        
+    }
 }
