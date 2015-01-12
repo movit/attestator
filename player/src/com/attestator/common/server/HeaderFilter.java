@@ -5,6 +5,7 @@ import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -12,6 +13,7 @@ import javax.servlet.FilterConfig;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
@@ -28,11 +30,19 @@ public class HeaderFilter implements Filter {
  
     private static final Logger logger = Logger.getLogger(PlayerLogic.class);
     private Map<String,String> headersMap;
+    private Pattern urlRegex;
  
     public void init(FilterConfig filterConfig) throws ServletException {
+        String urlRegexParam = filterConfig.getInitParameter("urlRegex");
+        if (urlRegexParam == null) {
+            logger.info("No urlRegex parameter found in the web.xml (init-param) for the HeaderFilter!");
+            return;
+        }
+        urlRegex = Pattern.compile(urlRegexParam);
+        
         String headerParam = filterConfig.getInitParameter("header");
         if (headerParam == null) {
-            logger.info("No headers were found in the web.xml (init-param) for the HeaderFilter !");
+            logger.info("No headers were found in the web.xml (init-param) for the HeaderFilter!");
             return;
         }
  
@@ -56,20 +66,35 @@ public class HeaderFilter implements Filter {
         }
     }
  
-    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
-        if (headersMap != null) {
-            
-            // Add the header to the response
-            Set<Map.Entry<String, String>> headers = headersMap.entrySet();
-            for (Map.Entry<String, String> header : headers) {
-                String headerName  = header.getKey();
-                String headerValue = header.getValue();
-                headerValue = substituteVariables(headerValue);
-                ((HttpServletResponse) response).setHeader(headerName, headerValue);
+    public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain) throws IOException, ServletException {
+        HttpServletRequest request  = (HttpServletRequest)req;
+        HttpServletResponse response = (HttpServletResponse)res;        
+        
+        while(true) {
+            if (headersMap == null) {
+                break;
             }
+            if (urlRegex == null) {
+                break;
+            }
+            if (request.getRequestURI() == null) {
+                break;
+            } 
+            
+            if (urlRegex.matcher(request.getRequestURI()).find()) {
+                // Add the header to the response
+                Set<Map.Entry<String, String>> headers = headersMap.entrySet();
+                for (Map.Entry<String, String> header : headers) {
+                    String headerName  = header.getKey();
+                    String headerValue = header.getValue();
+                    headerValue = substituteVariables(headerValue);
+                    ((HttpServletResponse) response).setHeader(headerName, headerValue);
+                }
+            }
+            break;
         }
         // Continue
-        chain.doFilter(request, response);
+        chain.doFilter(req, res);
     }
  
     private String substituteVariables(String headerValue) {

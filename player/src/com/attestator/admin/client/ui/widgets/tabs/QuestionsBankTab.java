@@ -73,6 +73,7 @@ import com.sencha.gxt.widget.core.client.menu.Menu;
 import com.sencha.gxt.widget.core.client.menu.MenuItem;
 import com.sencha.gxt.widget.core.client.menu.SeparatorMenuItem;
 import com.sencha.gxt.widget.core.client.toolbar.PagingToolBar;
+import com.sencha.gxt.widget.core.client.toolbar.SeparatorToolItem;
 
 public class QuestionsBankTab extends Tab {
     private static final String EDIT_TEST_LINK_ID = "editTest";
@@ -297,12 +298,12 @@ public class QuestionsBankTab extends Tab {
         };
         return result;
     }
-
+    
     @UiField(provided = true)
     ButtonFileUpload.FileUploadFieldMessages uploadQusetionsMessages = new FileUploadFieldMessages() {
         @Override
         public String browserText() {
-            return "Загрузить...";
+            return "Импорт...";
         }
     };
     
@@ -334,6 +335,8 @@ public class QuestionsBankTab extends Tab {
     ButtonFileUpload uploadQuestionsField;
     @UiField 
     FormPanel uploadQuestionsForm;
+    @UiField 
+    SeparatorToolItem importExportSeparator;
     
     private String questionBankFilterValue;    
     
@@ -352,6 +355,11 @@ public class QuestionsBankTab extends Tab {
 
         // Create UI
         initWidget(uiBinder.createAndBindUi(this));
+        
+        // Enable elements by user properties
+        exportQuestionsButton.setVisible(Admin.getLoggedUser().isThisExportAllowed());
+        uploadQuestionsField.setVisible(Admin.getLoggedUser().isThisImportAllowed());
+        importExportSeparator.setVisible(Admin.getLoggedUser().isThisExportAllowed() || Admin.getLoggedUser().isThisImportAllowed());
         
         // Use created by UiBuilder fields to finish configuration
         questionsBankPager.bind(questionsBankLoader);

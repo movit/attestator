@@ -9,15 +9,15 @@
         <filter-class>com.attestator.admin.server.LoginManager</filter-class>
     </filter>
 
-    <filter-mapping>
-        <filter-name>LoginManager</filter-name>
-        <url-pattern>/*</url-pattern>
-    </filter-mapping>
-
     <filter>
         <filter-name>ClientIdFilter</filter-name>
         <filter-class>com.attestator.player.server.ClientIdManager</filter-class>
     </filter>
+
+    <filter-mapping>
+        <filter-name>LoginManager</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
 
     <filter-mapping>
         <filter-name>ClientIdFilter</filter-name>
@@ -25,17 +25,23 @@
     </filter-mapping>
 
     <filter>        
-        <filter-name>HeaderFilterExpiresNow</filter-name>
+        <filter-name>HeaderFilter</filter-name>
         <filter-class>com.attestator.common.server.HeaderFilter</filter-class>
+        
+        <init-param>            
+            <param-name>urlRegex</param-name>
+            <param-value>(.*nocache.js)|(.*appcache)</param-value>
+        </init-param>
+
         <init-param>            
             <param-name>header</param-name>
-            <param-value>Expires: ${now}|Cache-control: no-cache</param-value>
+            <param-value>Expires: ${now}|Last-Modified: ${now}|Cache-Control: max-age=0, no-cache, must-revalidate, proxy-revalidate</param-value>
         </init-param>
     </filter>
     
     <filter-mapping>
-        <filter-name>HeaderFilterExpiresNow</filter-name>
-        <url-pattern>*.appcache</url-pattern>       
+        <filter-name>HeaderFilter</filter-name>
+        <url-pattern>/*</url-pattern>       
     </filter-mapping>
     
     <listener>
@@ -72,6 +78,11 @@
         <servlet-name>printTestServlet</servlet-name>
         <servlet-class>com.attestator.admin.server.PrintTestServlet</servlet-class>
     </servlet>
+    
+    <servlet>
+        <servlet-name>exportQuestionsServlet</servlet-name>
+        <servlet-class>com.attestator.admin.server.ExportQuestionsServlet</servlet-class>
+    </servlet>
 
     <servlet>
         <servlet-name>downloadPdfServlet</servlet-name>
@@ -99,6 +110,11 @@
     </servlet-mapping>
 
     <servlet-mapping>
+        <servlet-name>exportQuestionsServlet</servlet-name>
+        <url-pattern>/admin/exportquestions/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
         <servlet-name>downloadPdfServlet</servlet-name>
         <url-pattern>/admin/downloadpdf</url-pattern>
     </servlet-mapping>
@@ -118,5 +134,4 @@
         <welcome-file>Admin.html</welcome-file>
         <welcome-file>Player.html</welcome-file>
     </welcome-file-list>
-
 </web-app>

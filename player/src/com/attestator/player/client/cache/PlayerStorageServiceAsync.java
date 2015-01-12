@@ -28,7 +28,7 @@ import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 
 public class PlayerStorageServiceAsync implements PlayerServiceAsync {
-    public static final int CACHE_POLLING_INTERVAL = 1000 * 30;
+    public static final int CACHE_POLLING_INTERVAL = 1000 * 5;
     public static final int REPORT_POLLING_INTERVAL = 1000 * 5;
     public static final int OFFLINE_SLEEP_TIMEOUT = 1000 * 60 * 2;
 

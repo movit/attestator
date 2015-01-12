@@ -21,7 +21,7 @@ import com.google.gwt.storage.client.Storage;
 
 public class PlayerStorageCache {
     
-    private static final int VERSION = 14;
+    public static final int VERSION = 22;
     private static final String KEY_PAIR_SEPARATOR = ", ";
 
     private Storage localStorage = Storage.getLocalStorageIfSupported();

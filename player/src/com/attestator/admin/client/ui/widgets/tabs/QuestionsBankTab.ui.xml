@@ -61,7 +61,7 @@
 				<toolbar:SeparatorToolItem />
 				<button:TextButton ui:field="deleteQuestionsButton"
 					text="Удалить" enabled="false" />
-				<toolbar:SeparatorToolItem />
+				<toolbar:SeparatorToolItem ui:field="importExportSeparator"/>
                 <button:TextButton ui:field="exportQuestionsButton"
                     text="Экспорт" enabled="true" />
 				<form:FormPanel ui:field="uploadQuestionsForm"

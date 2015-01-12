@@ -50,7 +50,11 @@ public class WindowHelper {
     public static void unmask() {
         Mask.unmask(XElement.as(RootPanel.get().getElement()));
     }
-    
+
+    public static native void reload() /*-{
+        $wnd.location.reload(false);
+    }-*/;
+
     public static native void forceReload() /*-{
         $wnd.location.reload(true);
     }-*/;

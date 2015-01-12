@@ -120,6 +120,7 @@ public class PublicationsScreen extends MainScreen {
 
     @Override
     public void initContent(HistoryToken token) {
+//        cp.setHeadingText("Cache version: " + PlayerStorageCache.VERSION);
         vl.mask("Загрузка...");
         Player.rpc.getActivePulications(getTenantId(), new PlayerAsyncCallback<List<ActivePublicationDTO>>() {
             @Override

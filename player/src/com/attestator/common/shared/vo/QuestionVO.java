@@ -1,11 +1,18 @@
 package com.attestator.common.shared.vo;
 
 import org.mongodb.morphia.annotations.Entity;
+import org.mongodb.morphia.annotations.Index;
+import org.mongodb.morphia.annotations.Indexes;
 
 import com.attestator.common.server.db.annotation.SetOnSave;
 import com.attestator.common.shared.helper.NullHelper;
 
 @Entity("question")
+@Indexes({
+    @Index(name="idxText", background=true, value="text, _id"),
+    @Index(name="idxGroupId", background=true, value="groupId, _id"),
+    @Index(name="idxGroupName", background=true, value="groupName, _id")
+})
 public abstract class QuestionVO extends ShareableVO {
     private static final long serialVersionUID = -2683964459602620222L;
     private String            text;

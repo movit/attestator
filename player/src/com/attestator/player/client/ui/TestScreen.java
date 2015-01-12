@@ -248,6 +248,15 @@ public class TestScreen extends MainScreen {
     private int nextUnansweredQuestion(int fromQuestion) {
         for (int i = 0; i < report.getQuestions().size(); i++) {
             int no = (fromQuestion + 1 + i) % report.getQuestions().size();
+            
+            if (no <= fromQuestion) {
+                // Return to start of questions list
+                if (!report.getPublication().isThisAllowSkipQuestions()) {
+                    // Questions skipping not allowed so no more questions at beginning
+                    return -1;
+                }
+            }
+
             QuestionVO question = report.getQuestions().get(no);
             if (!report.isQuestionAnswered(question.getId())) {
                 return no;
@@ -570,19 +579,19 @@ public class TestScreen extends MainScreen {
         cancelQuestionTimer();
 
         final long s = ms / 1000;
-
         String text = questionTimerText(s);
         questionTimeLabel.setText(text);
 
         questionTimer = new Timer() {
-            private long sec = s;
+            private long total = ms;
+            private long start = System.currentTimeMillis();
 
             @Override
             public void run() {
+                long sec = (total - (System.currentTimeMillis() - start)) / 1000;
+                
                 String text = questionTimerText(sec);
                 questionTimeLabel.setText(text);
-
-                sec--;
 
                 if (sec <= 0) {
                     cancel();
@@ -603,14 +612,15 @@ public class TestScreen extends MainScreen {
         testTimeLabel.setText(text);
 
         testTimer = new Timer() {
-            private long sec = s;
+            private long total = ms;
+            private long start = System.currentTimeMillis();
 
             @Override
             public void run() {
+                long sec = (total - (System.currentTimeMillis() - start)) / 1000;
+                
                 String text = testTimerText(sec);
                 testTimeLabel.setText(text);
-
-                sec--;
 
                 if (sec <= 0) {
                     cancel();
@@ -663,7 +673,29 @@ public class TestScreen extends MainScreen {
     }
 
     private void initTopPanel() {
+//        HBoxLayoutContainer hbl = new HBoxLayoutContainer();
+//
+//        BoxLayoutData bl = null;
+//
+//        bl = new BoxLayoutData();
+//        bl.setFlex(1);
+//        hbl.add(questionNoLabel, bl);
+//        WindowHelper.setElementMargins(questionNoLabel.getElement(), 0, 5, 0, 0, Unit.PX);
+//
+//        bl = new BoxLayoutData();
+//        bl.setFlex(1);
+//        hbl.add(questionTimeLabel, bl);
+//        WindowHelper.setElementMargins(questionTimeLabel.getElement(), 0, 5, 0, 0, Unit.PX);
+//
+//        bl = new BoxLayoutData();
+//        bl.setFlex(1);
+//        hbl.add(testTimeLabel, bl);
+//        WindowHelper.setElementMargins(testTimeLabel.getElement(), 0, 10, 0, 0, Unit.PX);
+//
+//        topPanel.add(hbl);
         HBoxLayoutContainer hbl = new HBoxLayoutContainer();
+        
+        topPanel.add(hbl);
 
         BoxLayoutData bl = null;
 
@@ -678,8 +710,13 @@ public class TestScreen extends MainScreen {
         bl = new BoxLayoutData(new Margins(0, 5, 0, 0));
         bl.setFlex(1);
         hbl.add(testTimeLabel, bl);
-
-        topPanel.add(hbl);
+        
+        Scheduler.get().scheduleDeferred(new ScheduledCommand() {
+            @Override
+            public void execute() {
+                topPanel.forceLayout();
+            }
+        });
     }
 
     private final SelectHandler navigationButtonHandler = new SelectHandler() {

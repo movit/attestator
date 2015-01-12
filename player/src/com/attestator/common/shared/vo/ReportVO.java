@@ -5,11 +5,29 @@ import java.util.Date;
 import java.util.List;
 
 import org.mongodb.morphia.annotations.Entity;
+import org.mongodb.morphia.annotations.Index;
+import org.mongodb.morphia.annotations.Indexes;
 
 import com.attestator.common.shared.helper.NullHelper;
 import com.attestator.common.shared.helper.StringHelper;
 
 @Entity("report")
+@Indexes({
+    @Index(name="idxDefault", background=true, value="-start, _id"),
+    @Index(name="idxFullName", background=true, value="lastName, firstName, middleName, _id"),
+    @Index(name="idxEmail", background=true, value="email, _id"),
+    @Index(name="idxStart", background=true, value="start, _id"),
+    @Index(name="idxEnd", background=true, value="end, _id"),
+    @Index(name="idxFinished", background=true, value="finished, _id"),
+    @Index(name="idxInterruptionCause", background=true, value="interruptionCause, _id"),
+    @Index(name="idxClientId", background=true, value="clientId, _id"),
+    @Index(name="idxHost", background=true, value="host, _id"),
+    @Index(name="idxScore", background=true, value="score, _id"),
+    @Index(name="idxNumErrors", background=true, value="numErrors, _id"),
+    @Index(name="idxNumAnswers", background=true, value="numAnswers, _id"),
+    @Index(name="idxNumUnanswered", background=true, value="numUnanswered, _id"),
+    @Index(name="idxMetatestName", background=true, value="metatestName, _id")    
+})
 public class ReportVO extends TenantableVO {
     private static final long serialVersionUID = -5907963588232512986L;
 

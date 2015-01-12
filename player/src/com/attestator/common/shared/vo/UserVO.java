@@ -2,6 +2,8 @@ package com.attestator.common.shared.vo;
 
 import org.mongodb.morphia.annotations.Entity;
 
+import com.attestator.common.shared.helper.NullHelper;
+
 
 @Entity("user")
 public class UserVO extends TenantableVO {
@@ -15,6 +17,10 @@ public class UserVO extends TenantableVO {
     private String email;
     private String username;
     private String password;
+    
+    private Boolean exportAllowed;
+    private Boolean importAllowed;    
+    private Boolean sharingAllowed;    
 
     public UserVO() {
         setTenantId(getId());
@@ -84,4 +90,42 @@ public class UserVO extends TenantableVO {
     public void setOrganization(String organization) {
         this.organization = organization;
     }
+
+    public Boolean getExportAllowed() {
+        return exportAllowed;
+    }
+    
+    public boolean isThisExportAllowed() {
+        return NullHelper.nullSafeTrue(exportAllowed);
+    }
+
+    public void setExportAllowed(Boolean exportAllowed) {
+        this.exportAllowed = exportAllowed;
+    }
+
+    public Boolean getImportAllowed() {
+        return importAllowed;
+    }
+    
+    public boolean isThisImportAllowed() {
+        return NullHelper.nullSafeTrue(importAllowed);
+    }
+
+    public void setImportAllowed(Boolean importAllowed) {
+        this.importAllowed = importAllowed;
+    }
+
+    public Boolean getSharingAllowed() {
+        return sharingAllowed;
+    }
+
+    public boolean isThisSharingAllowed() {
+        return NullHelper.nullSafeTrue(sharingAllowed);
+    }
+
+    public void setSharingAllowed(Boolean sharingAllowed) {
+        this.sharingAllowed = sharingAllowed;
+    }
+    
+    
 }

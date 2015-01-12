@@ -41,11 +41,12 @@ import com.attestator.common.shared.vo.SingleChoiceQuestionVO;
 import com.attestator.common.shared.vo.UserVO;
 import com.attestator.player.server.Singletons;
 import com.metapossum.utils.scanner.reflect.ClassesInPackageScanner;
+import com.mongodb.DBCollection;
 
 public class DatabaseUpdater {
     private static Logger logger = Logger.getLogger(DatabaseUpdater.class);
     
-    public static final int DB_VERSION = 33;
+    public static final int DB_VERSION = 36;
     
     private Datastore rawDs;   
     
@@ -326,7 +327,11 @@ public class DatabaseUpdater {
             uo.disableValidation().unset("numberOfQuestions").enableValidation();
             rawDs.update(q, uo);
         }
-        
+
+        if (version.getVersionOrZero() < 36) {
+            rebuildAllIndexes();
+        }
+
         if (version.getVersionOrZero() < DB_VERSION) {
             resetChangeMarkers();
             
@@ -335,6 +340,14 @@ public class DatabaseUpdater {
         }
         
         logger.info("Database is up to date");
+    }
+    
+    private void rebuildAllIndexes() {
+        for(String collectionName: rawDs.getDB().getCollectionNames()) {
+            DBCollection collection = rawDs.getDB().getCollection(collectionName);
+            collection.dropIndexes();
+        }
+        rawDs.ensureIndexes();
     }
     
     private void removeAllLocks() {
