@@ -70,12 +70,12 @@ public class Admin implements EntryPoint {
     public static void refreshLoggedUser(final AdminAsyncCallback<UserVO> callback) {
         Admin.RPC.getLoggedUser(new AdminAsyncRedirectingCallback<UserVO>(callback) {
             @Override
-            public void onAfterSuccess(UserVO result) {
+            public void onBeforeSuccess(UserVO result) {
                 loggedUser = result;
             }
             
             @Override
-            public void onAfterFailure(Throwable caught) {
+            public void onBeforeFailure(Throwable caught) {
                 loggedUser = null;
             }
         });
