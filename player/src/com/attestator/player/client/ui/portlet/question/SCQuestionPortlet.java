@@ -54,7 +54,7 @@ public class SCQuestionPortlet implements QuestionPortlet {
         tg.clear();
         vl.clear();
         WindowHelper.setElementMargins(questionHtml.getElement(), 10, 0, 10, 0, Unit.PX);
-        vl.add(questionHtml, new VerticalLayoutData(1, -1));
+        vl.add(questionHtml, new VerticalLayoutData(1, -1, new Margins(0, 0, 0, 0)));
     }
     
     public void init(SingleChoiceQuestionVO question) {
@@ -88,7 +88,7 @@ public class SCQuestionPortlet implements QuestionPortlet {
             bl.setFlex(1);
             hBox.add(choiceHtml, bl);
             
-            vl.add(hBox);
+            vl.add(hBox, new VerticalLayoutData(1, -1, new Margins(0, 0, 0, 0)));
         }
     }
     

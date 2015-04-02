@@ -487,7 +487,7 @@ public class TestScreen extends MainScreen {
             questionPortlet.setEnabled(!report.isQuestionAnswered(question
                     .getId()));
             centerPanel.setWidget(questionPortlet);
-
+            
             ArrayList<TextButton> buttons = new ArrayList<TextButton>();
             if (publication.isThisAllowInterruptTest()) {
                 buttons.add(interruptTestButton);
@@ -535,8 +535,14 @@ public class TestScreen extends MainScreen {
         default:
             throw new IllegalArgumentException("Unknown state: " + newState);
         }
-
-        mainPanel.forceLayout();
+        
+        Scheduler.get().scheduleDeferred(new ScheduledCommand() {            
+            @Override
+            public void execute() {
+                mainPanel.forceLayout();
+            }
+        });        
+        
         state = newState;
     }
 
